@@ -1,0 +1,312 @@
+import 'package:flutter/material.dart';
+import 'dart:async';
+import 'c2services/services_section.dart';
+import 'c2events/c2s1epeventstab.dart';
+import './churches_section.dart';
+import 'c2appointments/appointments_section.dart';
+import './header_section.dart';
+import '../3/nav_bar.dart';
+import './c1homepage/home_page.dart' as c1;
+import './c1homepage/views/profile_view.dart';
+import './c1homepage/models/user_data.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Teleo App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: const Color(0xFF000233),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF000233),
+          primary: const Color(0xFF000233),
+        ),
+        fontFamily: 'Poppins',
+      ),
+      home: const HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final PageController _pageController = PageController(initialPage: 0);
+  int _currentPage = 0;
+  bool _isRefreshed = false;
+  bool _isSignedUp = true; // Always true for client version
+  final ScrollController _servicesScrollController = ScrollController();
+  final ScrollController _eventsScrollController = ScrollController();
+  final ScrollController _churchesScrollController = ScrollController();
+  final ScrollController _appointmentsScrollController = ScrollController();
+  bool _isHeaderCollapsed = false;
+  double _headerHeight = 220.0;
+  final double _minHeaderHeight = 56.0;
+  bool _isKeyboardVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _servicesScrollController.addListener(_onScroll);
+    _eventsScrollController.addListener(_onScroll);
+    _churchesScrollController.addListener(_onScroll);
+    _appointmentsScrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _servicesScrollController.removeListener(_onScroll);
+    _eventsScrollController.removeListener(_onScroll);
+    _churchesScrollController.removeListener(_onScroll);
+    _appointmentsScrollController.removeListener(_onScroll);
+    _servicesScrollController.dispose();
+    _eventsScrollController.dispose();
+    _churchesScrollController.dispose();
+    _appointmentsScrollController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    ScrollController activeController;
+    if (_currentPage == 0) {
+      activeController = _servicesScrollController;
+    } else if (_currentPage == 1) {
+      activeController = _eventsScrollController;
+    } else if (_currentPage == 2) {
+      activeController = _churchesScrollController;
+    } else {
+      activeController = _appointmentsScrollController;
+    }
+
+    if (activeController.hasClients) {
+      final double scrollOffset = activeController.offset;
+      final double maxScroll = 50.0;
+
+      // Calculate new height with bounds checking
+      double newHeight = 220.0 - (scrollOffset * ((220.0 - _minHeaderHeight) / maxScroll));
+      newHeight = newHeight.clamp(_minHeaderHeight, 220.0);
+      bool isCollapsed = newHeight <= _minHeaderHeight + 1.0; // Add a small buffer
+      if (newHeight != _headerHeight || isCollapsed != _isHeaderCollapsed) {
+        setState(() {
+          _headerHeight = newHeight;
+          _isHeaderCollapsed = isCollapsed;
+        });
+      }
+    }
+  }
+
+  void _handleSignUp() {
+    setState(() {
+      _isSignedUp = true;
+    });
+  }
+
+  double _getAdjustedHeaderHeight() {
+    if (_isKeyboardVisible) {
+      return _minHeaderHeight;
+    }
+    return _headerHeight;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    final double adjustedHeaderHeight = _getAdjustedHeaderHeight();
+
+    return Scaffold(
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height -
+              MediaQuery.of(context).padding.top -
+              MediaQuery.of(context).padding.bottom,
+          child: Stack(
+            children: [
+              // Background color - full dark navy blue background
+              Container(
+                color: const Color(0xFF000233),
+              ),
+
+              // Header Section (Dark Navy Blue)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  height: adjustedHeaderHeight,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF000233),
+                  ),
+                  child: _isKeyboardVisible || _isHeaderCollapsed
+                      ? const CollapsedHeaderSection()
+                      : const HeaderSection(),
+                ),
+              ),
+
+              // Content Section (White)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                top: adjustedHeaderHeight - 20,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        spreadRadius: 0,
+                        blurRadius: 4,
+                        offset: const Offset(0, -1),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: NotificationListener<OverscrollIndicatorNotification>(
+                            onNotification: (OverscrollIndicatorNotification overscroll) {
+                              overscroll.disallowIndicator();
+                              return true;
+                            },
+                            child: PageView(
+                              controller: _pageController,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                  if (!_isKeyboardVisible) {
+                                    _headerHeight = 220.0;
+                                    _isHeaderCollapsed = false;
+                                  }
+                                });
+                              },
+                              children: [
+                                ServicesSection(
+                                  scrollController: _servicesScrollController,
+                                  isHeaderCollapsed: _isHeaderCollapsed || _isKeyboardVisible,
+                                  isSignedUp: _isSignedUp,
+                                  onSignUp: _handleSignUp,
+                                ),
+                                EventsSection(
+                                  scrollController: _eventsScrollController,
+                                  isHeaderCollapsed: _isHeaderCollapsed || _isKeyboardVisible,
+                                ),
+                                AffiliatedChurchesSection(
+                                  scrollController: _churchesScrollController,
+                                  isHeaderCollapsed: _isHeaderCollapsed || _isKeyboardVisible,
+                                ),
+                                MyAppointmentsSection(
+                                  onRefresh: () async {
+                                    await Future.delayed(const Duration(seconds: 1));
+                                    setState(() {
+                                      _isRefreshed = true;
+                                    });
+                                  },
+                                  isRefreshed: _isRefreshed,
+                                  scrollController: _appointmentsScrollController,
+                                  isHeaderCollapsed: _isHeaderCollapsed || _isKeyboardVisible,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: NavBar(
+        currentIndex: 1, // Services tab
+        isAdminView: false, // User view
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              // Navigate to Home (c1homepage)
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const c1.HomePage()),
+                (route) => false,
+              );
+              break;
+            case 1:
+              // Already on Services
+              break;
+            case 4:
+              // Navigate to Profile (index 4 is Profile in the NavBar)
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                    body: ProfileView(
+                      userData: UserData(
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john.doe@example.com',
+                        phoneNumber: '+1234567890',
+                        username: '@johndoe',
+                        pronouns: 'He/Him',
+                        birthdate: '01/01/1990',
+                        password: '••••••••',
+                      ),
+                      onUpdateUserData: (userData) {
+                        // Handle user data updates
+                      },
+                    ),
+                    bottomNavigationBar: NavBar(
+                      currentIndex: 4,
+                      isAdminView: false,
+                      onTap: (index) {
+                        if (index == 0) {
+                          // Navigate to Home (c1homepage)
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const c1.HomePage()),
+                            (route) => false,
+                          );
+                        } else if (index == 1) {
+                          // Go back to Services
+                          Navigator.pop(context);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              );
+              break;
+          }
+        },
+      ),
+    );
+  }
+}
