@@ -1,0 +1,56 @@
+name: teleo_organized_new
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_screenutil: ^5.7.0
+  cupertino_icons: ^1.0.8
+  image_picker: ^1.0.7
+  firebase_core: ^3.13.1
+  firebase_auth: ^5.5.4
+  cloud_functions: ^5.5.1
+  js: ^0.7.2
+  http: ^1.1.0
+  dotted_border: ^3.0.1
+  convert: ^3.1.1
+  flutter_dotenv: ^5.1.0
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  uuid: ^4.5.1
+  http_parser: ^4.0.2
+  http_status_code: 0.0.2
+  font_awesome_flutter: ^10.7.0
+  xml: ^6.1.0
+  aws_client: ^0.7.0
+  provider: ^6.0.5
+  dotenv: ^4.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/teleo_logo.png
+    - assets/images/profile.jpg
+    - assets/images/church_interior.jpg
+    - assets/images/bible_icon.png
+    - assets/images/heart_icon.png
+    - assets/images/home_icon.png
+    - assets/images/pray_icon.png
+    - assets/images/profile_icon.png
+    - assets/images/blue_background.png
+    - assets/images/baptism_service.jpg
+    - assets/images/funeral_service.jpg
+    - assets/images/wedding_service.jpg
+    - assets/images/fish_logo.png
