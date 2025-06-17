@@ -20,6 +20,7 @@ class NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('NavBar build called');
     return Container(
       height: 70.h, // Use height with ScreenUtil
       decoration: BoxDecoration(

@@ -14,7 +14,7 @@ class AdminDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color(0xFF001A33), // Dark blue background
+      backgroundColor: const Color(0xFF001A33),
       child: SafeArea(
         child: Column(
           children: [
@@ -28,32 +28,24 @@ class AdminDrawer extends StatelessWidget {
                 },
               ),
             ),
-
             // Profile section
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
                 children: [
-                  // Church logo
+                  // Church icon in white circle
                   Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white,
-                      border: Border.all(color: Colors.white, width: 2),
                     ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/church_logo.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.church,
-                            size: 40,
-                            color: Color(0xFFFFAA00),
-                          );
-                        },
+                    child: Center(
+                      child: Icon(
+                        Icons.church,
+                        size: 36,
+                        color: Color(0xFFFFAA00),
                       ),
                     ),
                   ),
@@ -63,14 +55,13 @@ class AdminDrawer extends StatelessWidget {
                     adminData.churchName,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-
             // Main menu items
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -87,7 +78,7 @@ class AdminDrawer extends StatelessWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    Icons.church,
+                    Icons.church_outlined,
                     'Church',
                     onTap: () {
                       Navigator.pop(context);
@@ -96,7 +87,7 @@ class AdminDrawer extends StatelessWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    Icons.inbox,
+                    Icons.inbox_outlined,
                     'Inbox',
                     onTap: () {
                       Navigator.pop(context);
@@ -105,7 +96,7 @@ class AdminDrawer extends StatelessWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    Icons.settings,
+                    Icons.settings_outlined,
                     'Settings',
                     onTap: () {
                       Navigator.pop(context);
@@ -115,16 +106,14 @@ class AdminDrawer extends StatelessWidget {
                 ],
               ),
             ),
-
             // Divider
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
-                vertical: 16.0,
+                vertical: 12.0,
               ),
-              child: Container(height: 1, color: Colors.white.withOpacity(0.2)),
+              child: Container(height: 1, color: Colors.white24),
             ),
-
             // Secondary menu items (without icons)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,16 +138,12 @@ class AdminDrawer extends StatelessWidget {
                 ),
               ],
             ),
-
-            // Spacer to push logout to bottom
             const Spacer(),
-
             // Logout button - fixed at the bottom
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: InkWell(
                 onTap: () {
-                  // Logout functionality
                   Navigator.of(
                     context,
                   ).pushNamedAndRemoveUntil('/', (route) => false);
@@ -169,7 +154,7 @@ class AdminDrawer extends StatelessWidget {
                       'Log Out',
                       style: TextStyle(
                         color: Colors.red,
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -179,7 +164,7 @@ class AdminDrawer extends StatelessWidget {
                       child: const Icon(
                         Icons.logout,
                         color: Colors.red,
-                        size: 20,
+                        size: 18,
                       ),
                     ),
                   ],
@@ -204,11 +189,11 @@ class AdminDrawer extends StatelessWidget {
         onTap: onTap,
         child: Row(
           children: [
-            Icon(icon, color: Colors.white, size: 24),
+            Icon(icon, color: Colors.white, size: 22),
             const SizedBox(width: 16),
             Text(
               title,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontSize: 15),
             ),
           ],
         ),
@@ -229,7 +214,7 @@ class AdminDrawer extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontSize: 15),
             ),
           ],
         ),

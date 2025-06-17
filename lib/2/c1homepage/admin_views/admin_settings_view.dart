@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../admin_types.dart';
+import '../authenticator_flow.dart';
 
 class AdminSettingsView extends StatelessWidget {
-  final Function(AdminView, {AuthenticatorFlow? flow, String? newValue})
+  final void Function(AdminView, {AuthenticatorFlow? flow, String? newValue})
   onNavigate;
 
   const AdminSettingsView({super.key, required this.onNavigate});

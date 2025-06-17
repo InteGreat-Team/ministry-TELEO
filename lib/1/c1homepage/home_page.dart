@@ -2980,7 +2980,7 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
       case AuthenticatorFlow.password:
         return 'Enter the six-digit code sent to your email.';
       case AuthenticatorFlow.phone:
-        return 'Enter the six-digit code sent to your email.';
+        return 'Enter the six-digit code sent to your phone number.';
     }
   }
 

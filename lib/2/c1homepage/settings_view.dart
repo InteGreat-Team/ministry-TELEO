@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
 import 'admin_types.dart';
 
 class AdminSettingsView extends StatelessWidget {
@@ -13,65 +12,104 @@ class AdminSettingsView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
-            // Settings header
             const Text(
               'Settings',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const Text(
-              'Admin Dashboard',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            const SizedBox(height: 24),
+            _buildSettingsSection(
+              'Account',
+              [
+                _buildSettingsItem(
+                  context,
+                  Icons.person_outline,
+                  'Account Settings',
+                  'Manage your account information',
+                  onTap: () => onNavigate(AdminView.accountSettings),
+                ),
+                _buildSettingsItem(
+                  context,
+                  Icons.security,
+                  'Security',
+                  'Manage your security settings',
+                  onTap: () => onNavigate(AdminView.securitySettings),
+                ),
+              ],
             ),
-            const SizedBox(height: 30),
-
-            // Settings menu items
-            _buildSettingsItem(
-              context,
-              Icons.person,
-              'Your Account',
-              'Edit your account information',
-              onTap: () => onNavigate(AdminView.accountSettings),
+            const SizedBox(height: 24),
+            _buildSettingsSection(
+              'Preferences',
+              [
+                _buildSettingsItem(
+                  context,
+                  Icons.notifications_outlined,
+                  'Notifications',
+                  'Manage notification preferences',
+                  onTap: () => onNavigate(AdminView.notificationSettings),
+                ),
+                _buildSettingsItem(
+                  context,
+                  Icons.event_outlined,
+                  'Mass Schedule',
+                  'Manage church mass schedules',
+                  onTap: () => onNavigate(AdminView.massSchedule),
+                ),
+              ],
             ),
-            _buildSettingsItem(
-              context,
-              Icons.security,
-              'Security and Account Access',
-              'Manage your account\'s security',
-              onTap: () => onNavigate(AdminView.securitySettings),
-            ),
-            _buildSettingsItem(
-              context,
-              Icons.notifications,
-              'Manage Notifications',
-              'Manage notifications received',
-              onTap: () => onNavigate(AdminView.notificationSettings),
-            ),
-            _buildSettingsItem(
-              context,
-              Icons.event,
-              'Mass Schedule',
-              'Manage church mass schedules',
-              onTap: () => onNavigate(AdminView.massSchedule),
-            ),
-            _buildSettingsItem(
-              context,
-              Icons.report_problem,
-              'Report an Issue',
-              'Report issues',
-              onTap: () => onNavigate(AdminView.reportIssue),
-            ),
-            _buildSettingsItem(
-              context,
-              Icons.description,
-              'Terms and Conditions',
-              'Legal notes',
+            const SizedBox(height: 24),
+            _buildSettingsSection(
+              'Help & Support',
+              [
+                _buildSettingsItem(
+                  context,
+                  Icons.help_outline,
+                  'FAQs',
+                  'View frequently asked questions',
+                  onTap: () => onNavigate(AdminView.faqs),
+                ),
+                _buildSettingsItem(
+                  context,
+                  Icons.report_outlined,
+                  'Report an Issue',
+                  'Report technical problems',
+                  onTap: () => onNavigate(AdminView.reportIssue),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSettingsSection(String title, List<Widget> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF001A33),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: items,
+          ),
+        ),
+      ],
     );
   }
 
@@ -80,38 +118,17 @@ class AdminSettingsView extends StatelessWidget {
     IconData icon,
     String title,
     String subtitle, {
-    VoidCallback? onTap,
+    required VoidCallback onTap,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: Colors.grey[300]!),
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 8,
-          ),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[200],
-            ),
-            child: Icon(icon, color: Colors.black54),
-          ),
-          title: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(subtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: onTap,
-        ),
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFF001A33)),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500),
       ),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }
