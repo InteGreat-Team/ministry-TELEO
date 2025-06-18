@@ -14,7 +14,6 @@ import 'community_screen.dart';
 import 'posts_screen.dart';
 
 // Import new components
-import 'components/church_profile.dart';
 import 'components/metrics_grid.dart';
 import 'components/analytics_chart.dart';
 import 'components/content_management.dart';
@@ -286,69 +285,73 @@ class _AdminHomePageState extends State<AdminHomePage>
                   _currentView == AdminView.faqs
               ? const Color(0xFF001A33)
               : Colors.white,
-      appBar: AppBar(
-        title: Text(_currentTitle),
-        backgroundColor:
-            _currentView == AdminView.home ||
-                    _currentView == AdminView.profile ||
-                    _currentView == AdminView.faqs
-                ? const Color(0xFF001A33)
-                : Colors.white,
-        foregroundColor:
-            _currentView == AdminView.home ||
-                    _currentView == AdminView.profile ||
-                    _currentView == AdminView.faqs
-                ? Colors.white
-                : Colors.black,
-        elevation: 0,
-        leading:
-            _currentView != AdminView.home
-                ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    if (_currentView == AdminView.authenticator) {
-                      switch (_currentAuthFlow) {
-                        case AuthenticatorFlow.email:
-                          _navigateTo(AdminView.changeEmail);
-                          break;
-                        case AuthenticatorFlow.password:
-                          _navigateTo(AdminView.changePassword);
-                          break;
-                        case AuthenticatorFlow.phone:
-                          _navigateTo(AdminView.changePhone);
-                          break;
-                      }
-                    } else if (_currentView == AdminView.changeEmail ||
-                        _currentView == AdminView.changePassword ||
-                        _currentView == AdminView.changePhone) {
-                      _navigateTo(AdminView.securitySettings);
-                    } else if (_currentView == AdminView.securitySettings ||
-                        _currentView == AdminView.accountSettings ||
-                        _currentView == AdminView.massSchedule ||
-                        _currentView == AdminView.notificationSettings) {
-                      _navigateTo(AdminView.settings);
-                    } else if (_currentView == AdminView.faqs) {
-                      _navigateTo(AdminView.home);
-                    } else if (_currentView == AdminView.profile) {
-                      _navigateTo(AdminView.home);
-                    } else if (_currentView == AdminView.reportIssue) {
-                      _navigateTo(AdminView.home);
-                    } else {
-                      _navigateTo(AdminView.home);
-                    }
-                  },
-                )
-                : null,
-        actions: [
-          if (_currentView == AdminView.home)
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined),
-              onPressed: () {
-                // Notification functionality will be added later
-              },
-            ),
-        ],
-      ),
+      appBar:
+          _currentView == AdminView.profile
+              ? null
+              : AppBar(
+                title: Text(_currentTitle),
+                backgroundColor:
+                    _currentView == AdminView.home ||
+                            _currentView == AdminView.profile ||
+                            _currentView == AdminView.faqs
+                        ? const Color(0xFF001A33)
+                        : Colors.white,
+                foregroundColor:
+                    _currentView == AdminView.home ||
+                            _currentView == AdminView.profile ||
+                            _currentView == AdminView.faqs
+                        ? Colors.white
+                        : Colors.black,
+                elevation: 0,
+                leading:
+                    _currentView != AdminView.home
+                        ? IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () {
+                            if (_currentView == AdminView.authenticator) {
+                              switch (_currentAuthFlow) {
+                                case AuthenticatorFlow.email:
+                                  _navigateTo(AdminView.changeEmail);
+                                  break;
+                                case AuthenticatorFlow.password:
+                                  _navigateTo(AdminView.changePassword);
+                                  break;
+                                case AuthenticatorFlow.phone:
+                                  _navigateTo(AdminView.changePhone);
+                                  break;
+                              }
+                            } else if (_currentView == AdminView.changeEmail ||
+                                _currentView == AdminView.changePassword ||
+                                _currentView == AdminView.changePhone) {
+                              _navigateTo(AdminView.securitySettings);
+                            } else if (_currentView ==
+                                    AdminView.securitySettings ||
+                                _currentView == AdminView.accountSettings ||
+                                _currentView == AdminView.massSchedule ||
+                                _currentView ==
+                                    AdminView.notificationSettings) {
+                              _navigateTo(AdminView.settings);
+                            } else if (_currentView == AdminView.faqs) {
+                              _navigateTo(AdminView.home);
+                            } else if (_currentView == AdminView.profile) {
+                              _navigateTo(AdminView.home);
+                            } else if (_currentView == AdminView.reportIssue) {
+                              _navigateTo(AdminView.home);
+                            } else {
+                              _navigateTo(AdminView.home);
+                            }
+                          },
+                        )
+                        : null,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: () {
+                      // Notification functionality will be added later
+                    },
+                  ),
+                ],
+              ),
       drawer:
           _currentView == AdminView.home
               ? AdminDrawer(onNavigate: _navigateTo, adminData: _adminData)
@@ -420,19 +423,251 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   Widget _buildHomeView() {
-    return Container(
-      color: const Color(0xFF001A33),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Admin dashboard header
+          Stack(
             children: [
-              ChurchProfile(adminData: _adminData),
-              MetricsGrid(adminData: _adminData),
-              const AnalyticsChart(),
-              ContentManagement(onNavigate: _navigateTo),
+              Container(
+                height: 180,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                  child: Image.asset(
+                    'assets/images/church_interior.jpg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(
+                            Icons.church,
+                            size: 60,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/church_logo.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.white,
+                                  child: const Icon(
+                                    Icons.church,
+                                    size: 40,
+                                    color: Color(0xFF1A237E),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _adminData.churchName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildStatColumn(_adminData.posts, 'Posts'),
+                            _buildVerticalDivider(),
+                            _buildStatColumn(_adminData.following, 'Following'),
+                            _buildVerticalDivider(),
+                            _buildStatColumn(_adminData.followers, 'Followers'),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
+          // Stats cards
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'Login Activity',
+                        _adminData.loginActivity,
+                        _adminData.loginActivityPercentage,
+                        Icons.show_chart,
+                        Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Daily Follows',
+                        _adminData.dailyFollows,
+                        _adminData.dailyFollowsPercentage,
+                        Icons.favorite,
+                        Colors.pink,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        'Daily Visits',
+                        _adminData.dailyVisits,
+                        _adminData.dailyVisitsPercentage,
+                        Icons.visibility,
+                        Colors.teal,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        'Bookings',
+                        _adminData.bookings,
+                        _adminData.bookingsPercentage,
+                        Icons.event,
+                        Colors.amber,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Add analytics chart section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+            child: AnalyticsChart(),
+          ),
+          // Add manage content section
+          ContentManagement(onNavigate: _navigateTo),
+          // ...rest of your home content...
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatColumn(String value, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(height: 30, width: 1, color: Colors.white24);
+  }
+
+  Widget _buildStatCard(
+    String title,
+    String value,
+    String percent,
+    IconData icon,
+    Color iconColor,
+  ) {
+    return Card(
+      color: const Color(0xFF1A2235),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              percent,
+              style: TextStyle(
+                color: percent.startsWith('+') ? Colors.green : Colors.red,
+                fontSize: 13,
+              ),
+            ),
+          ],
         ),
       ),
     );

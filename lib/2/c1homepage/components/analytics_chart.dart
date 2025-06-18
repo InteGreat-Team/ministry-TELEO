@@ -31,7 +31,11 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
     );
   }
 
-  Widget _buildTimeSpentColumn(double height, String label, bool isHighlighted) {
+  Widget _buildTimeSpentColumn(
+    double height,
+    String label,
+    bool isHighlighted,
+  ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -39,7 +43,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
           width: 30,
           height: 160 * height,
           decoration: BoxDecoration(
-            color: isHighlighted ? Colors.blue[300] : Colors.blue[300]?.withOpacity(0.3),
+            color:
+                isHighlighted
+                    ? Colors.blue[300]
+                    : Colors.blue[300]?.withOpacity(0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -83,7 +90,7 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
 
   Widget _buildTimeSpentContent() {
     return SizedBox(
-      height: 200,
+      height: 240,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -97,7 +104,7 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
             children: [
               _buildTimeSpentColumn(0.9, 'May', true),
               Container(
-                margin: const EdgeInsets.only(bottom: 180),
+                margin: const EdgeInsets.only(bottom: 200),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 6,
@@ -176,7 +183,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                 child: Text(
                   'Total Reads',
                   style: TextStyle(
-                    color: _activeAnalyticsTab == 0 ? Colors.blue[300] : Colors.white,
+                    color:
+                        _activeAnalyticsTab == 0
+                            ? Colors.blue[300]
+                            : Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -188,7 +198,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                 child: Text(
                   'Total Watches',
                   style: TextStyle(
-                    color: _activeAnalyticsTab == 1 ? Colors.blue[300] : Colors.white,
+                    color:
+                        _activeAnalyticsTab == 1
+                            ? Colors.blue[300]
+                            : Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -200,7 +213,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                 child: Text(
                   'Total Followers',
                   style: TextStyle(
-                    color: _activeAnalyticsTab == 2 ? Colors.blue[300] : Colors.white,
+                    color:
+                        _activeAnalyticsTab == 2
+                            ? Colors.blue[300]
+                            : Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -220,9 +236,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _activeAnalyticsTab == 0
-                      ? Colors.blue[300]
-                      : Colors.white.withOpacity(0.3),
+                  color:
+                      _activeAnalyticsTab == 0
+                          ? Colors.blue[300]
+                          : Colors.white.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -231,9 +248,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _activeAnalyticsTab == 1
-                      ? Colors.blue[300]
-                      : Colors.white.withOpacity(0.3),
+                  color:
+                      _activeAnalyticsTab == 1
+                          ? Colors.blue[300]
+                          : Colors.white.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -242,9 +260,10 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: _activeAnalyticsTab == 2
-                      ? Colors.blue[300]
-                      : Colors.white.withOpacity(0.3),
+                  color:
+                      _activeAnalyticsTab == 2
+                          ? Colors.blue[300]
+                          : Colors.white.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
