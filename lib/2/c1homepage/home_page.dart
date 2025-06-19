@@ -27,6 +27,10 @@ import 'admin_views/admin_account_settings_view.dart';
 import 'admin_views/admin_change_email_view.dart';
 import 'admin_views/admin_change_password_view.dart';
 import 'admin_views/admin_change_phone_view.dart';
+import 'admin_views/admin_terms_conditions_view.dart';
+
+// Import NavBar
+import '../../3/nav_bar.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -164,6 +168,9 @@ class _AdminHomePageState extends State<AdminHomePage>
         case AdminView.reportIssue:
           _currentTitle = 'Report Issue';
           break;
+        case AdminView.termsAndConditions:
+          _currentTitle = 'Terms and Conditions';
+          break;
       }
     });
   }
@@ -279,34 +286,20 @@ class _AdminHomePageState extends State<AdminHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          _currentView == AdminView.home ||
-                  _currentView == AdminView.profile ||
-                  _currentView == AdminView.faqs
-              ? const Color(0xFF001A33)
-              : Colors.white,
+      backgroundColor: Colors.white,
       appBar:
           _currentView == AdminView.profile
               ? null
               : AppBar(
                 title: Text(_currentTitle),
-                backgroundColor:
-                    _currentView == AdminView.home ||
-                            _currentView == AdminView.profile ||
-                            _currentView == AdminView.faqs
-                        ? const Color(0xFF001A33)
-                        : Colors.white,
-                foregroundColor:
-                    _currentView == AdminView.home ||
-                            _currentView == AdminView.profile ||
-                            _currentView == AdminView.faqs
-                        ? Colors.white
-                        : Colors.black,
+                backgroundColor: const Color(0xFF2B3576),
+                foregroundColor: Colors.white,
                 elevation: 0,
                 leading:
                     _currentView != AdminView.home
                         ? IconButton(
                           icon: const Icon(Icons.arrow_back),
+                          color: const Color(0xFFF9B233),
                           onPressed: () {
                             if (_currentView == AdminView.authenticator) {
                               switch (_currentAuthFlow) {
@@ -335,8 +328,9 @@ class _AdminHomePageState extends State<AdminHomePage>
                               _navigateTo(AdminView.home);
                             } else if (_currentView == AdminView.profile) {
                               _navigateTo(AdminView.home);
-                            } else if (_currentView == AdminView.reportIssue) {
-                              _navigateTo(AdminView.home);
+                            } else if (_currentView == AdminView.reportIssue ||
+                                _currentView == AdminView.termsAndConditions) {
+                              _navigateTo(AdminView.settings);
                             } else {
                               _navigateTo(AdminView.home);
                             }
@@ -346,6 +340,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
+                    color: const Color(0xFFF9B233),
                     onPressed: () {
                       // Notification functionality will be added later
                     },
@@ -357,8 +352,47 @@ class _AdminHomePageState extends State<AdminHomePage>
               ? AdminDrawer(onNavigate: _navigateTo, adminData: _adminData)
               : null,
       body: _buildBody(),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: NavBar(
+        currentIndex: _navBarIndexForView(_currentView),
+        onTap: (index) {
+          _navigateTo(_viewForNavBarIndex(index));
+        },
+      ),
     );
+  }
+
+  int _navBarIndexForView(AdminView view) {
+    switch (view) {
+      case AdminView.home:
+        return 0;
+      case AdminView.community:
+        return 1;
+      case AdminView.events:
+        return 2;
+      case AdminView.posts:
+        return 3;
+      case AdminView.profile:
+        return 4;
+      default:
+        return 0;
+    }
+  }
+
+  AdminView _viewForNavBarIndex(int index) {
+    switch (index) {
+      case 0:
+        return AdminView.home;
+      case 1:
+        return AdminView.community;
+      case 2:
+        return AdminView.events;
+      case 3:
+        return AdminView.posts;
+      case 4:
+        return AdminView.profile;
+      default:
+        return AdminView.home;
+    }
   }
 
   Widget _buildBody() {
@@ -416,7 +450,9 @@ class _AdminHomePageState extends State<AdminHomePage>
       case AdminView.massSchedule:
         return const MassScheduleScreen();
       case AdminView.reportIssue:
-        return ReportApp();
+        return ReportApp(onNavigate: _navigateTo);
+      case AdminView.termsAndConditions:
+        return AdminTermsConditionsView(onNavigate: _navigateTo);
       case AdminView.home:
         return _buildHomeView();
     }
@@ -447,6 +483,8 @@ class _AdminHomePageState extends State<AdminHomePage>
                   child: Image.asset(
                     'assets/images/church_interior.jpg',
                     fit: BoxFit.cover,
+                    color: const Color(0xFF2B3576).withOpacity(0.7),
+                    colorBlendMode: BlendMode.darken,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         color: Colors.grey[300],
@@ -454,7 +492,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                           child: Icon(
                             Icons.church,
                             size: 60,
-                            color: Colors.orange,
+                            color: Color(0xFFF9B233),
                           ),
                         ),
                       );
@@ -466,7 +504,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 0),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -495,7 +533,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                                   child: const Icon(
                                     Icons.church,
                                     size: 40,
-                                    color: Color(0xFF1A237E),
+                                    color: Color(0xFFF9B233),
                                   ),
                                 );
                               },
@@ -543,7 +581,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                         _adminData.loginActivity,
                         _adminData.loginActivityPercentage,
                         Icons.show_chart,
-                        Colors.blue,
+                        const Color(0xFFF9B233),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -553,7 +591,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                         _adminData.dailyFollows,
                         _adminData.dailyFollowsPercentage,
                         Icons.favorite,
-                        Colors.pink,
+                        Colors.redAccent,
                       ),
                     ),
                   ],
@@ -577,7 +615,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                         _adminData.bookings,
                         _adminData.bookingsPercentage,
                         Icons.event,
-                        Colors.amber,
+                        const Color(0xFFF9B233),
                       ),
                     ),
                   ],
@@ -609,12 +647,29 @@ class _AdminHomePageState extends State<AdminHomePage>
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              shadows: [
+                Shadow(
+                  offset: Offset(0, 1),
+                  blurRadius: 4,
+                  color: Colors.black87,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              shadows: [
+                Shadow(
+                  offset: Offset(0, 1),
+                  blurRadius: 4,
+                  color: Colors.black87,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -622,7 +677,7 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   Widget _buildVerticalDivider() {
-    return Container(height: 30, width: 1, color: Colors.white24);
+    return Container(height: 30, width: 1, color: Colors.grey[300]);
   }
 
   Widget _buildStatCard(
@@ -633,8 +688,9 @@ class _AdminHomePageState extends State<AdminHomePage>
     Color iconColor,
   ) {
     return Card(
-      color: const Color(0xFF1A2235),
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -646,7 +702,10 @@ class _AdminHomePageState extends State<AdminHomePage>
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: const TextStyle(
+                    color: Color(0xFF2B3576),
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
@@ -654,7 +713,7 @@ class _AdminHomePageState extends State<AdminHomePage>
             Text(
               value,
               style: const TextStyle(
-                color: Colors.white,
+                color: Color(0xFF2B3576),
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -669,121 +728,6 @@ class _AdminHomePageState extends State<AdminHomePage>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF001A33),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, -1),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 70,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                'assets/images/home_icon.png',
-                isSelected: _currentView == AdminView.home,
-                onTap: () {
-                  if (_currentView != AdminView.home) {
-                    _navigateTo(AdminView.home);
-                  }
-                },
-              ),
-              _buildNavItem(
-                'assets/images/heart_icon.png',
-                isSelected: false,
-                onTap: () {
-                  // Community functionality will be added later
-                },
-              ),
-              _buildPrayButton(
-                onTap: () {
-                  // Pray functionality will be added later
-                },
-              ),
-              _buildNavItem(
-                'assets/images/bible_icon.png',
-                isSelected: false,
-                onTap: () {
-                  // Bible functionality will be added later
-                },
-              ),
-              _buildNavItem(
-                'assets/images/profile_icon.png',
-                isSelected: _currentView == AdminView.profile,
-                onTap: () {
-                  _navigateTo(AdminView.profile);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    String iconPath, {
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              iconPath,
-              width: 24,
-              height: 24,
-              color: isSelected ? Colors.white : Colors.white54,
-            ),
-            const SizedBox(height: 4),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? Colors.white : Colors.transparent,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPrayButton({required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(Icons.favorite, color: Color(0xFF001A33), size: 28),
       ),
     );
   }

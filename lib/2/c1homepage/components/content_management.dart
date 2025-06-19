@@ -4,7 +4,8 @@ import '../admin_types.dart';
 class ContentManagement extends StatelessWidget {
   final Function(AdminView) onNavigate;
 
-  const ContentManagement({Key? key, required this.onNavigate}) : super(key: key);
+  const ContentManagement({Key? key, required this.onNavigate})
+    : super(key: key);
 
   Widget _buildContentButton({
     required IconData icon,
@@ -41,11 +42,8 @@ class ContentManagement extends StatelessWidget {
         ),
         child: Icon(icon, color: iconColor, size: 20),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.white),
+      title: Text(title, style: const TextStyle(color: Colors.black87)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.black45),
       onTap: onTap,
     );
   }

@@ -22,32 +22,30 @@ class NavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     print('NavBar build called');
     return Container(
-      height: 70.h, // Use height with ScreenUtil
+      height: 48.h, // Smaller responsive height
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 4.r, // Make blur radius responsive
-            offset: const Offset(0, -1),
+            blurRadius: 2.r, // Smaller blur radius
+            offset: Offset(0, -1.h),
           ),
         ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 8.w,
-          ), // Add horizontal padding
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _item(context, Icons.home_outlined, 'Home', 0),
-              _item(context, Icons.favorite_outline, 'Service', 1),
-              _item(context, Icons.campaign_outlined, 'Connect', 2),
-              _item(context, Icons.menu_book_outlined, 'Read', 3),
-              _item(context, Icons.person_outline, 'You', 4),
-            ],
-          ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 4.w,
+        ), // Less horizontal padding
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _item(context, Icons.home_outlined, 'Home', 0),
+            _item(context, Icons.favorite_outline, 'Service', 1),
+            _item(context, Icons.campaign_outlined, 'Connect', 2),
+            _item(context, Icons.menu_book_outlined, 'Read', 3),
+            _item(context, Icons.person_outline, 'You', 4),
+          ],
         ),
       ),
     );
@@ -59,8 +57,8 @@ class NavBar extends StatelessWidget {
     final Widget iconW =
         selected && useCircularHighlight
             ? Container(
-              width: 40.w, // Make width responsive
-              height: 40.h, // Make height responsive
+              width: 28.w, // Smaller responsive width
+              height: 28.h, // Smaller responsive height
               decoration: BoxDecoration(
                 color: _highlightColor,
                 shape: BoxShape.circle,
@@ -68,13 +66,13 @@ class NavBar extends StatelessWidget {
               child: Icon(
                 icon,
                 color: Colors.white,
-                size: 20.sp, // Make icon size responsive
+                size: 16.sp, // Smaller responsive icon size
               ),
             )
             : Icon(
               icon,
               color: selected ? _highlightColor : _inactiveColor,
-              size: 24.sp, // Make icon size responsive
+              size: 20.sp, // Smaller responsive icon size
             );
 
     return Expanded(
@@ -87,12 +85,12 @@ class NavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             iconW,
-            SizedBox(height: 4.h), // Make spacing responsive
+            SizedBox(height: 2.h), // Smaller responsive spacing
             Text(
               label,
               style: TextStyle(
                 color: selected ? _highlightColor : _inactiveColor,
-                fontSize: 11.sp, // Make font size responsive
+                fontSize: 9.sp, // Smaller responsive font size
                 fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
               ),
               maxLines: 1,

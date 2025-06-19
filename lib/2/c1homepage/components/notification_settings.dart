@@ -71,20 +71,6 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => widget.onNavigate(AdminView.settings),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Notifications',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
             _buildNotificationToggle(
               'Push Notifications',
               'Receive push notifications for important updates',

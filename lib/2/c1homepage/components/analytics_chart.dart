@@ -18,14 +18,14 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
           width: 30,
           height: 160 * height,
           decoration: BoxDecoration(
-            color: Colors.blue[300],
+            color: Colors.blue[700],
             borderRadius: BorderRadius.circular(4),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: const TextStyle(color: Colors.black54, fontSize: 12),
         ),
       ],
     );
@@ -45,15 +45,15 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
           decoration: BoxDecoration(
             color:
                 isHighlighted
-                    ? Colors.blue[300]
-                    : Colors.blue[300]?.withOpacity(0.3),
+                    ? Colors.blue[700]
+                    : Colors.blue[700]?.withOpacity(0.3),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 12),
+          style: const TextStyle(color: Colors.black54, fontSize: 12),
         ),
       ],
     );
@@ -70,10 +70,19 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('30K', style: TextStyle(color: Colors.white, fontSize: 12)),
-              Text('20K', style: TextStyle(color: Colors.white, fontSize: 12)),
-              Text('10K', style: TextStyle(color: Colors.white, fontSize: 12)),
-              Text('0', style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text(
+                '30K',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+              Text(
+                '20K',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+              Text(
+                '10K',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+              Text('0', style: TextStyle(color: Colors.black54, fontSize: 12)),
             ],
           ),
           const SizedBox(width: 10),
@@ -110,7 +119,7 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.blue[300],
+                  color: Colors.blue[700],
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -136,7 +145,7 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
           child: Text(
             '7,265',
             style: TextStyle(
-              color: Colors.blue[300],
+              color: Colors.blue[700],
               fontSize: 72,
               fontWeight: FontWeight.bold,
             ),
@@ -150,13 +159,13 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
               Text(
                 '+11.01%',
                 style: TextStyle(
-                  color: Colors.blue[300],
+                  color: Colors.blue[700],
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.trending_up, color: Colors.blue[300], size: 24),
+              Icon(Icons.trending_up, color: Colors.blue[700], size: 24),
             ],
           ),
         ),
@@ -166,110 +175,110 @@ class _AnalyticsChartState extends State<AnalyticsChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Card(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF002642),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => setState(() => _activeAnalyticsTab = 0),
-                child: Text(
-                  'Total Reads',
-                  style: TextStyle(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => setState(() => _activeAnalyticsTab = 0),
+                  child: Text(
+                    'Total Reads',
+                    style: TextStyle(
+                      color:
+                          _activeAnalyticsTab == 0
+                              ? Colors.blue[700]
+                              : Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () => setState(() => _activeAnalyticsTab = 1),
+                  child: Text(
+                    'Total Watches',
+                    style: TextStyle(
+                      color:
+                          _activeAnalyticsTab == 1
+                              ? Colors.blue[700]
+                              : Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () => setState(() => _activeAnalyticsTab = 2),
+                  child: Text(
+                    'Total Followers',
+                    style: TextStyle(
+                      color:
+                          _activeAnalyticsTab == 2
+                              ? Colors.blue[700]
+                              : Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            if (_activeAnalyticsTab == 0) _buildBarChartContent(),
+            if (_activeAnalyticsTab == 1) _buildTimeSpentContent(),
+            if (_activeAnalyticsTab == 2) _buildFollowersContent(),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
                     color:
                         _activeAnalyticsTab == 0
-                            ? Colors.blue[300]
-                            : Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                            ? Colors.blue[700]
+                            : Colors.black54.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              GestureDetector(
-                onTap: () => setState(() => _activeAnalyticsTab = 1),
-                child: Text(
-                  'Total Watches',
-                  style: TextStyle(
+                const SizedBox(width: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
                     color:
                         _activeAnalyticsTab == 1
-                            ? Colors.blue[300]
-                            : Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                            ? Colors.blue[700]
+                            : Colors.black54.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              GestureDetector(
-                onTap: () => setState(() => _activeAnalyticsTab = 2),
-                child: Text(
-                  'Total Followers',
-                  style: TextStyle(
+                const SizedBox(width: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
                     color:
                         _activeAnalyticsTab == 2
-                            ? Colors.blue[300]
-                            : Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                            ? Colors.blue[700]
+                            : Colors.black54.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          if (_activeAnalyticsTab == 0) _buildBarChartContent(),
-          if (_activeAnalyticsTab == 1) _buildTimeSpentContent(),
-          if (_activeAnalyticsTab == 2) _buildFollowersContent(),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color:
-                      _activeAnalyticsTab == 0
-                          ? Colors.blue[300]
-                          : Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color:
-                      _activeAnalyticsTab == 1
-                          ? Colors.blue[300]
-                          : Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color:
-                      _activeAnalyticsTab == 2
-                          ? Colors.blue[300]
-                          : Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
