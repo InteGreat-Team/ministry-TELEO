@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'c1s2name_screen.dart';
 import '../../3/c1widgets/animated_wave_background.dart';
+import '../../3/welcome_screen.dart' as main_welcome;
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -90,6 +91,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
+  void _navigateBackToWelcome() {
+    _navigationTimer?.cancel();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const main_welcome.WelcomeScreen(),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _textAnimationController.dispose();
@@ -100,77 +111,71 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GestureDetector(
-        onTap: () {
-          _navigationTimer?.cancel();
-          _navigateToNextScreen();
-        },
-        child: AnimatedWaveBackground(
-          backgroundColor: const Color(0xFF0077BE),
-          waveColors: const [
-            Color(0xFF0066A6),
-            Color(0xFF004C7F),
-            Color(0xFF003A61),
-          ],
-          child: Stack(
-            children: [
-              // Hello! text with animation
-              Center(
-                child: AnimatedBuilder(
-                  animation: _textAnimationController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _fadeInAnimation.value,
-                      child: Transform.scale(
-                        scale: _scaleAnimation.value,
-                        child: const Text(
-                          'Hello!',
-                          style: TextStyle(
-                            fontSize: 64,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 10.0,
-                                color: Colors.black26,
-                                offset: Offset(0, 4),
+      body: Stack(
+        children: [
+          // Main content (tap to skip)
+          GestureDetector(
+            onTap: () {
+              _navigationTimer?.cancel();
+              _navigateToNextScreen();
+            },
+            child: AnimatedWaveBackground(
+              backgroundColor: const Color(0xFF0077BE),
+              waveColors: const [
+                Color(0xFF0066A6),
+                Color(0xFF004C7F),
+                Color(0xFF003A61),
+              ],
+              child: Stack(
+                children: [
+                  // Hello! text with animation
+                  Center(
+                    child: AnimatedBuilder(
+                      animation: _textAnimationController,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _fadeInAnimation.value,
+                          child: Transform.scale(
+                            scale: _scaleAnimation.value,
+                            child: const Text(
+                              'Hello!',
+                              style: TextStyle(
+                                fontSize: 64,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 10.0,
+                                    color: Colors.black26,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              // Skip button with fade-in animation
-              if (_showSkipButton)
-                AnimatedOpacity(
-                  opacity: _showSkipButton ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Positioned(
-                    bottom: 40,
-                    right: 24,
-                    child: TextButton(
-                      onPressed: () {
-                        _navigationTimer?.cancel();
-                        _navigateToNextScreen();
+                        );
                       },
-                      child: const Text(
-                        'Skip',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
                     ),
                   ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
+          // Back button at top left (always on top)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: _navigateBackToWelcome,
+              tooltip: 'Back',
+            ),
+          ),
+        ],
       ),
     );
   }

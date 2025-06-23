@@ -126,6 +126,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
 
+      //Purpe of this code is to set titles for the sidebar and also mixed of settings
       switch (view) {
         case AppView.home:
           _currentTitle = 'Teleo';
@@ -994,6 +995,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  //STOPPED HERE
   Widget _buildStatsCards() {
     return Row(
       children: [
