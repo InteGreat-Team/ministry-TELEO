@@ -8,23 +8,24 @@ class AdminSettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+    return Container(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            _buildSettingsSection(
-              'Account',
-              [
+              const SizedBox(height: 24),
+              _buildSettingsSection('Account', [
                 _buildSettingsItem(
                   context,
                   Icons.person_outline,
@@ -39,12 +40,9 @@ class AdminSettingsView extends StatelessWidget {
                   'Manage your security settings',
                   onTap: () => onNavigate(AdminView.securitySettings),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildSettingsSection(
-              'Preferences',
-              [
+              ]),
+              const SizedBox(height: 24),
+              _buildSettingsSection('Preferences', [
                 _buildSettingsItem(
                   context,
                   Icons.notifications_outlined,
@@ -59,12 +57,9 @@ class AdminSettingsView extends StatelessWidget {
                   'Manage church mass schedules',
                   onTap: () => onNavigate(AdminView.massSchedule),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildSettingsSection(
-              'Help & Support',
-              [
+              ]),
+              const SizedBox(height: 24),
+              _buildSettingsSection('Help & Support', [
                 _buildSettingsItem(
                   context,
                   Icons.help_outline,
@@ -79,9 +74,9 @@ class AdminSettingsView extends StatelessWidget {
                   'Report technical problems',
                   onTap: () => onNavigate(AdminView.reportIssue),
                 ),
-              ],
-            ),
-          ],
+              ]),
+            ],
+          ),
         ),
       ),
     );
@@ -96,18 +91,17 @@ class AdminSettingsView extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF001A33),
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 16),
         Card(
+          color: Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(
-            children: items,
-          ),
+          child: Column(children: items),
         ),
       ],
     );
@@ -121,13 +115,16 @@ class AdminSettingsView extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF001A33)),
+      leading: Icon(icon, color: Colors.black),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w500),
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Colors.black,
+        ),
       ),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      subtitle: Text(subtitle, style: const TextStyle(color: Colors.black54)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.black),
       onTap: onTap,
     );
   }

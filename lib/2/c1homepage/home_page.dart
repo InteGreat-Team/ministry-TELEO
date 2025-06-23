@@ -291,15 +291,18 @@ class _AdminHomePageState extends State<AdminHomePage>
           _currentView == AdminView.profile
               ? null
               : AppBar(
-                title: Text(_currentTitle),
-                backgroundColor: const Color(0xFF2B3576),
-                foregroundColor: Colors.white,
+                title: Text(
+                  _currentTitle,
+                  style: const TextStyle(color: Colors.black),
+                ),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
                 elevation: 0,
                 leading:
                     _currentView != AdminView.home
                         ? IconButton(
                           icon: const Icon(Icons.arrow_back),
-                          color: const Color(0xFFF9B233),
+                          color: Colors.black,
                           onPressed: () {
                             if (_currentView == AdminView.authenticator) {
                               switch (_currentAuthFlow) {
@@ -340,7 +343,7 @@ class _AdminHomePageState extends State<AdminHomePage>
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    color: const Color(0xFFF9B233),
+                    color: Colors.black,
                     onPressed: () {
                       // Notification functionality will be added later
                     },
