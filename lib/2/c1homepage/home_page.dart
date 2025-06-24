@@ -12,6 +12,8 @@ import '../../3/report/mainreport.dart';
 import 'events_screen.dart';
 import 'community_screen.dart';
 import 'posts_screen.dart';
+import '../../3/contact_us_screen.dart';
+import '../../3/c1widgets/authenticator_screen.dart';
 
 // Import new components
 import 'components/metrics_grid.dart';
@@ -52,7 +54,7 @@ class _AdminHomePageState extends State<AdminHomePage>
 
   // Admin data that will be shared across views
   AdminData _adminData = AdminData(
-    churchName: 'Sunny Treasure',
+    churchName: 'Sunny Detroit Church',
     posts: '27',
     following: '249',
     followers: '7,265',
@@ -171,6 +173,9 @@ class _AdminHomePageState extends State<AdminHomePage>
         case AdminView.termsAndConditions:
           _currentTitle = 'Terms and Conditions';
           break;
+        case AdminView.contactUs:
+          _currentTitle = 'Contact Us';
+          break;
       }
     });
   }
@@ -251,7 +256,8 @@ class _AdminHomePageState extends State<AdminHomePage>
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.of(context).pop();
+                  // Navigate back to the security settings view
                   _navigateTo(AdminView.securitySettings);
                 },
                 child: const Text('OK'),
@@ -285,10 +291,16 @@ class _AdminHomePageState extends State<AdminHomePage>
 
   @override
   Widget build(BuildContext context) {
+    // Prevent the app from rotating
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar:
-          _currentView == AdminView.profile
+          _currentView == AdminView.faqs
               ? null
               : AppBar(
                 title: Text(
@@ -364,46 +376,12 @@ class _AdminHomePageState extends State<AdminHomePage>
     );
   }
 
-  int _navBarIndexForView(AdminView view) {
-    switch (view) {
-      case AdminView.home:
-        return 0;
-      case AdminView.community:
-        return 1;
-      case AdminView.events:
-        return 2;
-      case AdminView.posts:
-        return 3;
-      case AdminView.profile:
-        return 4;
-      default:
-        return 0;
-    }
-  }
-
-  AdminView _viewForNavBarIndex(int index) {
-    switch (index) {
-      case 0:
-        return AdminView.home;
-      case 1:
-        return AdminView.community;
-      case 2:
-        return AdminView.events;
-      case 3:
-        return AdminView.posts;
-      case 4:
-        return AdminView.profile;
-      default:
-        return AdminView.home;
-    }
-  }
-
   Widget _buildBody() {
     switch (_currentView) {
       case AdminView.setRoles:
         return const SetRoleScreen();
       case AdminView.faqs:
-        return const FAQsScreen();
+        return FAQsScreen(onNavigate: _navigateTo);
       case AdminView.events:
         return const EventsScreen();
       case AdminView.community:
@@ -430,23 +408,20 @@ class _AdminHomePageState extends State<AdminHomePage>
         );
       case AdminView.changeEmail:
         return AdminChangeEmailView(
-          adminData: _adminData,
+          currentEmail: _adminData.email,
           onNavigate: _navigateTo,
         );
       case AdminView.changePassword:
-        return AdminChangePasswordView(
-          adminData: _adminData,
-          onNavigate: _navigateTo,
-        );
+        return AdminChangePasswordView(onNavigate: _navigateTo);
       case AdminView.changePhone:
         return AdminChangePhoneView(
-          adminData: _adminData,
+          currentPhoneNumber: _adminData.phoneNumber,
           onNavigate: _navigateTo,
         );
       case AdminView.authenticator:
-        return AuthenticatorView(
-          flow: _currentAuthFlow,
+        return AuthenticatorScreen(
           onSuccess: _handleAuthenticationSuccess,
+          onCancel: () => _navigateTo(AdminView.securitySettings),
         );
       case AdminView.notificationSettings:
         return NotificationSettingsView(onNavigate: _navigateTo);
@@ -456,6 +431,8 @@ class _AdminHomePageState extends State<AdminHomePage>
         return ReportApp(onNavigate: _navigateTo);
       case AdminView.termsAndConditions:
         return AdminTermsConditionsView(onNavigate: _navigateTo);
+      case AdminView.contactUs:
+        return const ContactUsScreen();
       case AdminView.home:
         return _buildHomeView();
     }
@@ -466,114 +443,13 @@ class _AdminHomePageState extends State<AdminHomePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Admin dashboard header
-          Stack(
-            children: [
-              Container(
-                height: 180,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                  child: Image.asset(
-                    'assets/images/church_interior.jpg',
-                    fit: BoxFit.cover,
-                    color: const Color(0xFF2B3576).withOpacity(0.7),
-                    colorBlendMode: BlendMode.darken,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(
-                            Icons.church,
-                            size: 60,
-                            color: Color(0xFFF9B233),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Positioned.fill(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/images/church_logo.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.white,
-                                  child: const Icon(
-                                    Icons.church,
-                                    size: 40,
-                                    color: Color(0xFFF9B233),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _adminData.churchName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildStatColumn(_adminData.posts, 'Posts'),
-                            _buildVerticalDivider(),
-                            _buildStatColumn(_adminData.following, 'Following'),
-                            _buildVerticalDivider(),
-                            _buildStatColumn(_adminData.followers, 'Followers'),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          // Stats cards
+          // Church profile card
+          _buildChurchProfileCard(),
+          const SizedBox(height: 16),
+
+          // Metrics cards in 2x2 grid
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
                 Row(
@@ -626,61 +502,113 @@ class _AdminHomePageState extends State<AdminHomePage>
               ],
             ),
           ),
-          // Add analytics chart section
+          const SizedBox(height: 16),
+
+          // Analytics chart
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-            child: AnalyticsChart(),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: _buildAnalyticsChart(),
           ),
-          // Add manage content section
-          ContentManagement(onNavigate: _navigateTo),
-          // ...rest of your home content...
+          const SizedBox(height: 16),
+
+          // Manage Content section
+          _buildManageContentSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChurchProfileCard() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2B3576),
+        borderRadius: BorderRadius.circular(16),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/church_interior.jpg'),
+          fit: BoxFit.cover,
+          colorFilter: ColorFilter.mode(Color(0xFF2B3576), BlendMode.overlay),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/church_logo.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.white,
+                    child: const Icon(
+                      Icons.church,
+                      size: 35,
+                      color: Color(0xFFF9B233),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _adminData.churchName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatColumn(_adminData.posts, 'Posts'),
+              _buildVerticalDivider(),
+              _buildStatColumn(_adminData.following, 'Following'),
+              _buildVerticalDivider(),
+              _buildStatColumn(_adminData.followers, 'Followers'),
+            ],
+          ),
         ],
       ),
     );
   }
 
   Widget _buildStatColumn(String value, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  offset: Offset(0, 1),
-                  blurRadius: 4,
-                  color: Colors.black87,
-                ),
-              ],
-            ),
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              shadows: [
-                Shadow(
-                  offset: Offset(0, 1),
-                  blurRadius: 4,
-                  color: Colors.black87,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      ],
     );
   }
 
   Widget _buildVerticalDivider() {
-    return Container(height: 30, width: 1, color: Colors.grey[300]);
+    return Container(
+      height: 40,
+      width: 1,
+      color: Colors.white.withOpacity(0.3),
+    );
   }
 
   Widget _buildStatCard(
@@ -703,11 +631,13 @@ class _AdminHomePageState extends State<AdminHomePage>
               children: [
                 Icon(icon, color: iconColor, size: 20),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF2B3576),
-                    fontSize: 14,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFF2B3576),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -717,7 +647,7 @@ class _AdminHomePageState extends State<AdminHomePage>
               value,
               style: const TextStyle(
                 color: Color(0xFF2B3576),
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -726,7 +656,7 @@ class _AdminHomePageState extends State<AdminHomePage>
               percent,
               style: TextStyle(
                 color: percent.startsWith('+') ? Colors.green : Colors.red,
-                fontSize: 13,
+                fontSize: 11,
               ),
             ),
           ],
@@ -734,4 +664,380 @@ class _AdminHomePageState extends State<AdminHomePage>
       ),
     );
   }
+
+  Widget _buildAnalyticsChart() {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TabBar(
+              controller: _tabController,
+              labelColor: Colors.orange,
+              unselectedLabelColor: Colors.grey[600],
+              indicatorColor: Colors.orange,
+              indicatorSize: TabBarIndicatorSize.label,
+              indicatorWeight: 2.0,
+              tabs: const [
+                Tab(text: 'Total Reads'),
+                Tab(text: 'Total Watches'),
+                Tab(text: 'Total Follows'),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 150,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTotalReadsChart(),
+                  _buildTotalWatchesChart(),
+                  _buildTotalFollowersDisplay(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTotalReadsChart() {
+    return Column(
+      children: [
+        Expanded(
+          child: CustomPaint(
+            painter: LineChartPainter(),
+            size: const Size(double.infinity, double.infinity),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children:
+              ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+                  .map(
+                    (month) => Text(
+                      month,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 10),
+                    ),
+                  )
+                  .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalWatchesChart() {
+    return Column(
+      children: [
+        Expanded(
+          child: CustomPaint(
+            painter: BarChartPainter(),
+            size: const Size(double.infinity, double.infinity),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children:
+              ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+                  .map(
+                    (month) => Text(
+                      month,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 10),
+                    ),
+                  )
+                  .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalFollowersDisplay() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          _adminData.followers,
+          style: const TextStyle(
+            color: Colors.orange,
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text(
+              '+11.01%',
+              style: TextStyle(color: Colors.green, fontSize: 16),
+            ),
+            SizedBox(width: 4),
+            Icon(Icons.trending_up, color: Colors.green, size: 16),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildManageContentSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                const Text(
+                  'Manage Content',
+                  style: TextStyle(
+                    color: Color(0xFF2B3576),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2B3576),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.help_outline,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildManageContentIcon(Icons.event, Colors.red),
+                _buildManageContentIcon(Icons.people, Colors.orange),
+                _buildManageContentIcon(Icons.article, Colors.brown),
+                _buildManageContentIcon(
+                  Icons.admin_panel_settings,
+                  Colors.blue,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildManageContentList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManageContentIcon(IconData icon, Color color) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(icon, color: color, size: 24),
+    );
+  }
+
+  Widget _buildManageContentList() {
+    final items = [
+      {'icon': Icons.event, 'title': 'Events', 'color': Colors.red},
+      {'icon': Icons.people, 'title': 'Community', 'color': Colors.orange},
+      {'icon': Icons.article, 'title': 'Posts', 'color': Colors.brown},
+      {
+        'icon': Icons.admin_panel_settings,
+        'title': 'Set Roles',
+        'color': Colors.blue,
+      },
+    ];
+
+    return Column(
+      children:
+          items.map((item) {
+            return Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.grey[200]!, width: 1),
+                ),
+              ),
+              child: ListTile(
+                leading: Icon(
+                  item['icon'] as IconData,
+                  color: item['color'] as Color,
+                  size: 20,
+                ),
+                title: Text(
+                  item['title'] as String,
+                  style: const TextStyle(
+                    color: Color(0xFF2B3576),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+                onTap: () {
+                  switch (item['title']) {
+                    case 'Events':
+                      _navigateTo(AdminView.events);
+                      break;
+                    case 'Community':
+                      _navigateTo(AdminView.community);
+                      break;
+                    case 'Posts':
+                      _navigateTo(AdminView.posts);
+                      break;
+                    case 'Set Roles':
+                      _navigateTo(AdminView.setRoles);
+                      break;
+                  }
+                },
+              ),
+            );
+          }).toList(),
+    );
+  }
+
+  int _navBarIndexForView(AdminView view) {
+    // Implement the logic to determine the index based on the view
+    // This is a placeholder and should be replaced with the actual implementation
+    return 0; // Placeholder return, actual implementation needed
+  }
+
+  AdminView _viewForNavBarIndex(int index) {
+    // Implement the logic to determine the view based on the index
+    // This is a placeholder and should be replaced with the actual implementation
+    return AdminView.home; // Placeholder return, actual implementation needed
+  }
+}
+
+class LineChartPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.orange
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    // Replicating points from image
+    final points = [
+      Offset(size.width * 0.05, size.height * 0.4),
+      Offset(size.width * 0.18, size.height * 0.7),
+      Offset(size.width * 0.31, size.height * 0.5),
+      Offset(size.width * 0.44, size.height * 0.2),
+      Offset(size.width * 0.57, size.height * 0.25),
+      Offset(size.width * 0.70, size.height * 0.05),
+      Offset(size.width * 0.83, size.height * 0.3),
+      Offset(size.width * 0.95, size.height * 0.4),
+    ];
+
+    path.moveTo(points[0].dx, points[0].dy);
+    for (var i = 1; i < points.length; i++) {
+      path.lineTo(points[i].dx, points[i].dy);
+    }
+
+    canvas.drawPath(path, paint);
+
+    final pointPaint =
+        Paint()
+          ..color = Colors.orange
+          ..style = PaintingStyle.fill;
+
+    final borderPaint =
+        Paint()
+          ..color = Colors.white
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
+
+    for (final point in points) {
+      canvas.drawCircle(point, 4, pointPaint);
+      canvas.drawCircle(point, 4, borderPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+class BarChartPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    const leftOffset = 30.0;
+    final drawableWidth = size.width - leftOffset;
+
+    final yAxisLabelPaint = TextPainter(
+      textAlign: TextAlign.right,
+      textDirection: TextDirection.ltr,
+    );
+    final yLabels = ['30K', '20K', '10K', '0'];
+    for (var i = 0; i < yLabels.length; i++) {
+      yAxisLabelPaint.text = TextSpan(
+        text: yLabels[i],
+        style: TextStyle(color: Colors.grey[600], fontSize: 10),
+      );
+      yAxisLabelPaint.layout();
+      final y = (size.height / (yLabels.length - 1)) * i;
+      yAxisLabelPaint.paint(
+        canvas,
+        Offset(
+          leftOffset - yAxisLabelPaint.width - 8,
+          y - yAxisLabelPaint.height / 2,
+        ),
+      );
+    }
+
+    final barPaint = Paint()..color = Colors.orange;
+    final barData = [0.6, 1.0, 0.7, 1.2, 0.4, 0.9]; // Sample data
+    final maxVal = 1.3;
+    final barWidth = (drawableWidth / barData.length) * 0.4;
+    final spacing = (drawableWidth / barData.length) * 0.6;
+
+    for (var i = 0; i < barData.length; i++) {
+      final barHeight = (barData[i] / maxVal) * size.height;
+      final x = leftOffset + (i * (barWidth + spacing)) + spacing / 2;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x, size.height - barHeight, barWidth, barHeight),
+          const Radius.circular(4),
+        ),
+        barPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

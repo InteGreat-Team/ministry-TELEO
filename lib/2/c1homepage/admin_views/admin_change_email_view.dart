@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../admin_types.dart';
 import '../authenticator_flow.dart';
 
 class AdminChangeEmailView extends StatefulWidget {
-  final AdminData adminData;
+  final String currentEmail;
   final Function(AdminView, {AuthenticatorFlow? flow, String? newValue})
   onNavigate;
 
   const AdminChangeEmailView({
     super.key,
-    required this.adminData,
+    required this.currentEmail,
     required this.onNavigate,
   });
 
@@ -18,144 +19,110 @@ class AdminChangeEmailView extends StatefulWidget {
 }
 
 class _AdminChangeEmailViewState extends State<AdminChangeEmailView> {
-  late TextEditingController _emailController;
-  bool _isEditing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController = TextEditingController(text: widget.adminData.email);
-  }
+  final _formKey = GlobalKey<FormState>();
+  final _newEmailController = TextEditingController();
+  bool _isSubmitted = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _newEmailController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSubmitted = true;
+      });
+      // Navigate to authenticator view
+      widget.onNavigate(
+        AdminView.authenticator,
+        flow: AuthenticatorFlow.email,
+        newValue: _newEmailController.text,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 400,
-        margin: const EdgeInsets.symmetric(vertical: 32),
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => widget.onNavigate(AdminView.securitySettings),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Account Security',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            _buildEditableFieldWithIcon(
-              label: 'Email',
-              controller: _emailController,
-              isEditing: _isEditing,
-              onEdit: () {
-                setState(() {
-                  _isEditing = true;
-                });
-              },
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed:
-                    _isEditing
-                        ? () {
-                          widget.onNavigate(
-                            AdminView.authenticator,
-                            flow: AuthenticatorFlow.email,
-                            newValue: _emailController.text,
-                          );
-                          setState(() {
-                            _isEditing = false;
-                          });
-                        }
-                        : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0A1633),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+        title: const Text(
+          'Change Email',
+          style: TextStyle(color: Colors.black),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              // Old Email
+              TextFormField(
+                initialValue: widget.currentEmail,
+                enabled: false,
+                decoration: InputDecoration(
+                  labelText: 'Old Email',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Save Changes',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              // New Email
+              TextFormField(
+                controller: _newEmailController,
+                decoration: InputDecoration(
+                  labelText: 'New Email',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty || !value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const Spacer(),
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Send Code',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditableFieldWithIcon({
-    required String label,
-    required TextEditingController controller,
-    required bool isEditing,
-    required VoidCallback onEdit,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(width: 8),
-            if (!isEditing)
-              IconButton(
-                icon: const Icon(Icons.edit, size: 18),
-                onPressed: onEdit,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          enabled: isEditing,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey[50],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.black12),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.black12),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.black12),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

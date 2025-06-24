@@ -17,6 +17,7 @@ enum AdminView {
   massSchedule,
   reportIssue,
   termsAndConditions,
+  contactUs,
 }
 
 class AdminData {

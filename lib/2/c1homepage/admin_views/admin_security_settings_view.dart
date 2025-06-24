@@ -50,89 +50,38 @@ class _AdminSecuritySettingsViewState extends State<AdminSecuritySettingsView> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.grey[50],
-      child: Column(
+      child: ListView(
+        padding: const EdgeInsets.all(20.0),
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  _buildEditableField(
-                    label: 'Email',
-                    controller: _emailController,
-                    enabled: _isEditing,
-                  ),
-                  const SizedBox(height: 30),
-                  _buildEditableField(
-                    label: 'Phone Number',
-                    controller: _phoneController,
-                    enabled: _isEditing,
-                  ),
-                  const SizedBox(height: 30),
-                  _buildEditableField(
-                    label: 'Password',
-                    controller: _passwordController,
-                    enabled: _isEditing,
-                    obscureText: true,
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 20),
+          ListTile(
+            leading: const Icon(Icons.email_outlined),
+            title: const Text('Email'),
+            subtitle: Text(widget.adminData.email),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              widget.onNavigate(AdminView.changeEmail);
+            },
           ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (_isEditing) {
-                    // Save changes
-                    widget.onUpdateAdminData(
-                      AdminData(
-                        churchName: widget.adminData.churchName,
-                        posts: widget.adminData.posts,
-                        following: widget.adminData.following,
-                        followers: widget.adminData.followers,
-                        loginActivity: widget.adminData.loginActivity,
-                        loginActivityPercentage:
-                            widget.adminData.loginActivityPercentage,
-                        dailyFollows: widget.adminData.dailyFollows,
-                        dailyFollowsPercentage:
-                            widget.adminData.dailyFollowsPercentage,
-                        dailyVisits: widget.adminData.dailyVisits,
-                        dailyVisitsPercentage:
-                            widget.adminData.dailyVisitsPercentage,
-                        bookings: widget.adminData.bookings,
-                        bookingsPercentage: widget.adminData.bookingsPercentage,
-                        email: _emailController.text,
-                        phoneNumber: _phoneController.text,
-                        password: _passwordController.text,
-                      ),
-                    );
-                  }
-                  setState(() {
-                    _isEditing = !_isEditing;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A1A2E),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  _isEditing ? 'Save Changes' : 'Edit Profile',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.phone_outlined),
+            title: const Text('Phone Number'),
+            subtitle: Text(widget.adminData.phoneNumber),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              widget.onNavigate(AdminView.changePhone);
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.lock_outline),
+            title: const Text('Password'),
+            subtitle: const Text('••••••••••••••••'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              widget.onNavigate(AdminView.changePassword);
+            },
           ),
         ],
       ),

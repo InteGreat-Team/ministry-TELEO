@@ -1,202 +1,281 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import '../c1homepage/admin_types.dart';
 
 class FAQsScreen extends StatefulWidget {
-  const FAQsScreen({super.key});
+  final Function(AdminView) onNavigate;
+  const FAQsScreen({super.key, required this.onNavigate});
 
   @override
   State<FAQsScreen> createState() => _FAQsScreenState();
 }
 
+class FaqItem {
+  FaqItem({
+    required this.headerValue,
+    required this.expandedValue,
+    this.isExpanded = false,
+  });
+
+  String headerValue;
+  String expandedValue;
+  bool isExpanded;
+}
+
+class FaqCategory {
+  FaqCategory({
+    required this.title,
+    required this.questions,
+    this.isExpanded = false,
+  });
+
+  String title;
+  List<FaqItem> questions;
+  bool isExpanded;
+}
+
 class _FAQsScreenState extends State<FAQsScreen> {
-  final List<Map<String, dynamic>> _faqs = [
-    {
-      'question': 'How do I add a new event?',
-      'answer':
-          'To add a new event, go to the Events section from the admin dashboard and tap the "+" button. Fill in the event details including title, date, time, location, and description. You can also add an image for the event.',
-      'isExpanded': false,
-    },
-    {
-      'question': 'How do I manage user roles?',
-      'answer':
-          'You can manage user roles by going to the "Set Roles" section. Search for a user by their username, then select the appropriate role (Pastor, Leader, or Member) for that user.',
-      'isExpanded': false,
-    },
-    {
-      'question': 'How do I create a new post?',
-      'answer':
-          'To create a new post, navigate to the Posts section and tap the "+" button. You can add text, images, and links to your post. Once published, it will be visible to your church members.',
-      'isExpanded': false,
-    },
-    {
-      'question': 'How do I view analytics for my church?',
-      'answer':
-          'The admin dashboard provides an overview of key metrics including login activity, daily follows, daily visits, and bookings. For more detailed analytics, tap on any of these metrics to see historical data and trends.',
-      'isExpanded': false,
-    },
-    {
-      'question': 'How do I update my church profile?',
-      'answer':
-          'To update your church profile, go to the Settings section from the admin dashboard. Here you can edit your church name, logo, contact information, and other details.',
-      'isExpanded': false,
-    },
-    {
-      'question': 'How do I manage community members?',
-      'answer':
-          'You can manage community members through the Community section. Here you can view all members, search for specific members, and take actions such as messaging them or updating their information.',
-      'isExpanded': false,
-    },
-    {
-      'question': 'How do I schedule a recurring event?',
-      'answer':
-          'When creating a new event, toggle the "Recurring" option and select the frequency (daily, weekly, monthly). You can also set an end date for the recurring event series.',
-      'isExpanded': false,
-    },
+  final List<FaqCategory> _faqCategories = [
+    FaqCategory(
+      title: 'General Questions',
+      isExpanded: true,
+      questions: [
+        FaqItem(
+          headerValue: 'What is Teleo?',
+          expandedValue:
+              'Teleo is a platform to connect people with their church community.',
+        ),
+        FaqItem(
+          headerValue: 'Do I need to be a church member to use the app?',
+          expandedValue: 'No, everyone is welcome to use Teleo.',
+        ),
+        FaqItem(
+          headerValue: 'Can I connect with more than one church?',
+          expandedValue: 'Yes, you can connect with multiple churches.',
+        ),
+        FaqItem(
+          headerValue: 'Can I register as a member of a church?',
+          expandedValue: 'Yes, you can register through the church\'s page.',
+        ),
+        FaqItem(
+          headerValue: 'Are the churches registered in this app verified?',
+          expandedValue: 'Yes, we verify all churches on our platform.',
+        ),
+        FaqItem(
+          headerValue: 'Is the app free to use?',
+          expandedValue: 'Yes, Teleo is free to download and use.',
+        ),
+        FaqItem(
+          headerValue: 'How is my data protected?',
+          expandedValue:
+              'We use industry-standard encryption to protect your data.',
+        ),
+        FaqItem(
+          headerValue: 'Can I use the app on my phone and computer?',
+          expandedValue: 'Currently, Teleo is available on mobile devices.',
+        ),
+        FaqItem(
+          headerValue: 'I forgot my password. What should I do?',
+          expandedValue: 'You can reset your password from the login screen.',
+        ),
+        FaqItem(
+          headerValue: 'How do I update my personal information?',
+          expandedValue: 'You can update your profile from the settings menu.',
+        ),
+        FaqItem(
+          headerValue: 'Can I report a user?',
+          expandedValue:
+              'Yes, you can report users who violate our community guidelines.',
+        ),
+        FaqItem(
+          headerValue: 'Can I report a Pastor/Leader?',
+          expandedValue:
+              'Yes, you can report any user through the reporting feature.',
+        ),
+        FaqItem(
+          headerValue: 'Where do my donations go?',
+          expandedValue:
+              'Donations go directly to the church or organization you choose.',
+        ),
+      ],
+    ),
+    FaqCategory(
+      title: 'Prayer Wall',
+      questions: [
+        FaqItem(
+          headerValue: 'How do I post a prayer request?',
+          expandedValue:
+              'Navigate to the Prayer Wall and tap the "Add" button.',
+        ),
+      ],
+    ),
+    FaqCategory(
+      title: 'Looking for a Church',
+      questions: [
+        FaqItem(
+          headerValue: 'How do I find a church?',
+          expandedValue:
+              'Use the search and filter options in the "Churches" section.',
+        ),
+      ],
+    ),
+    FaqCategory(
+      title: 'Events',
+      questions: [
+        FaqItem(
+          headerValue: 'How do I register for an event?',
+          expandedValue: 'Go to the event details page and tap "Register".',
+        ),
+      ],
+    ),
+    FaqCategory(
+      title: 'Library',
+      questions: [
+        FaqItem(
+          headerValue: 'How do I access the library?',
+          expandedValue: 'The library is available in the main menu.',
+        ),
+      ],
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F0F0),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0D1B42),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => widget.onNavigate(AdminView.home),
+        ),
+        title: const Text(
+          'FAQs',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Frequently Asked Questions',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF002642),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Search Bar
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Search',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 16,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Find answers to common questions about the admin dashboard.',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
-
-              // FAQ Accordion
-              ...List.generate(_faqs.length, (index) {
-                return Column(
-                  children: [
-                    _buildFaqItem(index),
-                    if (index < _faqs.length - 1) const Divider(height: 1),
-                  ],
-                );
-              }),
-
-              const SizedBox(height: 40),
-
-              // Contact support section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Still need help?',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF002642),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Contact our support team for assistance with any issues not covered in the FAQs.',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Contact support functionality
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF002642),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Contact Support',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 40),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            _buildFaqList(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFaqItem(int index) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _faqs[index]['isExpanded'] = !_faqs[index]['isExpanded'];
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildFaqList() {
+    return Column(
+      children:
+          _faqCategories.map((FaqCategory category) {
+            return Column(
               children: [
-                Expanded(
-                  child: Text(
-                    _faqs[index]['question'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF002642),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      category.isExpanded = !category.isExpanded;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D1B42),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          category.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(
+                          category.isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Icon(
-                  _faqs[index]['isExpanded']
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: Colors.grey,
-                ),
+                if (category.isExpanded)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Column(
+                      children:
+                          category.questions.map((FaqItem item) {
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ExpansionTile(
+                                title: Text(
+                                  item.headerValue,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF333333),
+                                  ),
+                                ),
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text(
+                                      item.expandedValue,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                onExpansionChanged: (bool expanded) {
+                                  setState(() {
+                                    item.isExpanded = expanded;
+                                  });
+                                },
+                                initiallyExpanded: item.isExpanded,
+                                trailing: Icon(
+                                  item.isExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                const SizedBox(height: 10),
               ],
-            ),
-            if (_faqs[index]['isExpanded']) ...[
-              const SizedBox(height: 12),
-              Text(
-                _faqs[index]['answer'],
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+            );
+          }).toList(),
     );
   }
 }

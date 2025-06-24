@@ -40,11 +40,11 @@ class NavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _item(context, Icons.home_outlined, 'Home', 0),
-            _item(context, Icons.favorite_outline, 'Service', 1),
-            _item(context, Icons.campaign_outlined, 'Connect', 2),
-            _item(context, Icons.menu_book_outlined, 'Read', 3),
-            _item(context, Icons.person_outline, 'You', 4),
+            _item(context, Icons.home_rounded, 'Home', 0),
+            _item(context, Icons.favorite_rounded, 'Service', 1),
+            _item(context, Icons.campaign_rounded, 'Connect', 2),
+            _item(context, Icons.menu_book_rounded, 'Read', 3),
+            _item(context, Icons.person_rounded, 'You', 4),
           ],
         ),
       ),

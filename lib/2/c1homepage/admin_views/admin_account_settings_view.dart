@@ -206,6 +206,33 @@ class _AdminAccountSettingsViewState extends State<AdminAccountSettingsView> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
+                      if (_isEditing) {
+                        // Create a new AdminData object with updated values
+                        final updatedAdminData = AdminData(
+                          churchName: _churchNameController.text,
+                          // Retain existing values for other fields
+                          posts: widget.adminData.posts,
+                          following: widget.adminData.following,
+                          followers: widget.adminData.followers,
+                          loginActivity: widget.adminData.loginActivity,
+                          loginActivityPercentage:
+                              widget.adminData.loginActivityPercentage,
+                          dailyFollows: widget.adminData.dailyFollows,
+                          dailyFollowsPercentage:
+                              widget.adminData.dailyFollowsPercentage,
+                          dailyVisits: widget.adminData.dailyVisits,
+                          dailyVisitsPercentage:
+                              widget.adminData.dailyVisitsPercentage,
+                          bookings: widget.adminData.bookings,
+                          bookingsPercentage:
+                              widget.adminData.bookingsPercentage,
+                          email: widget.adminData.email,
+                          phoneNumber: widget.adminData.phoneNumber,
+                          password: widget.adminData.password,
+                        );
+                        // Call the callback to update the data in the parent widget
+                        widget.onUpdateAdminData(updatedAdminData);
+                      }
                       setState(() {
                         _isEditing = !_isEditing;
                       });
