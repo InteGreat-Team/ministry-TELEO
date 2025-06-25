@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../admin_types.dart';
+import 'unfollow_dialog.dart';
 
 class AdminProfileView extends StatefulWidget {
   final AdminData adminData;
@@ -20,10 +21,44 @@ class _AdminProfileViewState extends State<AdminProfileView>
   late TabController _tabController;
   bool isFollowing = false;
 
+  // Sample announcements data
+  final List<Map<String, String>> announcements = [
+    {
+      'title': 'Sunday New Comers Class',
+      'description':
+          'All those new visitors to STDC are invited to a welcome orientation class to learn about our church, our beliefs, and how to get connected with our church family.',
+    },
+    {
+      'title': 'Evening Choir Ministry Appointment',
+      'description':
+          'Join us for our weekly choir practice session. All voices welcome! We\'ll be preparing for upcoming worship services and special events.',
+    },
+    {
+      'title': 'Sunday Afternoon Bible Study',
+      'description':
+          'Come join us for an in-depth study of God\'s word. We meet every Sunday afternoon to dive deeper into scripture and grow in our faith together.',
+    },
+    {
+      'title': 'Sunday Treasures Dental Event',
+      'description':
+          'Free dental care event for our community members. Professional dental services will be provided by volunteer dentists and hygienists.',
+    },
+  ];
+
+  // Sample services data
+  final List<Map<String, String>> services = [
+    {'title': 'Sunday Service', 'image': 'assets/images/sunday_service.jpg'},
+    {'title': 'Evening Service', 'image': 'assets/images/evening_service.jpg'},
+    {'title': 'Lectures', 'image': 'assets/images/lectures.jpg'},
+    {'title': 'Choir', 'image': 'assets/images/choir.jpg'},
+    {'title': 'Bible Study', 'image': 'assets/images/bible_study.jpg'},
+    {'title': 'Youth Ministry', 'image': 'assets/images/youth_ministry.jpg'},
+  ];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -34,359 +69,611 @@ class _AdminProfileViewState extends State<AdminProfileView>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      width: double.infinity,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header with background image, logo, name, and follow button
-            Stack(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Header with background image, logo, name, and follow button
+          Container(
+            height: 280,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+            ),
+            child: Stack(
               children: [
-                Container(
-                  height: 220,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
-                    ),
+                // Background image
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
+                  child: Container(
+                    height: 280,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/church_interior.jpg'),
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                    child: Image.asset(
-                      'assets/images/church_interior.jpg',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: Icon(
-                              Icons.church,
-                              size: 60,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: Image.asset(
-                                'assets/images/church_logo.png',
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.white,
-                                    child: const Icon(
-                                      Icons.church,
-                                      size: 40,
-                                      color: Color(0xFF1A237E),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2C2C6C),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              widget.adminData.churchName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFAA00),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 10,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                isFollowing = !isFollowing;
-                              });
-                            },
-                            child: Text(
-                              isFollowing ? 'Joined Church' : 'Follow Church',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.3),
+                            Colors.black.withOpacity(0.6),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-            // Tabs
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-                ),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                labelColor: Colors.black,
-                unselectedLabelColor: Colors.black45,
-                indicatorColor: const Color(0xFF1A237E),
-                indicatorWeight: 3,
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                tabs: const [Tab(text: 'Overview'), Tab(text: 'Announcements')],
-              ),
-            ),
-            // Tab content (no Expanded)
-            SizedBox(
-              height: 600, // Responsive height
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Overview Tab
-                  SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 24,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Upcoming Services',
-                          style: TextStyle(
-                            color: Color(0xFF1A237E),
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 180,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              _serviceCard(
-                                'Sunday Worship',
-                                '8:00 AM',
-                                'assets/images/service1.jpg',
-                                'Join us!',
-                              ),
-                              const SizedBox(width: 16),
-                              _serviceCard(
-                                'Midweek Prayer',
-                                '6:00 PM',
-                                'assets/images/service2.jpg',
-                                'Pop together',
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 28),
-                        const Text(
-                          'Sunny Treasure Detroit Church is a welcoming faith community dedicated to spreading God\'s love through worship, service, and fellowship. Located in the heart of Detroit, we strive to become inspired spiritual individuals and develop a rooted faith, persistent joy, and a deeper connection with Christ. Join us as we worship, grow, and serve together in faith and love.',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        const Text(
-                          'Pastors and Leaders',
-                          style: TextStyle(
-                            color: Color(0xFF1A237E),
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            _leaderCard(
-                              'Pastor Juan De la Cruz',
-                              'assets/images/pastor1.png',
-                            ),
-                            const SizedBox(width: 24),
-                            _leaderCard(
-                              'Pastor Mary Ann Smith',
-                              'assets/images/pastor2.png',
+                // Content overlay
+                Positioned(
+                  bottom: 30,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    children: [
+                      // Logo
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                        child: Center(
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFFB800),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.wb_sunny,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      // Church name
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF1E3A8A),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Sunny Detroit Church',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      // Follow/Unfollow button
+                      Container(
+                        width: 140,
+                        height: 40,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isFollowing
+                                    ? Colors.white.withOpacity(0.2)
+                                    : Color(0xFFFFB800),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side:
+                                  isFollowing
+                                      ? BorderSide(
+                                        color: Colors.white.withOpacity(0.3),
+                                      )
+                                      : BorderSide.none,
+                            ),
+                          ),
+                          onPressed: () {
+                            if (isFollowing) {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => UnfollowDialog(
+                                      churchName: 'Sunny Detroit Church',
+                                      onConfirm: () {
+                                        setState(() {
+                                          isFollowing = false;
+                                        });
+                                        Navigator.of(context).pop();
+                                        // Show confirmation snackbar
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'You have unfollowed Sunny Detroit Church',
+                                            ),
+                                            backgroundColor: Color(0xFF1E3A8A),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                      onCancel:
+                                          () => Navigator.of(context).pop(),
+                                    ),
+                              );
+                            } else {
+                              setState(() {
+                                isFollowing = true;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'You are now following Sunny Detroit Church',
+                                  ),
+                                  backgroundColor: Color(0xFF1E3A8A),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            isFollowing ? 'Following' : 'Follow Church',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  // Announcements Tab
-                  const Center(
-                    child: Text(
-                      'No announcements yet.',
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          // Tabs
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
               ),
             ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Color(0xFF1E3A8A),
+              unselectedLabelColor: Color(0xFF6B7280),
+              indicatorColor: Color(0xFF1E3A8A),
+              indicatorWeight: 2,
+              labelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              unselectedLabelStyle: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+              ),
+              tabs: [
+                Tab(text: 'Overview'),
+                Tab(text: 'Announcements'),
+                Tab(text: 'Services'),
+              ],
+            ),
+          ),
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // Overview Tab
+                SingleChildScrollView(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Upcoming Services
+                      Text(
+                        'Upcoming Services',
+                        style: TextStyle(
+                          color: Color(0xFF1E3A8A),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _serviceCard(
+                              'Sunday Worship',
+                              '8:00 AM',
+                              'assets/images/service1.jpg',
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: _serviceCard(
+                              'Midweek Prayer',
+                              '6:00 PM',
+                              'assets/images/service2.jpg',
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 24),
+                      // Description
+                      Text(
+                        'Sunny Treasure Detroit Church is a welcoming faith community dedicated to spreading God\'s love through worship, service, and fellowship. Located in the heart of Detroit, we strive to become inspired spiritual individuals and develop a rooted faith, persistent joy, and a deeper connection with Christ. Join us as we worship, grow, and serve together in faith and love.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF374151),
+                          height: 1.6,
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      // Pastors and Leaders
+                      Text(
+                        'Pastors and Leaders',
+                        style: TextStyle(
+                          color: Color(0xFF1E3A8A),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _leaderCard(
+                              'Pastor Juan De la Cruz',
+                              'assets/images/pastor1.png',
+                            ),
+                          ),
+                          SizedBox(width: 20),
+                          Expanded(
+                            child: _leaderCard(
+                              'Pastor Mary Ann Smith',
+                              'assets/images/pastor2.png',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Announcements Tab
+                announcements.isEmpty
+                    ? Center(
+                      child: Text(
+                        'No announcements yet.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    )
+                    : ListView.builder(
+                      padding: EdgeInsets.all(20),
+                      itemCount: announcements.length,
+                      itemBuilder: (context, index) {
+                        final announcement = announcements[index];
+                        return _announcementCard(
+                          announcement['title']!,
+                          announcement['description']!,
+                        );
+                      },
+                    ),
+                // Services Tab
+                GridView.builder(
+                  padding: EdgeInsets.all(20),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.2,
+                  ),
+                  itemCount: services.length,
+                  itemBuilder: (context, index) {
+                    final service = services[index];
+                    return _serviceGridCard(
+                      service['title']!,
+                      service['image']!,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _serviceGridCard(String title, String imagePath) {
+    return GestureDetector(
+      onTap: () {
+        _showServiceDetails(title);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Color(0xFF1E3A8A),
+                    child: Center(
+                      child: Icon(Icons.church, size: 40, color: Colors.white),
+                    ),
+                  );
+                },
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.3),
+                      Colors.black.withOpacity(0.7),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _serviceCard(
-    String title,
-    String time,
-    String imagePath,
-    String? tag,
-  ) {
-    return Container(
-      width: 180,
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  void _showServiceDetails(String serviceName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            serviceName,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(18),
-                  topRight: Radius.circular(18),
-                ),
-                child: Image.asset(
-                  imagePath,
-                  height: 100,
-                  width: 180,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 100,
-                      width: 180,
-                      color: const Color(0xFFF5F5F5),
-                      child: const Center(
-                        child: Icon(
-                          Icons.event,
-                          size: 36,
-                          color: Color(0xFF1A237E),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A237E),
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          content: Text(
+            'Learn more about our $serviceName. Join us for this meaningful time of worship and fellowship.',
+            style: TextStyle(color: Color(0xFF6B7280), height: 1.5),
           ),
-          if (tag != null && tag.isNotEmpty)
-            Positioned(
-              top: 8,
-              left: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    color: Color(0xFF1A237E),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  color: Color(0xFF1E3A8A),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _announcementCard(String title, String description) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 12),
+          Container(
+            height: 32,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                minimumSize: Size(0, 32),
+              ),
+              onPressed: () {
+                _showAnnouncementDetails(title, description);
+              },
+              child: Text(
+                'Details',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAnnouncementDetails(String title, String description) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+          content: Text(
+            description,
+            style: TextStyle(color: Color(0xFF6B7280), height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Close',
+                style: TextStyle(
+                  color: Color(0xFF1E3A8A),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _serviceCard(String title, String time, String imagePath) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
+            child: Container(
+              height: 80,
+              width: double.infinity,
+              decoration: BoxDecoration(color: Color(0xFFF3F4F6)),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Color(0xFFF3F4F6),
+                    child: Center(
+                      child: Icon(
+                        Icons.church,
+                        size: 30,
+                        color: Color(0xFF1E3A8A),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E3A8A),
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  time,
+                  style: TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -395,33 +682,40 @@ class _AdminProfileViewState extends State<AdminProfileView>
   Widget _leaderCard(String name, String imagePath) {
     return Column(
       children: [
-        CircleAvatar(
-          radius: 36,
-          backgroundImage: AssetImage(imagePath),
-          backgroundColor: Colors.grey[200],
-          child: Image.asset(
-            imagePath,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.person,
-                size: 36,
-                color: Color(0xFF1A237E),
-              );
-            },
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Color(0xFFF3F4F6),
+                  child: Icon(Icons.person, size: 30, color: Color(0xFF1E3A8A)),
+                );
+              },
+            ),
           ),
         ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: 110,
-          child: Text(
-            name,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-              fontWeight: FontWeight.w500,
-            ),
+        SizedBox(height: 8),
+        Text(
+          name,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: Color(0xFF374151),
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],

@@ -568,36 +568,57 @@ class _AdminHomePageState extends State<AdminHomePage>
             ),
           ),
           const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStatColumn(_adminData.posts, 'Posts'),
-              _buildVerticalDivider(),
-              _buildStatColumn(_adminData.following, 'Following'),
-              _buildVerticalDivider(),
-              _buildStatColumn(_adminData.followers, 'Followers'),
-            ],
-          ),
+          _buildStatsSection(),
         ],
       ),
     );
   }
 
-  Widget _buildStatColumn(String value, String label) {
+  Widget _buildStatsSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildStatColumn(Icons.post_add, _adminData.posts, 'Posts'),
+          _buildVerticalDivider(),
+          _buildStatColumn(
+            Icons.person_add_alt_1,
+            _adminData.following,
+            'Following',
+          ),
+          _buildVerticalDivider(),
+          _buildStatColumn(Icons.people, _adminData.followers, 'Followers'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatColumn(IconData icon, String value, String label) {
     return Column(
       children: [
+        Icon(icon, color: Colors.white, size: 28),
+        const SizedBox(height: 6),
         Text(
           value,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: const TextStyle(color: Colors.white70, fontSize: 15),
         ),
       ],
     );
@@ -605,9 +626,10 @@ class _AdminHomePageState extends State<AdminHomePage>
 
   Widget _buildVerticalDivider() {
     return Container(
-      height: 40,
-      width: 1,
-      color: Colors.white.withOpacity(0.3),
+      height: 48,
+      width: 1.5,
+      color: Colors.white.withOpacity(0.25),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
     );
   }
 
@@ -930,15 +952,37 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   int _navBarIndexForView(AdminView view) {
-    // Implement the logic to determine the index based on the view
-    // This is a placeholder and should be replaced with the actual implementation
-    return 0; // Placeholder return, actual implementation needed
+    switch (view) {
+      case AdminView.home:
+        return 0;
+      case AdminView.events:
+        return 1;
+      case AdminView.community:
+        return 2;
+      case AdminView.posts:
+        return 3;
+      case AdminView.profile:
+        return 4;
+      default:
+        return 0;
+    }
   }
 
   AdminView _viewForNavBarIndex(int index) {
-    // Implement the logic to determine the view based on the index
-    // This is a placeholder and should be replaced with the actual implementation
-    return AdminView.home; // Placeholder return, actual implementation needed
+    switch (index) {
+      case 0:
+        return AdminView.home;
+      case 1:
+        return AdminView.events;
+      case 2:
+        return AdminView.community;
+      case 3:
+        return AdminView.posts;
+      case 4:
+        return AdminView.profile;
+      default:
+        return AdminView.home;
+    }
   }
 }
 

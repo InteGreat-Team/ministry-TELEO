@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'faqs_screen.dart';
-import 'contact_us_screen.dart';
+import '../../3/contact_us_screen.dart';
 import '../../3/nav_bar.dart';
 import 'donate_screen.dart';
 import '../../2/c1homepage/authenticator_flow.dart';

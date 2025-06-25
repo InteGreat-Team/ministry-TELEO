@@ -37,7 +37,7 @@ class _FAQsScreenState extends State<FAQsScreen> {
   final List<FaqCategory> _faqCategories = [
     FaqCategory(
       title: 'General Questions',
-      isExpanded: true,
+      isExpanded: false,
       questions: [
         FaqItem(
           headerValue: 'What is Teleo?',
@@ -138,6 +138,15 @@ class _FAQsScreenState extends State<FAQsScreen> {
     ),
   ];
 
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,6 +169,7 @@ class _FAQsScreenState extends State<FAQsScreen> {
           children: [
             // Search Bar
             TextField(
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search',
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
@@ -174,6 +184,11 @@ class _FAQsScreenState extends State<FAQsScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.trim().toLowerCase();
+                });
+              },
             ),
             const SizedBox(height: 16),
             _buildFaqList(),
@@ -184,9 +199,34 @@ class _FAQsScreenState extends State<FAQsScreen> {
   }
 
   Widget _buildFaqList() {
+    // Filter categories and questions based on the search query
+    final filteredCategories =
+        _faqCategories
+            .map((category) {
+              if (_searchQuery.isEmpty) return category;
+              final filteredQuestions =
+                  category.questions.where((item) {
+                    return item.headerValue.toLowerCase().contains(
+                          _searchQuery,
+                        ) ||
+                        item.expandedValue.toLowerCase().contains(_searchQuery);
+                  }).toList();
+              if (category.title.toLowerCase().contains(_searchQuery) ||
+                  filteredQuestions.isNotEmpty) {
+                return FaqCategory(
+                  title: category.title,
+                  questions: filteredQuestions,
+                  isExpanded: false,
+                );
+              }
+              return null;
+            })
+            .whereType<FaqCategory>()
+            .toList();
+
     return Column(
       children:
-          _faqCategories.map((FaqCategory category) {
+          filteredCategories.map((FaqCategory category) {
             return Column(
               children: [
                 GestureDetector(
@@ -225,7 +265,7 @@ class _FAQsScreenState extends State<FAQsScreen> {
                     ),
                   ),
                 ),
-                if (category.isExpanded)
+                if (category.isExpanded || _searchQuery.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Column(
