@@ -14,6 +14,7 @@ import 'community_screen.dart';
 import 'posts_screen.dart';
 import '../../3/contact_us_screen.dart';
 import '../../3/c1widgets/authenticator_screen.dart';
+import '../../1/c1homepage/donate_screen.dart';
 
 // Import new components
 import 'components/metrics_grid.dart';
@@ -171,10 +172,13 @@ class _AdminHomePageState extends State<AdminHomePage>
           _currentTitle = 'Report Issue';
           break;
         case AdminView.termsAndConditions:
-          _currentTitle = 'Terms and Conditions';
+          _currentTitle = 'Terms & Conditions';
           break;
         case AdminView.contactUs:
           _currentTitle = 'Contact Us';
+          break;
+        case AdminView.donate:
+          _currentTitle = 'Donate';
           break;
       }
     });
@@ -433,6 +437,8 @@ class _AdminHomePageState extends State<AdminHomePage>
         return AdminTermsConditionsView(onNavigate: _navigateTo);
       case AdminView.contactUs:
         return const ContactUsScreen();
+      case AdminView.donate:
+        return const DonateScreen();
       case AdminView.home:
         return _buildHomeView();
     }

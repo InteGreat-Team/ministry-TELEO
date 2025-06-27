@@ -112,47 +112,44 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'TELEO',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E2A4A),
-                          letterSpacing: 2.0,
-                        ),
+              // Centered TELEO Header
+              SizedBox(height: 32),
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'TELEO',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E2A4A),
+                        letterSpacing: 2.0,
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Your bridge to a stronger faith',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF1E2A4A),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Your bridge to a stronger faith',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF1E2A4A)),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              // Contact Information Card
+
+              // Contact Information Card - Updated to match the design
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF1E2A4A), Color(0xFF3B4F8B)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF1a1f3a), // Dark blue
+                      Color(0xFF2d1b69), // Medium purple
+                      Color(0xFF4c1d95), // Purple
+                    ],
+                    stops: [0.0, 0.5, 1.0],
                   ),
                 ),
                 padding: const EdgeInsets.all(24.0),
@@ -162,39 +159,49 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                     const Text(
                       'Contact Information',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       'Say something to start a live chat!',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
+                      style: TextStyle(fontSize: 14, color: Color(0xFFB3B3B3)),
                     ),
                     const SizedBox(height: 24),
+
+                    // Phone
                     _buildContactRow(FontAwesomeIcons.phone, '(0917) 445 9934'),
                     const SizedBox(height: 16),
+
+                    // Email section
                     _buildContactRow(
                       FontAwesomeIcons.envelope,
                       'sample.admin@samplemail.com',
                     ),
                     const SizedBox(height: 8),
                     Padding(
-                      padding: const EdgeInsets.only(left: 36.0),
-                      child: _buildContactRow(
-                        FontAwesomeIcons.envelope,
+                      padding: const EdgeInsets.only(left: 40.0),
+                      child: Text(
                         'teleosupport@gmail.com',
-                        showIcon: false,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildContactRow(
-                      FontAwesomeIcons.facebook,
+
+                    // Facebook
+                    _buildSocialContactRow(
+                      FontAwesomeIcons.facebookF,
                       'Teleo Official',
                     ),
                     const SizedBox(height: 16),
-                    _buildContactRow(
+
+                    // Instagram
+                    _buildSocialContactRow(
                       FontAwesomeIcons.instagram,
                       'Teleo Official',
                     ),
@@ -295,13 +302,38 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     );
   }
 
-  Widget _buildContactRow(IconData icon, String text, {bool showIcon = true}) {
+  Widget _buildContactRow(IconData icon, String text) {
     return Row(
       children: [
-        if (showIcon)
-          FaIcon(icon, color: Colors.white, size: 20)
-        else
-          const SizedBox(width: 20),
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          child: FaIcon(icon, color: Colors.white, size: 18),
+        ),
+        const SizedBox(width: 16),
+        Text(text, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      ],
+    );
+  }
+
+  Widget _buildSocialContactRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          child: Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Center(child: FaIcon(icon, color: Colors.white, size: 12)),
+          ),
+        ),
         const SizedBox(width: 16),
         Text(text, style: const TextStyle(color: Colors.white, fontSize: 14)),
       ],

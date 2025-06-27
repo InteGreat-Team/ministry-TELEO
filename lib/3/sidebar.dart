@@ -94,6 +94,12 @@ class AdminDrawer extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     _buildMenuItem(
+                      Icons.volunteer_activism,
+                      'Donate',
+                      onTap: null,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildMenuItem(
                       Icons.settings_rounded,
                       'Settings',
                       onTap: () {

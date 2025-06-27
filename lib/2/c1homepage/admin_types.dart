@@ -18,6 +18,7 @@ enum AdminView {
   reportIssue,
   termsAndConditions,
   contactUs,
+  donate,
 }
 
 class AdminData {

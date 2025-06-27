@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../admin_types.dart';
-import 'unfollow_dialog.dart';
 
 class AdminProfileView extends StatefulWidget {
   final AdminData adminData;
@@ -19,7 +18,6 @@ class AdminProfileView extends StatefulWidget {
 class _AdminProfileViewState extends State<AdminProfileView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool isFollowing = false;
 
   // Sample announcements data
   final List<Map<String, String>> announcements = [
@@ -169,82 +167,6 @@ class _AdminProfileViewState extends State<AdminProfileView>
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      // Follow/Unfollow button
-                      Container(
-                        width: 140,
-                        height: 40,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                isFollowing
-                                    ? Colors.white.withOpacity(0.2)
-                                    : Color(0xFFFFB800),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side:
-                                  isFollowing
-                                      ? BorderSide(
-                                        color: Colors.white.withOpacity(0.3),
-                                      )
-                                      : BorderSide.none,
-                            ),
-                          ),
-                          onPressed: () {
-                            if (isFollowing) {
-                              showDialog(
-                                context: context,
-                                builder:
-                                    (context) => UnfollowDialog(
-                                      churchName: 'Sunny Detroit Church',
-                                      onConfirm: () {
-                                        setState(() {
-                                          isFollowing = false;
-                                        });
-                                        Navigator.of(context).pop();
-                                        // Show confirmation snackbar
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'You have unfollowed Sunny Detroit Church',
-                                            ),
-                                            backgroundColor: Color(0xFF1E3A8A),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                      },
-                                      onCancel:
-                                          () => Navigator.of(context).pop(),
-                                    ),
-                              );
-                            } else {
-                              setState(() {
-                                isFollowing = true;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'You are now following Sunny Detroit Church',
-                                  ),
-                                  backgroundColor: Color(0xFF1E3A8A),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            isFollowing ? 'Following' : 'Follow Church',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
                           ),
                         ),
                       ),
