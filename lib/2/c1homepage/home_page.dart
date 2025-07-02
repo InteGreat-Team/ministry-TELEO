@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:async';
 import 'faqs_screen.dart';
 import 'set_role_screen.dart';
 import 'mass_schedule_screen.dart';
 import '../../3/sidebar.dart';
-import '../../1/c1homepage/home_page.dart' show AuthenticatorView;
 import 'authenticator_flow.dart';
 import 'admin_types.dart';
 import '../../3/report/mainreport.dart';
@@ -15,14 +13,10 @@ import 'posts_screen.dart';
 import '../../3/contact_us_screen.dart';
 import '../../3/c1widgets/authenticator_screen.dart';
 import '../../1/c1homepage/donate_screen.dart';
-
-// Import new components
 import 'components/metrics_grid.dart';
 import 'components/analytics_chart.dart';
 import 'components/content_management.dart';
 import 'components/notification_settings.dart';
-
-// Import admin views
 import 'admin_views/admin_profile_view.dart';
 import 'admin_views/admin_settings_view.dart';
 import 'admin_views/admin_security_settings_view.dart';
@@ -31,8 +25,6 @@ import 'admin_views/admin_change_email_view.dart';
 import 'admin_views/admin_change_password_view.dart';
 import 'admin_views/admin_change_phone_view.dart';
 import 'admin_views/admin_terms_conditions_view.dart';
-
-// Import NavBar
 import '../../3/nav_bar.dart';
 
 class AdminHomePage extends StatefulWidget {
@@ -47,6 +39,10 @@ class _AdminHomePageState extends State<AdminHomePage>
   String _currentTitle = 'Teleo Admin';
   late TabController _tabController;
   AuthenticatorFlow _currentAuthFlow = AuthenticatorFlow.email;
+
+  // Backend-ready: loading and error state
+  bool _isLoading = false;
+  String? _errorMessage;
 
   // Store temporary data for authentication flows
   String _newEmail = '';
@@ -74,10 +70,126 @@ class _AdminHomePageState extends State<AdminHomePage>
 
   AdminView _currentView = AdminView.home;
 
+  static const Map<AdminView, String> _titles = {
+    AdminView.home: 'Teleo Admin',
+    AdminView.profile: 'Profile',
+    AdminView.settings: 'Settings',
+    AdminView.accountSettings: 'Account',
+    AdminView.securitySettings: 'Security',
+    AdminView.changeEmail: 'Change Email',
+    AdminView.changePassword: 'Change Password',
+    AdminView.changePhone: 'Change Phone Number',
+    AdminView.authenticator: 'Security',
+    AdminView.events: 'Events',
+    AdminView.community: 'Community',
+    AdminView.posts: 'Posts',
+    AdminView.setRoles: 'Set Roles',
+    AdminView.faqs: 'FAQs',
+    AdminView.notificationSettings: 'Notifications',
+    AdminView.massSchedule: 'Mass Schedule',
+    AdminView.reportIssue: 'Report Issue',
+    AdminView.termsAndConditions: 'Terms & Conditions',
+    AdminView.contactUs: 'Contact Us',
+    AdminView.donate: 'Donate',
+  };
+
+  // Backend-ready: Analytics/chart data state
+  List<double> _totalReadsData = [10, 20, 15, 30, 25, 40]; // Example data
+  List<double> _totalWatchesData = [
+    0.6,
+    1.0,
+    0.7,
+    1.2,
+    0.4,
+    0.9,
+  ]; // Example data
+  List<String> _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  String _followersPercent = '+11.01%';
+
+  // Backend-ready: loading and error state for analytics
+  bool _isAnalyticsLoading = false;
+  String? _analyticsError;
+
+  // Backend-ready: placeholder for fetching admin data
+  Future<void> fetchAdminData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      // TODO: Replace with real backend call
+      await Future.delayed(const Duration(milliseconds: 500));
+      // Example: final data = await ApiService.getAdminData();
+      // setState(() { _adminData = data; });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to load admin data.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Backend-ready: placeholder for updating admin data
+  Future<void> updateAdminData(AdminData newData) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      // TODO: Replace with real backend call
+      await Future.delayed(const Duration(milliseconds: 500));
+      // Example: await ApiService.updateAdminData(newData);
+      setState(() {
+        _adminData = newData;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to update admin data.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Backend-ready: placeholder for fetching analytics/chart data
+  Future<void> fetchAnalyticsData() async {
+    setState(() {
+      _isAnalyticsLoading = true;
+      _analyticsError = null;
+    });
+    try {
+      // TODO: Replace with real backend call to fetch analytics/chart data
+      await Future.delayed(const Duration(milliseconds: 500));
+      // Example:
+      // final analytics = await ApiService.getAnalyticsData();
+      // setState(() {
+      //   _totalReadsData = analytics.reads;
+      //   _totalWatchesData = analytics.watches;
+      //   _followersPercent = analytics.followersPercent;
+      //   _months = analytics.months;
+      // });
+    } catch (e) {
+      setState(() {
+        _analyticsError = 'Failed to load analytics data.';
+      });
+    } finally {
+      setState(() {
+        _isAnalyticsLoading = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    fetchAdminData();
+    fetchAnalyticsData(); // Backend-ready: fetch analytics/chart data on init
   }
 
   @override
@@ -119,135 +231,23 @@ class _AdminHomePageState extends State<AdminHomePage>
         }
       }
 
-      switch (view) {
-        case AdminView.home:
-          _currentTitle = 'Teleo Admin';
-          break;
-        case AdminView.profile:
-          _currentTitle = 'Profile';
-          break;
-        case AdminView.settings:
-          _currentTitle = 'Settings';
-          break;
-        case AdminView.accountSettings:
-          _currentTitle = 'Account';
-          break;
-        case AdminView.securitySettings:
-          _currentTitle = 'Security';
-          break;
-        case AdminView.changeEmail:
-          _currentTitle = 'Change Email';
-          break;
-        case AdminView.changePassword:
-          _currentTitle = 'Change Password';
-          break;
-        case AdminView.changePhone:
-          _currentTitle = 'Change Phone Number';
-          break;
-        case AdminView.authenticator:
-          _currentTitle = 'Security';
-          break;
-        case AdminView.events:
-          _currentTitle = 'Events';
-          break;
-        case AdminView.community:
-          _currentTitle = 'Community';
-          break;
-        case AdminView.posts:
-          _currentTitle = 'Posts';
-          break;
-        case AdminView.setRoles:
-          _currentTitle = 'Set Roles';
-          break;
-        case AdminView.faqs:
-          _currentTitle = 'FAQs';
-          break;
-        case AdminView.notificationSettings:
-          _currentTitle = 'Notifications';
-          break;
-        case AdminView.massSchedule:
-          _currentTitle = 'Mass Schedule';
-          break;
-        case AdminView.reportIssue:
-          _currentTitle = 'Report Issue';
-          break;
-        case AdminView.termsAndConditions:
-          _currentTitle = 'Terms & Conditions';
-          break;
-        case AdminView.contactUs:
-          _currentTitle = 'Contact Us';
-          break;
-        case AdminView.donate:
-          _currentTitle = 'Donate';
-          break;
-      }
+      _currentTitle = _titles[view] ?? 'Teleo Admin';
     });
   }
 
   void _handleAuthenticationSuccess() {
-    // Update admin data based on the current flow
-    AdminData updatedAdminData;
-
+    AdminData updatedAdminData = _adminData;
     switch (_currentAuthFlow) {
       case AuthenticatorFlow.email:
-        updatedAdminData = AdminData(
-          churchName: _adminData.churchName,
-          posts: _adminData.posts,
-          following: _adminData.following,
-          followers: _adminData.followers,
-          loginActivity: _adminData.loginActivity,
-          loginActivityPercentage: _adminData.loginActivityPercentage,
-          dailyFollows: _adminData.dailyFollows,
-          dailyFollowsPercentage: _adminData.dailyFollowsPercentage,
-          dailyVisits: _adminData.dailyVisits,
-          dailyVisitsPercentage: _adminData.dailyVisitsPercentage,
-          bookings: _adminData.bookings,
-          bookingsPercentage: _adminData.bookingsPercentage,
-          email: _newEmail,
-          phoneNumber: _adminData.phoneNumber,
-          password: _adminData.password,
-        );
+        updatedAdminData = _adminData.copyWith(email: _newEmail);
         break;
       case AuthenticatorFlow.password:
-        updatedAdminData = AdminData(
-          churchName: _adminData.churchName,
-          posts: _adminData.posts,
-          following: _adminData.following,
-          followers: _adminData.followers,
-          loginActivity: _adminData.loginActivity,
-          loginActivityPercentage: _adminData.loginActivityPercentage,
-          dailyFollows: _adminData.dailyFollows,
-          dailyFollowsPercentage: _adminData.dailyFollowsPercentage,
-          dailyVisits: _adminData.dailyVisits,
-          dailyVisitsPercentage: _adminData.dailyVisitsPercentage,
-          bookings: _adminData.bookings,
-          bookingsPercentage: _adminData.bookingsPercentage,
-          email: _adminData.email,
-          phoneNumber: _adminData.phoneNumber,
-          password: _newPassword,
-        );
+        updatedAdminData = _adminData.copyWith(password: _newPassword);
         break;
       case AuthenticatorFlow.phone:
-        updatedAdminData = AdminData(
-          churchName: _adminData.churchName,
-          posts: _adminData.posts,
-          following: _adminData.following,
-          followers: _adminData.followers,
-          loginActivity: _adminData.loginActivity,
-          loginActivityPercentage: _adminData.loginActivityPercentage,
-          dailyFollows: _adminData.dailyFollows,
-          dailyFollowsPercentage: _adminData.dailyFollowsPercentage,
-          dailyVisits: _adminData.dailyVisits,
-          dailyVisitsPercentage: _adminData.dailyVisitsPercentage,
-          bookings: _adminData.bookings,
-          bookingsPercentage: _adminData.bookingsPercentage,
-          email: _adminData.email,
-          phoneNumber: _newPhoneNumber,
-          password: _adminData.password,
-        );
+        updatedAdminData = _adminData.copyWith(phoneNumber: _newPhoneNumber);
         break;
     }
-
     _updateAdminData(updatedAdminData);
 
     // Show success dialog
@@ -381,67 +381,57 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   Widget _buildBody() {
-    switch (_currentView) {
-      case AdminView.setRoles:
-        return const SetRoleScreen();
-      case AdminView.faqs:
-        return FAQsScreen(onNavigate: _navigateTo);
-      case AdminView.events:
-        return const EventsScreen();
-      case AdminView.community:
-        return const CommunityScreen();
-      case AdminView.posts:
-        return const PostsScreen();
-      case AdminView.profile:
-        return AdminProfileView(
-          adminData: _adminData,
-          onUpdateAdminData: _updateAdminData,
-        );
-      case AdminView.settings:
-        return AdminSettingsView(onNavigate: _navigateTo);
-      case AdminView.accountSettings:
-        return AdminAccountSettingsView(
-          adminData: _adminData,
-          onUpdateAdminData: _updateAdminData,
-        );
-      case AdminView.securitySettings:
-        return AdminSecuritySettingsView(
-          adminData: _adminData,
-          onUpdateAdminData: _updateAdminData,
-          onNavigate: _navigateTo,
-        );
-      case AdminView.changeEmail:
-        return AdminChangeEmailView(
-          currentEmail: _adminData.email,
-          onNavigate: _navigateTo,
-        );
-      case AdminView.changePassword:
-        return AdminChangePasswordView(onNavigate: _navigateTo);
-      case AdminView.changePhone:
-        return AdminChangePhoneView(
-          currentPhoneNumber: _adminData.phoneNumber,
-          onNavigate: _navigateTo,
-        );
-      case AdminView.authenticator:
-        return AuthenticatorScreen(
-          onSuccess: _handleAuthenticationSuccess,
-          onCancel: () => _navigateTo(AdminView.securitySettings),
-        );
-      case AdminView.notificationSettings:
-        return NotificationSettingsView(onNavigate: _navigateTo);
-      case AdminView.massSchedule:
-        return const MassScheduleScreen();
-      case AdminView.reportIssue:
-        return ReportApp(onNavigate: _navigateTo);
-      case AdminView.termsAndConditions:
-        return AdminTermsConditionsView(onNavigate: _navigateTo);
-      case AdminView.contactUs:
-        return const ContactUsScreen();
-      case AdminView.donate:
-        return const DonateScreen();
-      case AdminView.home:
-        return _buildHomeView();
-    }
+    final Map<AdminView, Widget Function()> viewBuilders = {
+      AdminView.setRoles: () => const SetRoleScreen(),
+      AdminView.faqs: () => FAQsScreen(onNavigate: _navigateTo),
+      AdminView.events: () => const EventsScreen(),
+      AdminView.community: () => const CommunityScreen(),
+      AdminView.posts: () => const PostsScreen(),
+      AdminView.profile:
+          () => AdminProfileView(
+            adminData: _adminData,
+            onUpdateAdminData: _updateAdminData,
+          ),
+      AdminView.settings: () => AdminSettingsView(onNavigate: _navigateTo),
+      AdminView.accountSettings:
+          () => AdminAccountSettingsView(
+            adminData: _adminData,
+            onUpdateAdminData: _updateAdminData,
+          ),
+      AdminView.securitySettings:
+          () => AdminSecuritySettingsView(
+            adminData: _adminData,
+            onUpdateAdminData: _updateAdminData,
+            onNavigate: _navigateTo,
+          ),
+      AdminView.changeEmail:
+          () => AdminChangeEmailView(
+            currentEmail: _adminData.email,
+            onNavigate: _navigateTo,
+          ),
+      AdminView.changePassword:
+          () => AdminChangePasswordView(onNavigate: _navigateTo),
+      AdminView.changePhone:
+          () => AdminChangePhoneView(
+            currentPhoneNumber: _adminData.phoneNumber,
+            onNavigate: _navigateTo,
+          ),
+      AdminView.authenticator:
+          () => AuthenticatorScreen(
+            onSuccess: _handleAuthenticationSuccess,
+            onCancel: () => _navigateTo(AdminView.securitySettings),
+          ),
+      AdminView.notificationSettings:
+          () => NotificationSettingsView(onNavigate: _navigateTo),
+      AdminView.massSchedule: () => const MassScheduleScreen(),
+      AdminView.reportIssue: () => ReportApp(onNavigate: _navigateTo),
+      AdminView.termsAndConditions:
+          () => AdminTermsConditionsView(onNavigate: _navigateTo),
+      AdminView.contactUs: () => const ContactUsScreen(),
+      AdminView.donate: () => const DonateScreen(),
+      AdminView.home: _buildHomeView,
+    };
+    return viewBuilders[_currentView]?.call() ?? _buildHomeView();
   }
 
   Widget _buildHomeView() {
@@ -694,6 +684,18 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   Widget _buildAnalyticsChart() {
+    // Backend: Show loading or error state for analytics
+    if (_isAnalyticsLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_analyticsError != null) {
+      return Center(
+        child: Text(
+          _analyticsError!,
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
     return Card(
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -734,12 +736,13 @@ class _AdminHomePageState extends State<AdminHomePage>
     );
   }
 
+  // Backend: Use _totalReadsData and _months for chart
   Widget _buildTotalReadsChart() {
     return Column(
       children: [
         Expanded(
           child: CustomPaint(
-            painter: LineChartPainter(),
+            painter: LineChartPainter(data: _totalReadsData),
             size: const Size(double.infinity, double.infinity),
           ),
         ),
@@ -747,7 +750,7 @@ class _AdminHomePageState extends State<AdminHomePage>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children:
-              ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+              _months
                   .map(
                     (month) => Text(
                       month,
@@ -760,12 +763,13 @@ class _AdminHomePageState extends State<AdminHomePage>
     );
   }
 
+  // Backend: Use _totalWatchesData and _months for chart
   Widget _buildTotalWatchesChart() {
     return Column(
       children: [
         Expanded(
           child: CustomPaint(
-            painter: BarChartPainter(),
+            painter: BarChartPainter(data: _totalWatchesData),
             size: const Size(double.infinity, double.infinity),
           ),
         ),
@@ -773,7 +777,7 @@ class _AdminHomePageState extends State<AdminHomePage>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children:
-              ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+              _months
                   .map(
                     (month) => Text(
                       month,
@@ -786,6 +790,7 @@ class _AdminHomePageState extends State<AdminHomePage>
     );
   }
 
+  // Backend: Use _adminData.followers and _followersPercent for display
   Widget _buildTotalFollowersDisplay() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -801,13 +806,13 @@ class _AdminHomePageState extends State<AdminHomePage>
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
-              '+11.01%',
-              style: TextStyle(color: Colors.green, fontSize: 16),
+              _followersPercent,
+              style: const TextStyle(color: Colors.green, fontSize: 16),
             ),
-            SizedBox(width: 4),
-            Icon(Icons.trending_up, color: Colors.green, size: 16),
+            const SizedBox(width: 4),
+            const Icon(Icons.trending_up, color: Colors.green, size: 16),
           ],
         ),
       ],
@@ -993,6 +998,9 @@ class _AdminHomePageState extends State<AdminHomePage>
 }
 
 class LineChartPainter extends CustomPainter {
+  final List<double> data;
+  LineChartPainter({required this.data});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
@@ -1002,39 +1010,38 @@ class LineChartPainter extends CustomPainter {
           ..style = PaintingStyle.stroke;
 
     final path = Path();
-    // Replicating points from image
-    final points = [
-      Offset(size.width * 0.05, size.height * 0.4),
-      Offset(size.width * 0.18, size.height * 0.7),
-      Offset(size.width * 0.31, size.height * 0.5),
-      Offset(size.width * 0.44, size.height * 0.2),
-      Offset(size.width * 0.57, size.height * 0.25),
-      Offset(size.width * 0.70, size.height * 0.05),
-      Offset(size.width * 0.83, size.height * 0.3),
-      Offset(size.width * 0.95, size.height * 0.4),
-    ];
-
-    path.moveTo(points[0].dx, points[0].dy);
-    for (var i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
-    }
-
-    canvas.drawPath(path, paint);
-
-    final pointPaint =
-        Paint()
-          ..color = Colors.orange
-          ..style = PaintingStyle.fill;
-
-    final borderPaint =
-        Paint()
-          ..color = Colors.white
-          ..strokeWidth = 2
-          ..style = PaintingStyle.stroke;
-
-    for (final point in points) {
-      canvas.drawCircle(point, 4, pointPaint);
-      canvas.drawCircle(point, 4, borderPaint);
+    // Backend: Use provided data for points
+    if (data.isNotEmpty) {
+      final points = List.generate(
+        data.length,
+        (i) => Offset(
+          size.width * (i / (data.length - 1)),
+          size.height *
+              (1 -
+                  (data[i] /
+                      (data.reduce((a, b) => a > b ? a : b) == 0
+                          ? 1
+                          : data.reduce((a, b) => a > b ? a : b)))),
+        ),
+      );
+      path.moveTo(points[0].dx, points[0].dy);
+      for (var i = 1; i < points.length; i++) {
+        path.lineTo(points[i].dx, points[i].dy);
+      }
+      canvas.drawPath(path, paint);
+      final pointPaint =
+          Paint()
+            ..color = Colors.orange
+            ..style = PaintingStyle.fill;
+      final borderPaint =
+          Paint()
+            ..color = Colors.white
+            ..strokeWidth = 2
+            ..style = PaintingStyle.stroke;
+      for (final point in points) {
+        canvas.drawCircle(point, 4, pointPaint);
+        canvas.drawCircle(point, 4, borderPaint);
+      }
     }
   }
 
@@ -1043,6 +1050,9 @@ class LineChartPainter extends CustomPainter {
 }
 
 class BarChartPainter extends CustomPainter {
+  final List<double> data;
+  BarChartPainter({required this.data});
+
   @override
   void paint(Canvas canvas, Size size) {
     const leftOffset = 30.0;
@@ -1070,13 +1080,14 @@ class BarChartPainter extends CustomPainter {
     }
 
     final barPaint = Paint()..color = Colors.orange;
-    final barData = [0.6, 1.0, 0.7, 1.2, 0.4, 0.9]; // Sample data
-    final maxVal = 1.3;
-    final barWidth = (drawableWidth / barData.length) * 0.4;
-    final spacing = (drawableWidth / barData.length) * 0.6;
+    // Backend: Use provided data for bars
+    final maxVal = data.isNotEmpty ? data.reduce((a, b) => a > b ? a : b) : 1.0;
+    final barWidth =
+        (drawableWidth / (data.isNotEmpty ? data.length : 1)) * 0.4;
+    final spacing = (drawableWidth / (data.isNotEmpty ? data.length : 1)) * 0.6;
 
-    for (var i = 0; i < barData.length; i++) {
-      final barHeight = (barData[i] / maxVal) * size.height;
+    for (var i = 0; i < data.length; i++) {
+      final barHeight = (data[i] / (maxVal == 0 ? 1 : maxVal)) * size.height;
       final x = leftOffset + (i * (barWidth + spacing)) + spacing / 2;
       canvas.drawRRect(
         RRect.fromRectAndRadius(

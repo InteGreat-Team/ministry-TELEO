@@ -55,4 +55,43 @@ class AdminData {
     required this.phoneNumber,
     required this.password,
   });
+
+  AdminData copyWith({
+    String? churchName,
+    String? posts,
+    String? following,
+    String? followers,
+    String? loginActivity,
+    String? loginActivityPercentage,
+    String? dailyFollows,
+    String? dailyFollowsPercentage,
+    String? dailyVisits,
+    String? dailyVisitsPercentage,
+    String? bookings,
+    String? bookingsPercentage,
+    String? email,
+    String? phoneNumber,
+    String? password,
+  }) {
+    return AdminData(
+      churchName: churchName ?? this.churchName,
+      posts: posts ?? this.posts,
+      following: following ?? this.following,
+      followers: followers ?? this.followers,
+      loginActivity: loginActivity ?? this.loginActivity,
+      loginActivityPercentage:
+          loginActivityPercentage ?? this.loginActivityPercentage,
+      dailyFollows: dailyFollows ?? this.dailyFollows,
+      dailyFollowsPercentage:
+          dailyFollowsPercentage ?? this.dailyFollowsPercentage,
+      dailyVisits: dailyVisits ?? this.dailyVisits,
+      dailyVisitsPercentage:
+          dailyVisitsPercentage ?? this.dailyVisitsPercentage,
+      bookings: bookings ?? this.bookings,
+      bookingsPercentage: bookingsPercentage ?? this.bookingsPercentage,
+      email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      password: password ?? this.password,
+    );
+  }
 }
