@@ -8,64 +8,68 @@ class AdminSettingsView extends StatelessWidget {
 
   const AdminSettingsView({super.key, required this.onNavigate});
 
+  // TODO: Replace with backend data source
+  List<_SettingItem> get settingsItems => [
+    _SettingItem(
+      icon: Icons.person_outline,
+      title: 'Your Account',
+      subtitle: 'Edit your account information',
+      onTap: () => onNavigate(AdminView.accountSettings),
+    ),
+    _SettingItem(
+      icon: Icons.security,
+      title: 'Security and Account Access',
+      subtitle: 'Manage your account\'s security',
+      onTap: () => onNavigate(AdminView.securitySettings),
+    ),
+    _SettingItem(
+      icon: Icons.notifications_outlined,
+      title: 'Manage Notifications',
+      subtitle: 'Manage notifications received',
+      onTap: () => onNavigate(AdminView.notificationSettings),
+    ),
+    _SettingItem(
+      icon: Icons.calendar_today,
+      title: 'Mass Schedule',
+      subtitle: 'Manage church mass schedules',
+      onTap: () => onNavigate(AdminView.massSchedule),
+    ),
+    _SettingItem(
+      icon: Icons.report_gmailerrorred_outlined,
+      title: 'Report an Issue',
+      subtitle: 'Report issues',
+      onTap: () => onNavigate(AdminView.reportIssue),
+    ),
+    _SettingItem(
+      icon: Icons.description_outlined,
+      title: 'Terms and Conditions',
+      subtitle: 'Legal notes',
+      onTap: () => onNavigate(AdminView.termsAndConditions),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-      child: ListView(
-        children: [
-          _buildSettingsCard(
+      child: ListView.separated(
+        itemCount: settingsItems.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          final item = settingsItems[index];
+          return _buildSettingsCard(
             context,
-            icon: Icons.person_outline,
-            title: 'Your Account',
-            subtitle: 'Edit your account information',
-            onTap: () => onNavigate(AdminView.accountSettings),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.security,
-            title: 'Security and Account Access',
-            subtitle: 'Manage your account\'s security',
-            onTap: () => onNavigate(AdminView.securitySettings),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.notifications_outlined,
-            title: 'Manage Notifications',
-            subtitle: 'Manage notifications received',
-            onTap: () => onNavigate(AdminView.notificationSettings),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.calendar_today,
-            title: 'Mass Schedule',
-            subtitle: 'Manage church mass schedules',
-            onTap: () => onNavigate(AdminView.massSchedule),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.report_gmailerrorred_outlined,
-            title: 'Report an Issue',
-            subtitle: 'Report issues',
-            onTap: () => onNavigate(AdminView.reportIssue),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingsCard(
-            context,
-            icon: Icons.description_outlined,
-            title: 'Terms and Conditions',
-            subtitle: 'Legal notes',
-            onTap: () => onNavigate(AdminView.termsAndConditions),
-          ),
-        ],
+            icon: item.icon,
+            title: item.title,
+            subtitle: item.subtitle,
+            onTap: item.onTap,
+          );
+        },
       ),
     );
   }
 
+  // Card builder for each settings item
   Widget _buildSettingsCard(
     BuildContext context, {
     required IconData icon,
@@ -103,4 +107,18 @@ class AdminSettingsView extends StatelessWidget {
       ),
     );
   }
+}
+
+// Private model for settings item (for easy backend swap)
+class _SettingItem {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  _SettingItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 }
