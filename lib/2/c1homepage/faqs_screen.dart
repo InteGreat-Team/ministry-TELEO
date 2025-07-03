@@ -34,7 +34,8 @@ class FaqCategory {
 }
 
 class _FAQsScreenState extends State<FAQsScreen> {
-  final List<FaqCategory> _faqCategories = [
+  // TODO: Replace with backend data source
+  List<FaqCategory> get faqCategories => [
     FaqCategory(
       title: 'General Questions',
       isExpanded: false,
@@ -167,29 +168,7 @@ class _FAQsScreenState extends State<FAQsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Search Bar
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 0,
-                  horizontal: 16,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.trim().toLowerCase();
-                });
-              },
-            ),
+            _buildSearchBar(),
             const SizedBox(height: 16),
             _buildFaqList(),
           ],
@@ -198,10 +177,34 @@ class _FAQsScreenState extends State<FAQsScreen> {
     );
   }
 
+  // Search bar widget
+  Widget _buildSearchBar() {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Search',
+        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.0),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      onChanged: (value) {
+        setState(() {
+          _searchQuery = value.trim().toLowerCase();
+        });
+      },
+    );
+  }
+
+  // FAQ list builder
   Widget _buildFaqList() {
-    // Filter categories and questions based on the search query
+    // When backend is ready, replace faqCategories getter with API data
     final filteredCategories =
-        _faqCategories
+        faqCategories
             .map((category) {
               if (_searchQuery.isEmpty) return category;
               final filteredQuestions =
@@ -229,93 +232,87 @@ class _FAQsScreenState extends State<FAQsScreen> {
           filteredCategories.map((FaqCategory category) {
             return Column(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      category.isExpanded = !category.isExpanded;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0D1B42),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          category.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Icon(
-                          category.isExpanded
-                              ? Icons.keyboard_arrow_up
-                              : Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _buildCategoryHeader(category),
                 if (category.isExpanded || _searchQuery.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Column(
-                      children:
-                          category.questions.map((FaqItem item) {
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ExpansionTile(
-                                title: Text(
-                                  item.headerValue,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF333333),
-                                  ),
-                                ),
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Text(
-                                      item.expandedValue,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                onExpansionChanged: (bool expanded) {
-                                  setState(() {
-                                    item.isExpanded = expanded;
-                                  });
-                                },
-                                initiallyExpanded: item.isExpanded,
-                                trailing: Icon(
-                                  item.isExpanded
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                      children: category.questions.map(_buildFaqItem).toList(),
                     ),
                   ),
                 const SizedBox(height: 10),
               ],
             );
           }).toList(),
+    );
+  }
+
+  // Category header builder
+  Widget _buildCategoryHeader(FaqCategory category) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          category.isExpanded = !category.isExpanded;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0D1B42),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              category.title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Icon(
+              category.isExpanded
+                  ? Icons.keyboard_arrow_up
+                  : Icons.keyboard_arrow_down,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // FAQ item builder
+  Widget _buildFaqItem(FaqItem item) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: ExpansionTile(
+        title: Text(
+          item.headerValue,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
+        ),
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              item.expandedValue,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ),
+        ],
+        onExpansionChanged: (bool expanded) {
+          setState(() {
+            item.isExpanded = expanded;
+          });
+        },
+        initiallyExpanded: item.isExpanded,
+        trailing: Icon(
+          item.isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+        ),
+      ),
     );
   }
 }
