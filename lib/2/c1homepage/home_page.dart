@@ -683,7 +683,7 @@ class _AdminHomePageState extends State<AdminHomePage>
     );
   }
 
-  Widget _buildAnalyticsChart() {
+  Widget _buildAnalyticsChart({double? screenWidth}) {
     // Backend: Show loading or error state for analytics
     if (_isAnalyticsLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -696,6 +696,9 @@ class _AdminHomePageState extends State<AdminHomePage>
         ),
       );
     }
+    double chartHeight = (screenWidth ?? 400) * 0.35 + 60; // ~150 on 260px
+    double tabFontSize =
+        (screenWidth ?? 400) * 0.035 + 10; // Responsive font size
     return Card(
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -705,28 +708,74 @@ class _AdminHomePageState extends State<AdminHomePage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TabBar(
-              controller: _tabController,
-              labelColor: Colors.orange,
-              unselectedLabelColor: Colors.grey[600],
-              indicatorColor: Colors.orange,
-              indicatorSize: TabBarIndicatorSize.label,
-              indicatorWeight: 2.0,
-              tabs: const [
-                Tab(text: 'Total Reads'),
-                Tab(text: 'Total Watches'),
-                Tab(text: 'Total Follows'),
-              ],
+            // Responsive TabBar headings
+            Container(
+              constraints: const BoxConstraints(minHeight: 36),
+              padding: EdgeInsets.symmetric(
+                horizontal: (screenWidth ?? 400) * 0.01,
+              ),
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Colors.orange,
+                unselectedLabelColor: Colors.grey[600],
+                indicatorColor: Colors.orange,
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorWeight: 2.0,
+                tabs: [
+                  Tab(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Total Reads',
+                        style: TextStyle(
+                          fontSize: tabFontSize,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  Tab(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Total Watches',
+                        style: TextStyle(
+                          fontSize: tabFontSize,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  Tab(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Total Follows',
+                        style: TextStyle(
+                          fontSize: tabFontSize,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             SizedBox(
-              height: 150,
+              height: chartHeight,
               child: TabBarView(
                 controller: _tabController,
                 children: [
                   _buildTotalReadsChart(),
                   _buildTotalWatchesChart(),
-                  _buildTotalFollowersDisplay(),
+                  _buildTotalFollowersDisplay(screenWidth: screenWidth),
                 ],
               ),
             ),
@@ -791,7 +840,7 @@ class _AdminHomePageState extends State<AdminHomePage>
   }
 
   // Backend: Use _adminData.followers and _followersPercent for display
-  Widget _buildTotalFollowersDisplay() {
+  Widget _buildTotalFollowersDisplay({double? screenWidth}) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -1003,25 +1052,52 @@ class LineChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Draw grid lines and y-axis labels
+    final gridPaint =
+        Paint()
+          ..color = Colors.grey.withOpacity(0.2)
+          ..strokeWidth = 1;
+    final labelStyle = TextStyle(color: Colors.grey[600], fontSize: 10);
+    final yLabels = ['Max', 'Mid', 'Min'];
+    final yValues = [
+      data.isNotEmpty ? data.reduce((a, b) => a > b ? a : b) : 1.0,
+      data.isNotEmpty
+          ? (data.reduce((a, b) => a > b ? a : b) +
+                  (data.reduce((a, b) => a < b ? a : b))) /
+              2
+          : 0.5,
+      data.isNotEmpty ? data.reduce((a, b) => a < b ? a : b) : 0.0,
+    ];
+    for (int i = 0; i < 3; i++) {
+      final y = size.height * (1 - (i / 2));
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+      final tp = TextPainter(
+        text: TextSpan(text: yLabels[i], style: labelStyle),
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      );
+      tp.layout();
+      tp.paint(canvas, Offset(0, y - tp.height / 2));
+    }
+
+    // Draw chart line and points
     final paint =
         Paint()
           ..color = Colors.orange
           ..strokeWidth = 2
           ..style = PaintingStyle.stroke;
-
     final path = Path();
-    // Backend: Use provided data for points
     if (data.isNotEmpty) {
+      final maxVal = data.reduce((a, b) => a > b ? a : b);
+      final minVal = data.reduce((a, b) => a < b ? a : b);
       final points = List.generate(
         data.length,
         (i) => Offset(
           size.width * (i / (data.length - 1)),
           size.height *
               (1 -
-                  (data[i] /
-                      (data.reduce((a, b) => a > b ? a : b) == 0
-                          ? 1
-                          : data.reduce((a, b) => a > b ? a : b)))),
+                  ((data[i] - minVal) /
+                      ((maxVal - minVal) == 0 ? 1 : (maxVal - minVal)))),
         ),
       );
       path.moveTo(points[0].dx, points[0].dy);
@@ -1039,8 +1115,8 @@ class LineChartPainter extends CustomPainter {
             ..strokeWidth = 2
             ..style = PaintingStyle.stroke;
       for (final point in points) {
-        canvas.drawCircle(point, 4, pointPaint);
-        canvas.drawCircle(point, 4, borderPaint);
+        canvas.drawCircle(point, 6, pointPaint); // Larger point
+        canvas.drawCircle(point, 6, borderPaint);
       }
     }
   }
@@ -1058,18 +1134,26 @@ class BarChartPainter extends CustomPainter {
     const leftOffset = 30.0;
     final drawableWidth = size.width - leftOffset;
 
+    // Draw grid lines and y-axis labels
+    final gridPaint =
+        Paint()
+          ..color = Colors.grey.withOpacity(0.2)
+          ..strokeWidth = 1;
     final yAxisLabelPaint = TextPainter(
       textAlign: TextAlign.right,
       textDirection: TextDirection.ltr,
     );
     final yLabels = ['30K', '20K', '10K', '0'];
     for (var i = 0; i < yLabels.length; i++) {
+      final y = (size.height / (yLabels.length - 1)) * i;
+      // Draw grid line
+      canvas.drawLine(Offset(leftOffset, y), Offset(size.width, y), gridPaint);
+      // Draw label
       yAxisLabelPaint.text = TextSpan(
         text: yLabels[i],
         style: TextStyle(color: Colors.grey[600], fontSize: 10),
       );
       yAxisLabelPaint.layout();
-      final y = (size.height / (yLabels.length - 1)) * i;
       yAxisLabelPaint.paint(
         canvas,
         Offset(
@@ -1078,14 +1162,23 @@ class BarChartPainter extends CustomPainter {
         ),
       );
     }
+    // Draw baseline axis
+    final axisPaint =
+        Paint()
+          ..color = Colors.grey[400]!
+          ..strokeWidth = 1.5;
+    canvas.drawLine(
+      Offset(leftOffset, size.height),
+      Offset(size.width, size.height),
+      axisPaint,
+    );
 
-    final barPaint = Paint()..color = Colors.orange;
-    // Backend: Use provided data for bars
+    // Draw bars
+    final barPaint = Paint()..color = Colors.orange.withOpacity(0.85);
     final maxVal = data.isNotEmpty ? data.reduce((a, b) => a > b ? a : b) : 1.0;
     final barWidth =
         (drawableWidth / (data.isNotEmpty ? data.length : 1)) * 0.4;
     final spacing = (drawableWidth / (data.isNotEmpty ? data.length : 1)) * 0.6;
-
     for (var i = 0; i < data.length; i++) {
       final barHeight = (data[i] / (maxVal == 0 ? 1 : maxVal)) * size.height;
       final x = leftOffset + (i * (barWidth + spacing)) + spacing / 2;
