@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../1/c1home/landingpage.dart';
+import '../1/c1home/landingpage.dart'; // This import is correct
 
 class NavBar extends StatelessWidget {
   final int currentIndex;
@@ -23,7 +23,7 @@ class NavBar extends StatelessWidget {
       case 0: // Home - Navigate to landing page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const HomePage()), // This should now correctly reference HomePage
         );
         break;
       case 1: // Service
@@ -39,7 +39,6 @@ class NavBar extends StatelessWidget {
         // TODO: Navigate to Profile page
         break;
     }
-
     // Call the optional onTap callback
     if (onTap != null) onTap!(index);
   }
@@ -81,7 +80,6 @@ class NavBar extends StatelessWidget {
     int index,
   ) {
     final bool isSelected = currentIndex == index;
-
     return Expanded(
       child: InkWell(
         onTap: () => _handleNavigation(context, index),
@@ -96,21 +94,19 @@ class NavBar extends StatelessWidget {
               Container(
                 width: isSelected && useCircularHighlight ? 32.w : null,
                 height: isSelected && useCircularHighlight ? 32.h : null,
-                decoration:
-                    isSelected && useCircularHighlight
-                        ? BoxDecoration(
-                          color: _highlightColor,
-                          shape: BoxShape.circle,
-                        )
-                        : null,
+                decoration: isSelected && useCircularHighlight
+                    ? const BoxDecoration(
+                        color: _highlightColor,
+                        shape: BoxShape.circle,
+                      )
+                    : null,
                 child: Icon(
                   icon,
-                  color:
-                      isSelected
-                          ? (useCircularHighlight
-                              ? Colors.white
-                              : _highlightColor)
-                          : _inactiveColor,
+                  color: isSelected
+                      ? (useCircularHighlight
+                          ? Colors.white
+                          : _highlightColor)
+                      : _inactiveColor,
                   size: 20.sp,
                 ),
               ),
