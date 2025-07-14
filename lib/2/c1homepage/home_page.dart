@@ -26,6 +26,7 @@ import 'admin_views/admin_change_password_view.dart';
 import 'admin_views/admin_change_phone_view.dart';
 import 'admin_views/admin_terms_conditions_view.dart';
 import '../../3/nav_bar.dart';
+import '../../2/c2homepage/home_page.dart' as admin_home;
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -374,7 +375,17 @@ class _AdminHomePageState extends State<AdminHomePage>
       bottomNavigationBar: NavBar(
         currentIndex: _navBarIndexForView(_currentView),
         onTap: (index) {
-          _navigateTo(_viewForNavBarIndex(index));
+          if (index == 1) {
+            // Service icon tapped: go to admin HomePage (c2homepage/home_page.dart)
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const admin_home.HomePage(),
+                settings: const RouteSettings(name: '/admin-home'),
+              ),
+            );
+          } else {
+            _navigateTo(_viewForNavBarIndex(index));
+          }
         },
       ),
     );
@@ -1052,39 +1063,33 @@ class LineChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Draw grid lines and y-axis labels
+    // Draw horizontal grid lines
     final gridPaint =
         Paint()
-          ..color = Colors.grey.withOpacity(0.2)
+          ..color = Colors.grey.withOpacity(0.15)
           ..strokeWidth = 1;
-    final labelStyle = TextStyle(color: Colors.grey[600], fontSize: 10);
-    final yLabels = ['Max', 'Mid', 'Min'];
-    final yValues = [
-      data.isNotEmpty ? data.reduce((a, b) => a > b ? a : b) : 1.0,
-      data.isNotEmpty
-          ? (data.reduce((a, b) => a > b ? a : b) +
-                  (data.reduce((a, b) => a < b ? a : b))) /
-              2
-          : 0.5,
-      data.isNotEmpty ? data.reduce((a, b) => a < b ? a : b) : 0.0,
-    ];
+    // Draw vertical grid lines
+    final vGridPaint =
+        Paint()
+          ..color = Colors.grey.withOpacity(0.10)
+          ..strokeWidth = 1;
+    // Horizontal grid lines (3 lines)
     for (int i = 0; i < 3; i++) {
       final y = size.height * (1 - (i / 2));
       canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-      final tp = TextPainter(
-        text: TextSpan(text: yLabels[i], style: labelStyle),
-        textAlign: TextAlign.left,
-        textDirection: TextDirection.ltr,
-      );
-      tp.layout();
-      tp.paint(canvas, Offset(0, y - tp.height / 2));
     }
-
+    // Vertical grid lines (one for each data point except first/last)
+    if (data.length > 2) {
+      for (int i = 1; i < data.length - 1; i++) {
+        final x = size.width * (i / (data.length - 1));
+        canvas.drawLine(Offset(x, 0), Offset(x, size.height), vGridPaint);
+      }
+    }
     // Draw chart line and points
     final paint =
         Paint()
           ..color = Colors.orange
-          ..strokeWidth = 2
+          ..strokeWidth = 1.5
           ..style = PaintingStyle.stroke;
     final path = Path();
     if (data.isNotEmpty) {
@@ -1107,16 +1112,16 @@ class LineChartPainter extends CustomPainter {
       canvas.drawPath(path, paint);
       final pointPaint =
           Paint()
-            ..color = Colors.orange
+            ..color = Colors.white
             ..style = PaintingStyle.fill;
       final borderPaint =
           Paint()
-            ..color = Colors.white
-            ..strokeWidth = 2
+            ..color = Colors.orange
+            ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke;
       for (final point in points) {
-        canvas.drawCircle(point, 6, pointPaint); // Larger point
-        canvas.drawCircle(point, 6, borderPaint);
+        canvas.drawCircle(point, 4, pointPaint); // White fill
+        canvas.drawCircle(point, 4, borderPaint); // Orange border
       }
     }
   }
