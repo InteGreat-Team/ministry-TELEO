@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'c2homepage/home_page.dart';
+import 'c2homepage/schedule_tab.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(elevation: 0),
       ),
-      home: const HomePage(),
+      home: const ScheduleTab(),
     );
   }
 }

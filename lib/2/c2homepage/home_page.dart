@@ -3,9 +3,14 @@ import '../widgets/day_item.dart';
 import '../widgets/appointment_card.dart';
 import '../../3/nav_bar.dart';
 import '../c1homepage/home_page.dart' as admin_home;
+import '../c1homepage/admin_types.dart';
+import '../c1homepage/admin_views/admin_profile_screen.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.adminData, this.onUpdateAdminData});
+
+  final AdminData? adminData;
+  final Function(AdminData)? onUpdateAdminData;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -314,11 +319,8 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       bottomNavigationBar: NavBar(
-        currentIndex: _navBarIndex,
+        currentIndex: 1, // Service page should highlight the Service icon
         onTap: (index) {
-          setState(() {
-            _navBarIndex = index;
-          });
           if (index == 0) {
             // Navigate to admin homepage
             Navigator.of(context).pushReplacement(
@@ -327,9 +329,24 @@ class _HomePageState extends State<HomePage> {
                 settings: const RouteSettings(name: '/admin-home'),
               ),
             );
+          } else if (index == 1) {
+            // Service (this page) - already here, do nothing
+          } else if (index == 4) {
+            // You (Profile) - go directly to profile if data is available
+            if (widget.adminData != null && widget.onUpdateAdminData != null) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder:
+                      (context) => AdminProfileScreen(
+                        adminData: widget.adminData!,
+                        onUpdateAdminData: widget.onUpdateAdminData!,
+                      ),
+                  settings: const RouteSettings(name: '/admin-profile'),
+                ),
+              );
+            }
           }
-          // index == 1 is Service (this page), do nothing
-          // Add logic for other indices if needed
+          // Do nothing for other indices (Connect, Read)
         },
       ),
     );

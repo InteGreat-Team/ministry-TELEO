@@ -27,6 +27,7 @@ import 'admin_views/admin_change_phone_view.dart';
 import 'admin_views/admin_terms_conditions_view.dart';
 import '../../3/nav_bar.dart';
 import '../../2/c2homepage/home_page.dart' as admin_home;
+import 'admin_views/admin_profile_screen.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -375,17 +376,35 @@ class _AdminHomePageState extends State<AdminHomePage>
       bottomNavigationBar: NavBar(
         currentIndex: _navBarIndexForView(_currentView),
         onTap: (index) {
-          if (index == 1) {
-            // Service icon tapped: go to admin HomePage (c2homepage/home_page.dart)
+          if (index == 0) {
+            // Home
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const AdminHomePage()),
+            );
+          } else if (index == 1) {
+            // Service
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
-                builder: (context) => const admin_home.HomePage(),
-                settings: const RouteSettings(name: '/admin-home'),
+                builder:
+                    (context) => admin_home.HomePage(
+                      adminData: _adminData,
+                      onUpdateAdminData: _updateAdminData,
+                    ),
               ),
             );
-          } else {
-            _navigateTo(_viewForNavBarIndex(index));
+          } else if (index == 4) {
+            // You (Profile)
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder:
+                    (context) => AdminProfileScreen(
+                      adminData: _adminData,
+                      onUpdateAdminData: _updateAdminData,
+                    ),
+              ),
+            );
           }
+          // Do nothing for other indices (Connect, Read)
         },
       ),
     );

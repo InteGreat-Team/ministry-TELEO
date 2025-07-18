@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../admin_types.dart';
 import 'admin_profile_view.dart';
+import '../../../3/nav_bar.dart';
+import '../home_page.dart';
+import '../../c2homepage/home_page.dart' as admin_home;
 
 class AdminProfileScreen extends StatelessWidget {
   final AdminData adminData;
@@ -19,6 +22,27 @@ class AdminProfileScreen extends StatelessWidget {
       body: AdminProfileView(
         adminData: adminData,
         onUpdateAdminData: onUpdateAdminData,
+      ),
+      bottomNavigationBar: NavBar(
+        currentIndex: 4,
+        onTap: (index) {
+          if (index == 0) {
+            // Home
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const AdminHomePage()),
+            );
+          } else if (index == 1) {
+            // Service
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const admin_home.HomePage(),
+              ),
+            );
+          } else if (index == 4) {
+            // You (Profile) - already here, do nothing
+          }
+          // Do nothing for other indices (Connect, Read)
+        },
       ),
     );
   }
