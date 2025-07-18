@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../1/c1home/landingpage.dart'; // This import is correct
+import '../1/c1home/landingpage.dart'; // Import LandingPage
 
 class NavBar extends StatelessWidget {
   final int currentIndex;
@@ -8,124 +8,163 @@ class NavBar extends StatelessWidget {
   final bool useCircularHighlight;
 
   const NavBar({
-    Key? key,
+    super.key,
     this.currentIndex = 0,
     this.onTap,
     this.useCircularHighlight = true,
-  }) : super(key: key);
+  });
 
   static const _highlightColor = Color(0xFF0277BD);
   static const _inactiveColor = Colors.grey;
 
+  // Pre-built nav items data for better performance
+  static const List<NavItem> _navItems = [
+    NavItem(Icons.home_outlined, 'Home'),
+    NavItem(Icons.favorite_outline, 'Service'),
+    NavItem(Icons.campaign_outlined, 'Connect'),
+    NavItem(Icons.menu_book_outlined, 'Read'),
+    NavItem(Icons.person_outline, 'You'),
+  ];
+
   void _handleNavigation(BuildContext context, int index) {
-    // Handle custom navigation logic
+    // Only navigate if it's a different index to avoid unnecessary rebuilds
+    if (index == currentIndex) return;
+
     switch (index) {
       case 0: // Home - Navigate to landing page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()), // This should now correctly reference HomePage
+          PageRouteBuilder(
+            pageBuilder:
+                (context, animation, secondaryAnimation) =>
+                    const LandingPage(), // Corrected to LandingPage
+            transitionDuration: Duration.zero, // Instant transition
+            transitionsBuilder: (
+              context,
+              animation,
+              secondaryAnimation,
+              child,
+            ) {
+              return child; // No animation, just return the child directly
+            },
+          ),
         );
         break;
       case 1: // Service
         // TODO: Navigate to Service page
+        // For now, just trigger onTap callback
         break;
       case 2: // Connect
         // TODO: Navigate to Connect page
+        // For now, just trigger onTap callback
         break;
       case 3: // Read
         // TODO: Navigate to Read page
+        // For now, just trigger onTap callback
         break;
       case 4: // You (Profile)
         // TODO: Navigate to Profile page
+        // For now, just trigger onTap callback
         break;
     }
     // Call the optional onTap callback
-    if (onTap != null) onTap!(index);
+    onTap?.call(index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60.h,
+      height: 65.h,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 4.r,
             offset: Offset(0, -2.h),
           ),
         ],
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(context, Icons.home_outlined, 'Home', 0),
-            _buildNavItem(context, Icons.favorite_outline, 'Service', 1),
-            _buildNavItem(context, Icons.campaign_outlined, 'Connect', 2),
-            _buildNavItem(context, Icons.menu_book_outlined, 'Read', 3),
-            _buildNavItem(context, Icons.person_outline, 'You', 4),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context,
-    IconData icon,
-    String label,
-    int index,
-  ) {
-    final bool isSelected = currentIndex == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => _handleNavigation(context, index),
-        borderRadius: BorderRadius.circular(12.r),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 6.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icon with circular highlight for selected state
-              Container(
-                width: isSelected && useCircularHighlight ? 32.w : null,
-                height: isSelected && useCircularHighlight ? 32.h : null,
-                decoration: isSelected && useCircularHighlight
-                    ? const BoxDecoration(
-                        color: _highlightColor,
-                        shape: BoxShape.circle,
-                      )
-                    : null,
-                child: Icon(
-                  icon,
-                  color: isSelected
-                      ? (useCircularHighlight
-                          ? Colors.white
-                          : _highlightColor)
-                      : _inactiveColor,
-                  size: 20.sp,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              // Label
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? _highlightColor : _inactiveColor,
-                  fontSize: 10.sp,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(
+              _navItems.length,
+              (index) => _buildNavItem(context, _navItems[index], index),
+            ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildNavItem(BuildContext context, NavItem item, int index) {
+    final bool isSelected = currentIndex == index;
+    final Color iconColor =
+        isSelected
+            ? (useCircularHighlight ? Colors.white : _highlightColor)
+            : _inactiveColor;
+    final Color textColor = isSelected ? _highlightColor : _inactiveColor;
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _handleNavigation(context, index),
+          borderRadius: BorderRadius.circular(12.r),
+          splashColor: _highlightColor.withOpacity(0.2),
+          highlightColor: _highlightColor.withOpacity(0.1),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 6.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon with circular highlight for selected state
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: isSelected && useCircularHighlight ? 30.w : 20.w,
+                  height: isSelected && useCircularHighlight ? 30.h : 20.h,
+                  decoration:
+                      isSelected && useCircularHighlight
+                          ? const BoxDecoration(
+                            color: _highlightColor,
+                            shape: BoxShape.circle,
+                          )
+                          : null,
+                  child: Icon(item.icon, color: iconColor, size: 20.sp),
+                ),
+                SizedBox(height: 4.h),
+                // Label with animation
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 10.sp,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Helper class for nav item data
+class NavItem {
+  final IconData icon;
+  final String label;
+  const NavItem(this.icon, this.label);
 }

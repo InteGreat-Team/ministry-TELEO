@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../3/nav_bar.dart';
-import 'lpcontent/upcoming_services.dart';
-import 'lpcontent/exploreteleo.dart';
-import 'lpcontent/services.dart';
-import 'lpcontent/events.dart';
+import 'lpcontent/homepage/upcoming_services.dart';
+import 'lpcontent/homepage/exploreteleo.dart';
+import 'lpcontent/homepage/services.dart';
+import 'lpcontent/homepage/events.dart';
+import 'sidebar.dart'; // Import the new Sidebar
 
 // Data Models
 class UserData {
   final String name;
   final String greeting;
-
   const UserData({required this.name, required this.greeting});
 
   factory UserData.fromJson(Map<String, dynamic> json) {
@@ -23,11 +23,12 @@ class UserData {
 
 class StatCard {
   final String title;
-  final String value;
-  final String change;
+  final String
+  value; // Keeping for data model consistency as per previous instruction
+  final String
+  change; // Keeping for data model consistency as per previous instruction
   final Color changeColor;
   final bool isPositive;
-
   const StatCard({
     required this.title,
     required this.value,
@@ -39,7 +40,6 @@ class StatCard {
   factory StatCard.fromJson(Map<String, dynamic> json) {
     final changeValue = json['change'] ?? '+0%';
     final isPositive = !changeValue.startsWith('-');
-
     return StatCard(
       title: json['title'] ?? '',
       value: json['value'] ?? '0',
@@ -55,7 +55,6 @@ class CategoryItem {
   final String label;
   final IconData icon;
   final bool isHome;
-
   const CategoryItem({
     required this.id,
     required this.label,
@@ -96,7 +95,6 @@ class ActionButton {
   final String title;
   final IconData icon;
   final String action;
-
   const ActionButton({
     required this.title,
     required this.icon,
@@ -137,14 +135,12 @@ class AppConfig {
   static const Color accentColor = Color(0xFFFFB74D);
   static const Color buttonColor = Color(0xFF3949ab);
   static const Color backgroundColor = Colors.white;
-
   static const Duration animationDuration = Duration(milliseconds: 400);
   static const Duration quickAnimationDuration = Duration(milliseconds: 150);
-
-  static const double maxHeaderHeight = 360.0;
-  static const double minHeaderHeight = 280.0;
-  static const double headerHeightRatio = 0.32;
-
+  // Adjusted header height values
+  static const double maxHeaderHeight = 300.0;
+  static const double minHeaderHeight = 220.0;
+  static const double headerHeightRatio = 0.28;
   static const Curve defaultCurve = Curves.easeOutCubic;
   static const Curve quickCurve = Curves.easeInOut;
 }
@@ -241,14 +237,14 @@ class ApiService {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class LandingPage extends StatefulWidget {
+  const LandingPage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<LandingPage> createState() => _LandingPageState();
 }
 
-class _HomePageState extends State<HomePage>
+class _LandingPageState extends State<LandingPage>
     with
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
@@ -256,25 +252,20 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // STATE VARIABLES
   // ==========================================
-
   int _selectedCategory = 0;
   int _currentNavIndex = 0;
-
   late ScrollController _scrollController;
   late AnimationController _headerAnimationController;
   late Animation<double> _headerAnimation;
-
   // Data variables
   UserData? _userData;
   List<StatCard> _statCards = [];
   List<CategoryItem> _categories = [];
   List<ActionButton> _actionButtons = [];
-
   // Loading states
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
-
   // Initialize responsive dimensions with default values
   double _screenWidth = 375.0;
   double _screenHeight = 812.0;
@@ -289,7 +280,6 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // LIFECYCLE METHODS
   // ==========================================
-
   @override
   void initState() {
     super.initState();
@@ -300,12 +290,10 @@ class _HomePageState extends State<HomePage>
 
   void _initializeControllers() {
     _scrollController = ScrollController();
-
     _headerAnimationController = AnimationController(
       duration: AppConfig.animationDuration,
       vsync: this,
     );
-
     _headerAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _headerAnimationController,
@@ -316,13 +304,11 @@ class _HomePageState extends State<HomePage>
 
   Future<void> _loadData() async {
     if (!mounted) return;
-
     try {
       setState(() {
         _isLoading = true;
         _hasError = false;
       });
-
       // Load all data concurrently
       final results = await Future.wait([
         ApiService.fetchUserData(),
@@ -330,7 +316,6 @@ class _HomePageState extends State<HomePage>
         ApiService.fetchCategories(),
         ApiService.fetchActionButtons(),
       ]);
-
       if (mounted) {
         setState(() {
           _userData = results[0] as UserData;
@@ -355,7 +340,6 @@ class _HomePageState extends State<HomePage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateResponsiveDimensions();
-
     if (!_dimensionsInitialized) {
       _dimensionsInitialized = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -377,15 +361,12 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // HELPER METHODS
   // ==========================================
-
   void _updateResponsiveDimensions() {
     final mediaQuery = MediaQuery.of(context);
     _screenWidth = mediaQuery.size.width;
     _screenHeight = mediaQuery.size.height;
-
     _isSmallScreen = _screenWidth < 360;
     _isLargeScreen = _screenWidth > 414;
-
     _headerHeight = (_screenHeight * AppConfig.headerHeightRatio).clamp(
       AppConfig.minHeaderHeight,
       AppConfig.maxHeaderHeight,
@@ -394,15 +375,12 @@ class _HomePageState extends State<HomePage>
 
   void _onCategoryTap(int index) async {
     if (_selectedCategory == index) return;
-
     HapticFeedback.lightImpact();
-
     // Track category selection
     await ApiService.trackUserAction('category_selected', {
       'category_id': index,
       'category_name': _getCategoryById(index)?.label ?? 'Unknown',
     });
-
     if (mounted) {
       setState(() {
         _selectedCategory = index;
@@ -412,10 +390,8 @@ class _HomePageState extends State<HomePage>
 
   void _onNavTap(int index) async {
     if (_currentNavIndex == index) return;
-
     // Track navigation
     await ApiService.trackUserAction('nav_selected', {'nav_index': index});
-
     if (mounted) {
       setState(() {
         _currentNavIndex = index;
@@ -425,23 +401,21 @@ class _HomePageState extends State<HomePage>
 
   void _onActionButtonTap(ActionButton button) async {
     HapticFeedback.lightImpact();
-
     // Track action button tap
     await ApiService.trackUserAction('action_button_tapped', {
       'action': button.action,
       'title': button.title,
     });
-
     // Handle different actions
     switch (button.action) {
       case 'bulletin_board':
-        // TODO: Navigate to bulletin board
+        _showSuccessSnackBar('On-going Development Here');
         break;
       case 'prayer_wall':
-        // TODO: Navigate to prayer wall
+        _showSuccessSnackBar('On-going Development Here');
         break;
       case 'discussion_board':
-        // TODO: Navigate to discussion board
+        _showSuccessSnackBar('On-going Development Here');
         break;
       default:
         // TODO: Handle unknown action
@@ -451,10 +425,8 @@ class _HomePageState extends State<HomePage>
 
   void _onSearchTap() async {
     HapticFeedback.lightImpact();
-
     // Track search tap
     await ApiService.trackUserAction('search_tapped', {});
-
     // TODO: Implement search functionality
   }
 
@@ -469,21 +441,21 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // MAIN BUILD METHOD
   // ==========================================
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     if (_isLoading) {
       return _buildLoadingScreen();
     }
-
     if (_hasError) {
       return _buildErrorScreen();
     }
-
     return Scaffold(
       backgroundColor: AppConfig.primaryColor,
+      drawer: const Sidebar(), // Added the Sidebar here
+      drawerEdgeDragWidth:
+          MediaQuery.of(context).size.width *
+          0.5, // Make the swipe area wider (50% of screen width)
       body: Stack(children: [_buildMainContent(), _buildBottomNavigation()]),
     );
   }
@@ -507,10 +479,10 @@ class _HomePageState extends State<HomePage>
             Icon(
               Icons.error_outline,
               size: 64,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.white.withOpacity(0.7),
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Something went wrong',
               style: TextStyle(
                 color: Colors.white,
@@ -522,8 +494,9 @@ class _HomePageState extends State<HomePage>
             Text(
               _errorMessage,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: Colors.white.withOpacity(0.7),
                 fontSize: 14,
+                fontWeight: FontWeight.w400,
               ),
               textAlign: TextAlign.center,
             ),
@@ -543,21 +516,16 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildMainContent() {
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      color: AppConfig.accentColor,
-      child: CustomScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(),
-        slivers: [_buildSliverHeader(), _buildSliverContent()],
-      ),
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const ClampingScrollPhysics(),
+      slivers: [_buildSliverHeader(), _buildSliverContent()],
     );
   }
 
   // ==========================================
   // HEADER SECTION METHODS
   // ==========================================
-
   Widget _buildSliverHeader() {
     return SliverAppBar(
       expandedHeight: _headerHeight,
@@ -586,7 +554,6 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildHeaderSection() {
     final horizontalPadding = _getResponsivePadding();
-
     return Container(
       width: double.infinity,
       height: _headerHeight,
@@ -595,15 +562,15 @@ class _HomePageState extends State<HomePage>
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             horizontalPadding,
-            _getResponsiveValue(16, 20, 24),
+            _getResponsiveValue(12, 16, 20),
             horizontalPadding,
-            _getResponsiveValue(24, 28, 32),
+            _getResponsiveValue(18, 22, 26),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildGreetingRow(),
-              SizedBox(height: _getResponsiveValue(32, 40, 48)),
+              SizedBox(height: _getResponsiveValue(24, 32, 40)),
               Expanded(child: _buildStatsRow()),
             ],
           ),
@@ -624,7 +591,7 @@ class _HomePageState extends State<HomePage>
                 text: TextSpan(
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: _getResponsiveValue(22, 26, 30),
+                    fontSize: _getResponsiveValue(20, 24, 28),
                     fontWeight: FontWeight.w600,
                     height: 1.1,
                   ),
@@ -638,12 +605,12 @@ class _HomePageState extends State<HomePage>
                   ],
                 ),
               ),
-              SizedBox(height: _getResponsiveValue(4, 6, 8)),
+              SizedBox(height: _getResponsiveValue(3, 5, 7)),
               Text(
                 _userData?.greeting ?? 'What\'s the agenda for today?',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: _getResponsiveValue(14, 16, 18),
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: _getResponsiveValue(13, 15, 17),
                   height: 1.3,
                   fontWeight: FontWeight.w300,
                 ),
@@ -657,21 +624,20 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildSearchButton() {
-    final buttonSize = _getResponsiveValue(44, 48, 52);
-
+    final buttonSize = _getResponsiveValue(40, 44, 48);
     return GestureDetector(
       onTap: _onSearchTap,
       child: Container(
         width: buttonSize,
         height: buttonSize,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
+          color: Colors.white.withOpacity(0.12),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(
           Icons.search,
-          color: Colors.white.withValues(alpha: 0.9),
-          size: _getResponsiveValue(20, 22, 24),
+          color: Colors.white.withOpacity(0.9),
+          size: _getResponsiveValue(18, 20, 22),
         ),
       ),
     );
@@ -679,7 +645,6 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildStatsRow() {
     final cardSpacing = _getResponsiveValue(10, 14, 18);
-
     return Row(
       children:
           _statCards
@@ -688,7 +653,6 @@ class _HomePageState extends State<HomePage>
               .map((entry) {
                 final index = entry.key;
                 final card = entry.value;
-
                 return [
                   Expanded(child: _buildStatCard(card)),
                   if (index < _statCards.length - 1)
@@ -701,18 +665,17 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildStatCard(StatCard card) {
-    final cardPadding = _getResponsiveValue(16, 18, 20);
-    final borderRadius = _getResponsiveValue(14, 16, 18);
-
+    // Reduced padding to make the card smaller
+    final cardPadding = _getResponsiveValue(8, 10, 12);
+    final borderRadius = _getResponsiveValue(10, 12, 14);
     return Container(
-      height: double.infinity,
       padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: AppConfig.secondaryColor,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 6,
             offset: const Offset(0, 1),
           ),
@@ -720,48 +683,18 @@ class _HomePageState extends State<HomePage>
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
             card.title,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: _getResponsiveValue(10, 11, 12),
-              fontWeight: FontWeight.w400,
+              color: Colors.white.withOpacity(0.7),
+              fontSize: _getResponsiveValue(14, 16, 18),
+              fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
-          const Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                card.value,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: _getResponsiveValue(20, 22, 24),
-                  fontWeight: FontWeight.w600,
-                  height: 1.0,
-                  letterSpacing: -0.5,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: _getResponsiveValue(4, 5, 6)),
-              Text(
-                card.change,
-                style: TextStyle(
-                  color: card.changeColor.withValues(alpha: 0.9),
-                  fontSize: _getResponsiveValue(10, 11, 12),
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.2,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
           ),
         ],
       ),
@@ -771,12 +704,15 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // CONTENT SECTION METHODS
   // ==========================================
-
   Widget _buildSliverContent() {
     return SliverToBoxAdapter(
       child: Container(
+        // Further adjusted minHeight to move the white part even higher
         constraints: BoxConstraints(
-          minHeight: _screenHeight - _headerHeight + 100,
+          minHeight:
+              _screenHeight -
+              _headerHeight -
+              _getResponsiveValue(50, 60, 70), // Further reduced offset
         ),
         decoration: const BoxDecoration(
           color: AppConfig.backgroundColor,
@@ -795,7 +731,6 @@ class _HomePageState extends State<HomePage>
   Widget _buildCategoryButtonsSection() {
     final horizontalPadding = _getResponsivePadding();
     final verticalPadding = _getResponsiveValue(24, 28, 32);
-
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
@@ -821,8 +756,8 @@ class _HomePageState extends State<HomePage>
                     SizedBox(width: horizontalPadding),
                   ]
                   .expand(
-                    (widget) => [
-                      widget,
+                    (widgets) => [
+                      widgets,
                       SizedBox(width: _getResponsiveValue(10, 12, 16)),
                     ],
                   )
@@ -835,7 +770,6 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildHomeButton(CategoryItem category) {
     final buttonSize = _getResponsiveValue(40, 44, 48);
-
     return GestureDetector(
       onTap: () => _onCategoryTap(category.id),
       child: AnimatedContainer(
@@ -853,7 +787,7 @@ class _HomePageState extends State<HomePage>
               _selectedCategory == category.id
                   ? [
                     BoxShadow(
-                      color: AppConfig.accentColor.withValues(alpha: 0.25),
+                      color: AppConfig.accentColor.withOpacity(0.25),
                       blurRadius: 6,
                       offset: const Offset(0, 1),
                     ),
@@ -878,7 +812,6 @@ class _HomePageState extends State<HomePage>
     final iconSize = _getResponsiveValue(16, 17, 18);
     final horizontalPadding = _getResponsiveValue(14, 16, 18);
     final verticalPadding = _getResponsiveValue(8, 10, 12);
-
     return GestureDetector(
       onTap: () => _onCategoryTap(category.id),
       child: AnimatedContainer(
@@ -986,7 +919,6 @@ class _HomePageState extends State<HomePage>
   // ACTION BUTTONS SECTION
   Widget _buildActionButtons() {
     final horizontalPadding = _getResponsivePadding();
-
     return Padding(
       padding: EdgeInsets.fromLTRB(
         horizontalPadding,
@@ -1002,7 +934,6 @@ class _HomePageState extends State<HomePage>
                 .map((entry) {
                   final index = entry.key;
                   final button = entry.value;
-
                   return [
                     Expanded(child: _buildActionButton(button)),
                     if (index < _actionButtons.length - 1)
@@ -1020,15 +951,15 @@ class _HomePageState extends State<HomePage>
       onTap: () => _onActionButtonTap(button),
       child: Container(
         padding: EdgeInsets.symmetric(
-          vertical: _getResponsiveValue(16, 18, 20),
-          horizontal: _getResponsiveValue(8, 10, 12),
+          vertical: _getResponsiveValue(12, 14, 16),
+          horizontal: _getResponsiveValue(6, 8, 10),
         ),
         decoration: BoxDecoration(
           color: AppConfig.buttonColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppConfig.buttonColor.withValues(alpha: 0.2),
+              color: AppConfig.buttonColor.withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -1040,15 +971,15 @@ class _HomePageState extends State<HomePage>
             Icon(
               button.icon,
               color: Colors.white,
-              size: _getResponsiveValue(24, 28, 32),
+              size: _getResponsiveValue(20, 24, 28),
             ),
-            SizedBox(height: _getResponsiveValue(8, 10, 12)),
+            SizedBox(height: _getResponsiveValue(6, 8, 10)),
             Text(
               button.title,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: _getResponsiveValue(11, 12, 13),
+                fontSize: _getResponsiveValue(10, 11, 12),
                 fontWeight: FontWeight.w500,
                 height: 1.2,
               ),
@@ -1101,7 +1032,6 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // NAVIGATION METHODS
   // ==========================================
-
   Widget _buildBottomNavigation() {
     return Positioned(
       bottom: 0,
@@ -1114,7 +1044,6 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // UTILITY METHODS
   // ==========================================
-
   double _getResponsiveValue(double small, double medium, double large) {
     if (_isSmallScreen) return small;
     if (_isLargeScreen) return large;
@@ -1138,24 +1067,8 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // ERROR HANDLING METHODS
   // ==========================================
-
-  void _showErrorSnackBar(String message) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red[600],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        margin: EdgeInsets.all(_getResponsivePadding()),
-      ),
-    );
-  }
-
   void _showSuccessSnackBar(String message) {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -1170,7 +1083,6 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // ANALYTICS AND TRACKING METHODS
   // ==========================================
-
   void _trackScreenView() {
     ApiService.trackUserAction('screen_view', {
       'screen_name': 'home_page',
@@ -1182,11 +1094,9 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // WIDGET LIFECYCLE OPTIMIZATION
   // ==========================================
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     switch (state) {
       case AppLifecycleState.resumed:
         _loadData();
@@ -1211,7 +1121,6 @@ class _HomePageState extends State<HomePage>
   // ==========================================
   // FINAL CLEANUP
   // ==========================================
-
   @override
   void deactivate() {
     // Track user engagement when widget is deactivated

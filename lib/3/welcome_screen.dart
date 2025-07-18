@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../1/c1registrationflow/c1s1signupwelcome_screen.dart' as signup; // User registration welcome
-import 'login_screen.dart'; // Login
-import '../1/c1homepage/home_page.dart'; // Guest homepage
-import '../2/c1registration/c1s1churchwelcome_screen.dart'; // Church registration
-import '../2/c1homepage/home_page.dart' as admin; // Admin homepage
-import '../1/c1home/landingpage.dart' as member_home; // Aliased import for member HomePage
+// Corrected paths relative to lib/3/welcome_screen.dart
+import '../1/c1registrationflow/c1s1signupwelcome_screen.dart'
+    as signup; // User registration welcome
+import 'login_screen.dart'; // Login (in the same lib/3/ directory)
+import '../2/c1registration/c1s1churchwelcome_screen.dart'; // Church registration (up to lib/, then into 2/c1registration/)
+import '../1/c1home/landingpage.dart'
+    as member_home; // Aliased import for member HomePage (up to lib/, then into 1/c1home/)
 
 class WelcomeScreen extends StatefulWidget {
+  // <<< This is the class definition. It is correct.
   const WelcomeScreen({super.key});
 
   @override
@@ -39,7 +41,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-
     // Initialize animations
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
@@ -53,7 +54,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     ).animate(
       CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
     );
-
     // Start animations
     _fadeController.forward();
     _scaleController.forward();
@@ -186,7 +186,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           context,
                                           animation,
                                           secondaryAnimation,
-                                        ) => const member_home.HomePage(),
+                                        ) =>
+                                            const member_home.LandingPage(), // Corrected from HomePage to LandingPage
                                     transitionsBuilder: (
                                       context,
                                       animation,
@@ -314,7 +315,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     PageRouteBuilder(
                       pageBuilder:
                           (context, animation, secondaryAnimation) =>
-                              const admin.AdminHomePage(),
+                              const member_home.LandingPage(),
                       transitionsBuilder: (
                         context,
                         animation,
@@ -380,7 +381,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF002642).withValues(alpha: 0.1),
+                  color: const Color(0xFF002642).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: const Color(0xFF002642), size: 24),
@@ -438,48 +439,49 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             child: SizedBox(
               width: double.infinity,
               height: 56,
-              child: isPrimary
-                  ? ElevatedButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        onPressed();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF002642),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+              child:
+                  isPrimary
+                      ? ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          onPressed();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF002642),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 0,
                         ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        text,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        child: Text(
+                          text,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                      : OutlinedButton(
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          onPressed();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF002642),
+                          side: const BorderSide(color: Color(0xFF002642)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: Text(
+                          text,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    )
-                  : OutlinedButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        onPressed();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF002642),
-                        side: const BorderSide(color: Color(0xFF002642)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: Text(
-                        text,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
             ),
           ),
         );
