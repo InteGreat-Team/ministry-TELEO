@@ -10,6 +10,7 @@ import 'app_highlights/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../Firebase/firebase_options.dart';
 import '../../3/report/main_report_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // Import these to disable debug overlays
 import 'package:flutter/rendering.dart';
@@ -24,7 +25,13 @@ void main() async {
   debugPaintPointersEnabled = false;
   debugRepaintRainbowEnabled = false;
 
-  runApp(const MyApp());
+  runApp(
+    ScreenUtilInit(
+      designSize: const Size(430, 932),
+      minTextAdapt: true,
+      builder: (context, child) => const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -56,7 +63,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const WelcomeScreen(),
         '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const signup.WelcomeScreen(),
+        '/signup': (context) => const signup.SignupWelcomeScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/approval-status': (context) => const ApprovalStatusCheckScreen(),
         '/home': (context) => const HomePage(),

@@ -1,30 +1,33 @@
 import 'package:flutter/material.dart';
-import '../c2spp/c2s6_inbox_page.dart';
-import '../c2tabs/schedule_tab.dart';
-import '../c2tabs/services_tab.dart';
-import '../c2tabs/events_tab.dart';
-import '../c2tabs/analytics_tab.dart';
-import '../../Church_Admin_SPP/c2s6_inbox_page.dart';
-import '../../widgets/footer_section.dart' as CustomFooter;
+import '../widgets/day_item.dart';
+import '../widgets/appointment_card.dart';
+import '../../3/nav_bar.dart';
+import '../c1homepage/home_page.dart' as admin_home;
+import '../c1homepage/admin_types.dart';
+import '../c1homepage/admin_views/admin_profile_screen.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.adminData, this.onUpdateAdminData});
+
+  final AdminData? adminData;
+  final Function(AdminData)? onUpdateAdminData;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  final double _headerHeight = 85.0; // Slightly reduced header height
-  final double _minHeaderHeight = 56.0;
-  final bool _isHeaderCollapsed = false;
-  bool _isKeyboardVisible = false;
-  late TabController _tabController;
-  int _selectedTabIndex = 0;
-  int _selectedDayIndex = 0;
+class _HomePageState extends State<HomePage> {
+  int _selectedTab = 0;
+  int _selectedDay = 0;
   String _selectedFilter = 'All';
+  int _navBarIndex = 0;
 
+  final List<String> _tabs = ['Our Schedule', 'Services', 'Events'];
+  final List<IconData> _tabIcons = [
+    Icons.calendar_today,
+    Icons.favorite,
+    Icons.event,
+  ];
   final List<String> _weekdays = [
     'Fri',
     'Sat',
@@ -37,305 +40,314 @@ class _HomePageState extends State<HomePage>
   final List<int> _dates = [14, 15, 16, 17, 18, 19, 20];
   final List<String> _filters = ['All', 'Services', 'Events'];
 
-  // Tab data - Added Analytics tab
-  final List<Map<String, dynamic>> _tabs = [
-    {'icon': Icons.settings, 'label': 'Schedule'},
-    {'icon': Icons.favorite_outline, 'label': 'Services'},
-    {'icon': Icons.calendar_today, 'label': 'Events'},
-    {'icon': Icons.bar_chart, 'label': 'Analytics'}, // New Analytics tab
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this); // Updated to 4 tabs
-    _tabController.addListener(_handleTabSelection);
-  }
-
-  void _handleTabSelection() {
-    if (_tabController.indexIsChanging ||
-        _tabController.index != _selectedTabIndex) {
-      setState(() {
-        _selectedTabIndex = _tabController.index;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController.removeListener(_handleTabSelection);
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  double _getHeaderHeight() {
-    if (_isKeyboardVisible) {
-      return _minHeaderHeight;
-    }
-    return _headerHeight; // Total header height
-  }
-
-  void _navigateToInbox() async {
-    final result = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const InboxPage()));
-
-    // If a tab index was returned, switch to that tab
-    if (result != null && result is int && result >= 0 && result < 4) {
-      // Updated for 4 tabs
-      setState(() {
-        _selectedTabIndex = result;
-      });
-      _tabController.animateTo(result);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    _isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
-    final double headerHeight = _getHeaderHeight();
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double tabWidth = screenWidth / 4; // Updated for 4 tabs
+    final now = DateTime.now();
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final todayLabel =
+        '${months[now.month - 1]} ${now.day}, ${_weekdays[now.weekday - 1]}';
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: SizedBox(
-          height:
-              MediaQuery.of(context).size.height -
-              MediaQuery.of(context).padding.top -
-              MediaQuery.of(context).padding.bottom,
-          child: Stack(
-            clipBehavior:
-                Clip.none, // Allow content to overflow for the tab effect
-            children: [
-              // Background color - full dark navy background
-              Container(color: const Color(0xFF000233)),
-
-              // Content Section (White) - flat top edge
-              Positioned(
-                top: headerHeight,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      // No top radius - completely flat top edge
-                      bottomLeft: Radius.circular(25),
-                      bottomRight: Radius.circular(25),
-                    ),
-                    // Remove any border that might be causing the green line
-                  ),
-                  child: Column(
-                    children: [
-                      // Tab content
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            // Our Schedule Tab
-                            ScheduleTab(
-                              weekdays: _weekdays,
-                              dates: _dates,
-                              selectedDayIndex: _selectedDayIndex,
-                              onDaySelected: (index) {
-                                setState(() {
-                                  _selectedDayIndex = index;
-                                });
-                              },
-                              selectedFilter: _selectedFilter,
-                              onFilterSelected: (filter) {
-                                setState(() {
-                                  _selectedFilter = filter;
-                                });
-                              },
-                            ),
-
-                            // Services Tab
-                            const ServicesTab(),
-
-                            // Events Tab
-                            const EventsTab(),
-
-                            // Analytics Tab - NEW
-                            const AnalyticsTab(),
-                          ],
-                        ),
-                      ),
-
-                      // Footer
-                      const CustomFooter.FooterSection(),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Tab bar with selected tab protruding from content area
-              Positioned(
-                top:
-                    headerHeight - 36, // Position to protrude from content area
-                left: 0,
-                right: 0,
-                height: 36, // Fixed height for tab bar
-                child: Row(
-                  children: List.generate(
-                    _tabs.length,
-                    (index) => _buildTab(index),
-                  ),
-                ),
-              ),
-
-              // Header Section with logo
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: headerHeight - 36, // Reduced to make room for tab bar
-                child: Container(
-                  color: const Color(0xFF000233),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Logo without close button - larger size to match Figma
-                        Image.network(
-                          'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Teleo_logo-FIHQea5beht7CbAURlyiQ1TcgS4XeN.png',
-                          height: 28,
-                          fit: BoxFit.contain,
-                          color: Colors.white,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Text(
-                              'Teleo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
-                              ),
-                            );
-                          },
-                        ),
-                        // Simple mail icon without box - now with tap functionality
-                        GestureDetector(
-                          onTap: _navigateToInbox,
-                          child: const Icon(
-                            Icons.mail_outline,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Prayer button - updated to purple
-              if (!_isKeyboardVisible)
-                Positioned(
-                  bottom: 3,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF8A2BE2), // Changed to purple
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                spreadRadius: 1,
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.volunteer_activism,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTab(int index) {
-    final bool isSelected = _selectedTabIndex == index;
-    final Map<String, dynamic> tab = _tabs[index];
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedTabIndex = index;
-          });
-          _tabController.animateTo(index);
-        },
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Background for selected tab
-            if (isSelected)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Tab content
-            Container(
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    tab['icon'],
-                    size: 16,
-                    color: isSelected ? const Color(0xFF000233) : Colors.white,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    tab['label'],
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color:
-                          isSelected ? const Color(0xFF333333) : Colors.white,
-                    ),
-                  ),
-                ],
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: Column(
+        children: [
+          // AppBar with gradient
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 36,
+              left: 20,
+              right: 20,
+              bottom: 12,
+            ),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF000233), Color(0xFF1E3A8A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Image.network(
+                  'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Teleo_logo-FIHQea5beht7CbAURlyiQ1TcgS4XeN.png',
+                  height: 28,
+                  fit: BoxFit.contain,
+                  color: Colors.white,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Text(
+                      'Teleo',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+
+          // Custom Tab Bar
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(_tabs.length, (i) {
+                final isSelected = _selectedTab == i;
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedTab = i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected ? const Color(0xFF1E3A8A) : Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow:
+                            isSelected
+                                ? [
+                                  BoxShadow(
+                                    color: Colors.blue.withOpacity(0.08),
+                                    blurRadius: 8,
+                                  ),
+                                ]
+                                : [],
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? const Color(0xFF1E3A8A)
+                                  : Colors.grey[200]!,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _tabIcons[i],
+                            color:
+                                isSelected
+                                    ? Colors.white
+                                    : const Color(0xFF1E3A8A),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _tabs[i],
+                            style: TextStyle(
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF1E3A8A),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // Date and heading
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  todayLabel,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  "What's for today?",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Horizontal date selector
+          Container(
+            height: 80,
+            margin: const EdgeInsets.only(top: 12),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: _weekdays.length,
+              itemBuilder:
+                  (context, i) => GestureDetector(
+                    onTap: () => setState(() => _selectedDay = i),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: DayItem(
+                        weekday: _weekdays[i],
+                        date: _dates[i],
+                        isSelected: _selectedDay == i,
+                      ),
+                    ),
+                  ),
+            ),
+          ),
+
+          // Filter buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              children: List.generate(_filters.length, (i) {
+                final isSelected = _selectedFilter == _filters[i];
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedFilter = _filters[i]),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected ? const Color(0xFF1E3A8A) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? const Color(0xFF1E3A8A)
+                                  : Colors.grey[200]!,
+                          width: 1.2,
+                        ),
+                        boxShadow:
+                            isSelected
+                                ? [
+                                  BoxShadow(
+                                    color: Colors.blue.withOpacity(0.08),
+                                    blurRadius: 8,
+                                  ),
+                                ]
+                                : [],
+                      ),
+                      child: Center(
+                        child: Text(
+                          _filters[i],
+                          style: TextStyle(
+                            color:
+                                isSelected
+                                    ? Colors.white
+                                    : const Color(0xFF1E3A8A),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // Event/Service Cards (example, replace with backend data)
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              children: [
+                AppointmentCard(
+                  title: 'Baptism',
+                  assignedTo: '@Pastor John',
+                  location: 'P. Sherman, 42 Wallaby Way',
+                  time: 'February 14, 2025 – 3:00 PM – 6:00 PM',
+                  borderColor: const Color(0xFFFF6B35),
+                  backgroundColor: const Color(0xFFFFF8F5),
+                ),
+                AppointmentCard(
+                  title: 'Love! Live! Couples for Christ Community Night',
+                  assignedTo: '@Jake Sim',
+                  location: 'Paxton Hall, Yoshida Center',
+                  time: 'February 14, 2025 – 6:00 PM – 8:00 PM',
+                  borderColor: const Color(0xFF4CAF50),
+                  backgroundColor: const Color(0xFFF5FFF8),
+                ),
+                AppointmentCard(
+                  title: 'Baptism',
+                  assignedTo: '@Pastor John',
+                  location: 'P. Sherman, 42 Wallaby Way',
+                  time: 'February 14, 2025 – 3:00 PM – 6:00 PM',
+                  borderColor: const Color(0xFFFF6B35),
+                  backgroundColor: const Color(0xFFFFF8F5),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: NavBar(
+        currentIndex: 1, // Service page should highlight the Service icon
+        onTap: (index) {
+          if (index == 0) {
+            // Navigate to admin homepage
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const admin_home.AdminHomePage(),
+                settings: const RouteSettings(name: '/admin-home'),
+              ),
+            );
+          } else if (index == 1) {
+            // Service (this page) - already here, do nothing
+          } else if (index == 4) {
+            // You (Profile) - go directly to profile if data is available
+            if (widget.adminData != null && widget.onUpdateAdminData != null) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder:
+                      (context) => AdminProfileScreen(
+                        adminData: widget.adminData!,
+                        onUpdateAdminData: widget.onUpdateAdminData!,
+                      ),
+                  settings: const RouteSettings(name: '/admin-profile'),
+                ),
+              );
+            }
+          }
+          // Do nothing for other indices (Connect, Read)
+        },
       ),
     );
   }

@@ -389,13 +389,6 @@ class _DonatePageState extends State<DonatePage> {
       }
 
       String? idToken = await user.getIdToken();
-      if (idToken == null) {
-        setState(() {
-          _errorMessage = 'Could not get authentication token.';
-          _isLoading = false;
-        });
-        return;
-      }
 
       final url = Uri.parse(
         'https://dvpt2axvom47x.cloudfront.net/payment/create',

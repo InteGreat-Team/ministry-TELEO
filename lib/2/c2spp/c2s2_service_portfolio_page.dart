@@ -4,7 +4,7 @@ import 'c2s2_edit_service_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../c2homepage/home_page.dart';
+import '../c2homepage/schedule_tab.dart';
 import '../../3/nav_bar.dart';
 
 class ServicePortfolioPage extends StatefulWidget {

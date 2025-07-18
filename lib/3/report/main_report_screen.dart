@@ -3,32 +3,18 @@ import 'report_user_screen.dart';
 import 'report_bug_screen.dart';
 
 class MainReportScreen extends StatelessWidget {
+  final VoidCallback? onBack;
+  const MainReportScreen({Key? key, this.onBack}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Report',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildReportOption(
               context,
               icon: Icons.person_outline,
@@ -41,7 +27,7 @@ class MainReportScreen extends StatelessWidget {
                 );
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _buildReportOption(
               context,
               icon: Icons.bug_report_outlined,

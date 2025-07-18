@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ReportUserScreen extends StatefulWidget {
   @override
@@ -9,6 +11,20 @@ class _ReportUserScreenState extends State<ReportUserScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _detailsController = TextEditingController();
   String? _selectedReason;
+  XFile? _imageFile;
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? selectedImage = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (selectedImage != null) {
+      setState(() {
+        _imageFile = selectedImage;
+      });
+    }
+  }
 
   final List<String> _reportReasons = [
     'Inappropriate or offensive language',
@@ -29,23 +45,6 @@ class _ReportUserScreenState extends State<ReportUserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[50],
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Report a User',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Column(
@@ -191,25 +190,58 @@ class _ReportUserScreenState extends State<ReportUserScreen> {
           ),
         ),
         SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.add_circle_outline, color: Colors.grey[500]),
-              SizedBox(width: 12),
-              Text(
-                'Choose image to upload',
-                style: TextStyle(color: Colors.grey[500], fontSize: 14),
-              ),
-              Spacer(),
-              Icon(Icons.arrow_upward, color: Colors.grey[500], size: 16),
-            ],
+        InkWell(
+          onTap: _pickImage,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child:
+                _imageFile == null
+                    ? Row(
+                      children: [
+                        Icon(Icons.add_circle_outline, color: Colors.grey[500]),
+                        SizedBox(width: 12),
+                        Text(
+                          'Choose image to upload',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(
+                          Icons.arrow_upward,
+                          color: Colors.grey[500],
+                          size: 16,
+                        ),
+                      ],
+                    )
+                    : Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _imageFile!.name,
+                            style: TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () {
+                            setState(() {
+                              _imageFile = null;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
           ),
         ),
       ],

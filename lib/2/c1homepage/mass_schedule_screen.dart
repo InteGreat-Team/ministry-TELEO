@@ -22,10 +22,7 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
         children: [
           const Text(
             'New Mass Schedule',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
 
@@ -35,16 +32,16 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
             children: [
               const Text(
                 'Datepicker',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
               InkWell(
                 onTap: () => _selectDate(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[300]!),
                     borderRadius: BorderRadius.circular(8),
@@ -72,16 +69,16 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
             children: [
               const Text(
                 'Timepicker',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
               InkWell(
                 onTap: () => _selectTimeRange(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[300]!),
                     borderRadius: BorderRadius.circular(8),
@@ -126,10 +123,7 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
           if (_scheduleItems.isNotEmpty) ...[
             const Text(
               'Scheduled Masses',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -141,7 +135,9 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
                       title: Text(_formatDate(item.date)),
-                      subtitle: Text('${_formatTime(item.startTime)} to ${_formatTime(item.endTime)}'),
+                      subtitle: Text(
+                        '${_formatTime(item.startTime)} to ${_formatTime(item.endTime)}',
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () => _removeScheduleItem(index),
@@ -195,6 +191,26 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
   }
 
   void _addScheduleItem() {
+    // Check for duplicate date and time slot
+    bool isDuplicate = _scheduleItems.any(
+      (item) =>
+          item.date.year == _selectedDate.year &&
+          item.date.month == _selectedDate.month &&
+          item.date.day == _selectedDate.day &&
+          item.startTime.hour == _startTime.hour &&
+          item.startTime.minute == _startTime.minute &&
+          item.endTime.hour == _endTime.hour &&
+          item.endTime.minute == _endTime.minute,
+    );
+    if (isDuplicate) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This date and time slot is already scheduled.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
     setState(() {
       _scheduleItems.add(
         MassScheduleItem(
@@ -213,10 +229,28 @@ class _MassScheduleScreenState extends State<MassScheduleScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final List<String> weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final List<String> weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     final List<String> months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
 
     final weekday = weekdays[date.weekday - 1];

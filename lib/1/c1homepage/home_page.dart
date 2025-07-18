@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'faqs_screen.dart';
-import 'contact_us_screen.dart';
-import 'church_profile_screen.dart';
+import '../../3/contact_us_screen.dart';
 import '../../3/nav_bar.dart';
 import 'donate_screen.dart';
 import '../../2/c1homepage/authenticator_flow.dart';
 import '../../3/report/mainreport.dart';
+import '../../2/c1homepage/admin_views/admin_profile_view.dart';
+import '../../2/c1homepage/admin_types.dart';
 
 // Add this enum to track the current filter
 enum HomeFilter { all, appointments, events, reading }
@@ -126,6 +127,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
 
+      //Purpe of this code is to set titles for the sidebar and also mixed of settings
       switch (view) {
         case AppView.home:
           _currentTitle = 'Teleo';
@@ -551,10 +553,66 @@ class _HomePageState extends State<HomePage> {
                                             context,
                                             MaterialPageRoute(
                                               builder:
-                                                  (context) =>
-                                                      ChurchProfileScreen(
-                                                        churchData: result,
-                                                      ),
+                                                  (context) => AdminProfileView(
+                                                    adminData: AdminData(
+                                                      churchName:
+                                                          result['name'] ?? '',
+                                                      posts:
+                                                          result['posts']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      following:
+                                                          result['following']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      followers:
+                                                          result['followers']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      loginActivity:
+                                                          result['loginActivity']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      loginActivityPercentage:
+                                                          result['loginActivityPercentage']
+                                                              ?.toString() ??
+                                                          '+0%',
+                                                      dailyFollows:
+                                                          result['dailyFollows']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      dailyFollowsPercentage:
+                                                          result['dailyFollowsPercentage']
+                                                              ?.toString() ??
+                                                          '+0%',
+                                                      dailyVisits:
+                                                          result['dailyVisits']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      dailyVisitsPercentage:
+                                                          result['dailyVisitsPercentage']
+                                                              ?.toString() ??
+                                                          '+0%',
+                                                      bookings:
+                                                          result['bookings']
+                                                              ?.toString() ??
+                                                          '0',
+                                                      bookingsPercentage:
+                                                          result['bookingsPercentage']
+                                                              ?.toString() ??
+                                                          '+0%',
+                                                      email:
+                                                          result['email'] ?? '',
+                                                      phoneNumber:
+                                                          result['phoneNumber'] ??
+                                                          '',
+                                                      password:
+                                                          result['password'] ??
+                                                          '',
+                                                    ),
+                                                    onUpdateAdminData:
+                                                        (data) {},
+                                                  ),
                                             ),
                                           );
                                         } else {
@@ -994,6 +1052,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  //STOPPED HERE
   Widget _buildStatsCards() {
     return Row(
       children: [
@@ -2980,7 +3039,7 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
       case AuthenticatorFlow.password:
         return 'Enter the six-digit code sent to your email.';
       case AuthenticatorFlow.phone:
-        return 'Enter the six-digit code sent to your email.';
+        return 'Enter the six-digit code sent to your phone number.';
     }
   }
 
