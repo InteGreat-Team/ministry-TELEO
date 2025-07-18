@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'c1s8terms_conditions_screen.dart';
-import 'c1s9verification_code_screen.dart';
 import '../../3/c1widgets/back_button.dart';
+import 'verification_service.dart'; // make sure path is correct
 
 class PasswordScreen extends StatefulWidget {
   final String firstName;
@@ -11,7 +12,7 @@ class PasswordScreen extends StatefulWidget {
   final String username;
   final String email;
   final String phone;
-  final String location;
+  final LatLng location;
 
   const PasswordScreen({
     super.key,
@@ -46,16 +47,10 @@ class _PasswordScreenState extends State<PasswordScreen> {
   }
 
   bool _isValidPassword(String password) {
-    // Check if password meets requirements:
-    // - At least 8 characters
-    // - At least 1 uppercase letter
-    // - At least 1 lowercase letter
-    // - At least 1 digit
     final hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
     final hasLowercase = RegExp(r'[a-z]').hasMatch(password);
     final hasDigit = RegExp(r'[0-9]').hasMatch(password);
     final hasMinLength = password.length >= 8;
-    
     return hasUppercase && hasLowercase && hasDigit && hasMinLength;
   }
 
@@ -66,39 +61,48 @@ class _PasswordScreenState extends State<PasswordScreen> {
       } else {
         _passwordError = null;
       }
-      
-      if (_passwordController.text.isNotEmpty && !_isValidPassword(_passwordController.text)) {
-        _passwordRequirementsError = 'Password must be at least 8 characters with at least 1 uppercase letter, 1 lowercase letter, and 1 digit';
+
+      if (_passwordController.text.isNotEmpty &&
+          !_isValidPassword(_passwordController.text)) {
+        _passwordRequirementsError =
+            'Password must be at least 8 characters with at least 1 uppercase letter, 1 lowercase letter, and 1 digit';
       } else {
         _passwordRequirementsError = null;
       }
     });
   }
 
-  Future<void> _navigateToTermsAndConditions() async {
-    // Navigate to Terms and Conditions screen and wait for result
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TermsConditionsScreen(
-          firstName: widget.firstName,
-          lastName: widget.lastName,
-          birthday: widget.birthday,
-          gender: widget.gender,
-          username: widget.username,
-          email: widget.email,
-          phone: widget.phone,
-          location: widget.location,
-          isViewOnly: true, // Set to view-only mode
+  Future<void> _goToTerms() async {
+    try {
+      final sentCode = await VerificationService.sendVerificationCode(
+        widget.email,
+        '${widget.firstName} ${widget.lastName}',
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TermsConditionsScreen(
+            firstName: widget.firstName,
+            lastName: widget.lastName,
+            birthday: widget.birthday,
+            gender: widget.gender,
+            username: widget.username,
+            email: widget.email,
+            phone: widget.phone,
+            password: _passwordController.text,
+            location: widget.location.toString(),
+            sentCode: sentCode,
+            isViewOnly: true,
+          ),
         ),
-      ),
-    );
-    
-    // If result is true, user has read the terms
-    if (result == true) {
-      setState(() {
-        _termsAccepted = true;
-      });
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to send code. Please try again.")),
+      );
     }
   }
 
@@ -112,15 +116,13 @@ class _PasswordScreenState extends State<PasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button
               const Padding(
                 padding: EdgeInsets.only(top: 16.0),
                 child: TeleoBackButton(),
               ),
               const SizedBox(height: 40),
-              
               const Text(
-                "Create a Password",
+                "We’re almost done!",
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -129,38 +131,26 @@ class _PasswordScreenState extends State<PasswordScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                "Your password must be at least 8 characters and include uppercase, lowercase, and numbers.",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
+                "Secure your account with a password.",
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 40),
-              
-              // Password field
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF002642)),
                   ),
                   errorText: _passwordRequirementsError,
-                  errorMaxLines: 3,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Colors.grey,
                     ),
                     onPressed: () {
@@ -172,34 +162,25 @@ class _PasswordScreenState extends State<PasswordScreen> {
                 ),
                 onChanged: (_) {
                   _validatePasswords();
-                  setState(() {});
                 },
               ),
               const SizedBox(height: 20),
-              
-              // Confirm Password field
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF002642)),
                   ),
                   errorText: _passwordError,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Colors.grey,
                     ),
                     onPressed: () {
@@ -211,12 +192,9 @@ class _PasswordScreenState extends State<PasswordScreen> {
                 ),
                 onChanged: (_) {
                   _validatePasswords();
-                  setState(() {});
                 },
               ),
               const SizedBox(height: 24),
-              
-              // Terms and conditions checkbox
               Row(
                 children: [
                   Checkbox(
@@ -229,23 +207,17 @@ class _PasswordScreenState extends State<PasswordScreen> {
                     activeColor: const Color(0xFF002642),
                   ),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: _navigateToTermsAndConditions,
-                      child: const Text(
-                        "I agree to the Terms and Conditions",
-                        style: TextStyle(
-                          color: Colors.black87,
-                          decoration: TextDecoration.underline,
-                        ),
+                    child: Text(
+                      "I agree to the Terms and Conditions",
+                      style: TextStyle(
+                        color: Colors.black87,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
                 ],
               ),
-              
               const Spacer(),
-              
-              // Next button
               Padding(
                 padding: const EdgeInsets.only(bottom: 40.0),
                 child: SizedBox(
@@ -253,29 +225,11 @@ class _PasswordScreenState extends State<PasswordScreen> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: (_passwordController.text.isNotEmpty &&
-                               _confirmPasswordController.text.isNotEmpty &&
-                               _passwordError == null &&
-                               _passwordRequirementsError == null &&
-                               _termsAccepted)
-                        ? () {
-                            // Navigate directly to verification code screen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VerificationCodeScreen(
-                                  firstName: widget.firstName,
-                                  lastName: widget.lastName,
-                                  birthday: widget.birthday,
-                                  gender: widget.gender,
-                                  username: widget.username,
-                                  email: widget.email,
-                                  phone: widget.phone,
-                                  password: _passwordController.text,
-                                  location: widget.location,
-                                ),
-                              ),
-                            );
-                          }
+                            _confirmPasswordController.text.isNotEmpty &&
+                            _passwordError == null &&
+                            _passwordRequirementsError == null &&
+                            _termsAccepted)
+                        ? _goToTerms
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF002642),
@@ -285,7 +239,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                       elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.3),
+                      shadowColor: Colors.black.withAlpha(77),
                     ),
                     child: const Text(
                       'Next',

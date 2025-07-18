@@ -1,242 +1,268 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:teleo_organized_new/mapkey.dart';
+import 'c1s6contact_info_screen.dart';
 
-class GeolocationScreen extends StatelessWidget {
-  const GeolocationScreen({super.key});
+class GeolocationScreen extends StatefulWidget {
+  final String firstName;
+  final String lastName;
+  final DateTime birthday;
+  final String gender;
+  final String username;
+  final String address;
+  final double lat;
+  final double lng;
+
+  const GeolocationScreen({
+    super.key,
+    required this.firstName,
+    required this.lastName,
+    required this.birthday,
+    required this.gender,
+    required this.username,
+    required this.address,
+    required this.lat,
+    required this.lng,
+  });
+
+  @override
+  State<GeolocationScreen> createState() => _GeolocationScreenState();
+}
+
+class _GeolocationScreenState extends State<GeolocationScreen> {
+  late GoogleMapController _mapController;
+  late LatLng _selectedLocation;
+  String _locationLabel = '';
+  bool _showSuggestions = false;
+  List<Map<String, dynamic>> _suggestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLocation = LatLng(widget.lat, widget.lng);
+    _locationLabel = widget.address;
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+  }
+
+  void _updateSuggestions() async {
+    List<Map<String, dynamic>> results = [];
+
+    // Current location
+    Position position = await Geolocator.getCurrentPosition();
+    results.add({
+      'type': 'current',
+      'title': '📍 Current location',
+      'subtitle': 'Tap to use your current location',
+      'lat': position.latitude,
+      'lng': position.longitude,
+    });
+
+    // Christian churches nearby
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
+      '?location=${position.latitude},${position.longitude}'
+      '&radius=5000'
+      '&type=church'
+      '&keyword=christian'
+      '&key=$googleApiKey'
+    );
+
+    final res = await http.get(url);
+    final data = jsonDecode(res.body);
+
+    if (data['status'] == 'OK') {
+      for (var result in data['results']) {
+        results.add({
+          'type': 'place',
+          'title': '⛪ ${result['name']}',
+          'subtitle': result['vicinity'] ?? '',
+          'lat': result['geometry']['location']['lat'],
+          'lng': result['geometry']['location']['lng'],
+        });
+      }
+    }
+
+    setState(() {
+      _suggestions = results;
+    });
+  }
+
+  Future<void> _reverseGeocode(LatLng location) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=$googleApiKey&region=ph'
+    );
+
+    final response = await http.get(url);
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 &&
+        data['status'] == 'OK' &&
+        data['results'].isNotEmpty) {
+      setState(() {
+        _locationLabel = data['results'][0]['formatted_address'];
+      });
+    }
+  }
+
+  void _selectSuggestion(Map<String, dynamic> item) {
+    setState(() {
+      _selectedLocation = LatLng(item['lat'], item['lng']);
+      _locationLabel = item['title'].replaceAll('📍 ', '').replaceAll('⛪ ', '');
+      _showSuggestions = false;
+    });
+    _mapController.animateCamera(CameraUpdate.newLatLng(_selectedLocation));
+    _reverseGeocode(_selectedLocation);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Map background (placeholder)
-          Container(
-            color: Colors.grey.shade200,
-            child: Center(
-              child: Image.asset(
-                'assets/map_placeholder.png',
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback if image asset is not available
-                  return Container(
-                    color: Colors.grey.shade200,
-                    child: CustomPaint(
-                      painter: MapPlaceholderPainter(),
-                      size: Size.infinite,
-                    ),
-                  );
-                },
-              ),
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _selectedLocation,
+              zoom: 15,
             ),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            onTap: (LatLng tapped) {
+              setState(() {
+                _selectedLocation = tapped;
+              });
+              _reverseGeocode(tapped);
+            },
+            onCameraIdle: () => _reverseGeocode(_selectedLocation),
+            onCameraMove: (position) {
+              setState(() {
+                _selectedLocation = position.target;
+              });
+            },
           ),
-          
-          // Search bar at top
           Positioned(
-            top: 40,
+            top: 50,
             left: 16,
             right: 16,
-            child: Container(
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Select your address',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+            child: GestureDetector(
+              onTap: () {
+                _updateSuggestions();
+                setState(() {
+                  _showSuggestions = true;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, color: Colors.grey),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _locationLabel,
+                        style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {
-                      // Search functionality would go here
-                    },
-                  ),
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),
-          
-          // Location pin in center
-          const Center(
-            child: Icon(
-              Icons.location_on,
-              color: Colors.blue,
-              size: 40,
+          if (_showSuggestions)
+            Positioned(
+              top: 110,
+              left: 0,
+              right: 0,
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _suggestions.length,
+                  separatorBuilder: (_, __) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final item = _suggestions[index];
+                    return ListTile(
+                      leading: Text(item['type'] == 'current' ? '📍' : '⛪', style: const TextStyle(fontSize: 18)),
+                      title: Text(item['title']),
+                      subtitle: Text(item['subtitle']),
+                      onTap: () => _selectSuggestion(item),
+                    );
+                  },
+                ),
+              ),
             ),
+          const Center(
+            child: Icon(Icons.location_pin, size: 50, color: Colors.red),
           ),
-          
-          // Location info card at bottom
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '452 Lower Detroit, Lorem Ipsum St.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '1.0km - 452 Lower Detroit, Lorem Ipsum Street, Veritas en Caritate Avenue',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        color: Colors.black,
-                        size: 16,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Main Entrance',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                  Text(_locationLabel, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ContactInfoScreen(
+                            firstName: widget.firstName,
+                            lastName: widget.lastName,
+                            birthday: widget.birthday,
+                            gender: widget.gender,
+                            username: widget.username,
+                            address: _locationLabel,
+                            location: _selectedLocation,
+                          ),
                         ),
-                      ),
-                      Spacer(),
-                      Text(
-                        '1.0km',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(
-                          context, 
-                          '452 Lower Detroit, Lorem Ipsum St.'
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF002642),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 4,
-                        shadowColor: Colors.black.withOpacity(0.3),
-                      ),
-                      child: const Text(
-                        'Choose this location',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                  ),
+                    child: const Text("Choose this location"),
+                  )
                 ],
               ),
             ),
-          ),
+          )
         ],
       ),
     );
   }
-}
-
-// Custom painter to draw a simple map grid as a placeholder
-class MapPlaceholderPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    // Draw horizontal lines
-    for (double y = 0; y < size.height; y += 20) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-
-    // Draw vertical lines
-    for (double x = 0; x < size.width; x += 20) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-
-    // Draw some random "roads"
-    final roadPaint = Paint()
-      ..color = Colors.white.withOpacity(0.5)
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke;
-
-    // Horizontal roads
-    canvas.drawLine(
-      Offset(0, size.height * 0.3),
-      Offset(size.width, size.height * 0.3),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(0, size.height * 0.7),
-      Offset(size.width, size.height * 0.7),
-      roadPaint,
-    );
-
-    // Vertical roads
-    canvas.drawLine(
-      Offset(size.width * 0.25, 0),
-      Offset(size.width * 0.25, size.height),
-      roadPaint,
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.75, 0),
-      Offset(size.width * 0.75, size.height),
-      roadPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
