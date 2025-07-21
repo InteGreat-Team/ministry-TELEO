@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'data/cancellation_reasons.dart';
 
 class CancelBookingPage extends StatefulWidget {
   final String facilitatorName;
@@ -19,7 +20,8 @@ class _CancelBookingPageState extends State<CancelBookingPage> {
   @override
   void initState() {
     super.initState();
-    _feedbackController.text = 'Sorry, Fr. ${widget.facilitatorName} is too busy.';
+    _feedbackController.text =
+        'Sorry, Fr. ${widget.facilitatorName} is too busy.';
   }
 
   @override
@@ -83,15 +85,8 @@ class _CancelBookingPageState extends State<CancelBookingPage> {
               const SizedBox(height: 16),
 
               // Radio buttons for cancellation reasons
-              _buildRadioOption('Change of plans'),
-              _buildRadioOption('Unavailable Facilitator'),
-              _buildRadioOption('Conflict in schedule'),
-              _buildRadioOption('Health Issues'),
-              _buildRadioOption('Family Emergency'),
-              _buildRadioOption('Financial Constraints'),
-              _buildRadioOption('Transportation Issues'),
-              _buildRadioOption('Could not fulfill request'),
-              _buildRadioOption('Other Reason'),
+              for (String reason in cancellationReasons)
+                _buildRadioOption(reason),
 
               const SizedBox(height: 16),
               const Text(

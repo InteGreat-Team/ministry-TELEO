@@ -5,6 +5,8 @@ class ServiceRequestCard extends StatelessWidget {
   final String serviceLocation;
   final String serviceType;
   final String serviceTime;
+  final VoidCallback? onViewDetails;
+  final VoidCallback? onAccept;
 
   const ServiceRequestCard({
     super.key,
@@ -12,6 +14,8 @@ class ServiceRequestCard extends StatelessWidget {
     required this.serviceLocation,
     required this.serviceType,
     required this.serviceTime,
+    this.onViewDetails,
+    this.onAccept,
   });
 
   @override
@@ -148,7 +152,8 @@ class ServiceRequestCard extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE3F2FD),
                             borderRadius: BorderRadius.circular(4),
@@ -201,13 +206,14 @@ class ServiceRequestCard extends StatelessWidget {
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: const Color(0xFFFFAF00), // Keep border color as dark navy
+                                color: const Color(
+                                    0xFFFFAF00), // Keep border color as dark navy
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: onViewDetails,
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 shape: RoundedRectangleBorder(
@@ -217,7 +223,8 @@ class ServiceRequestCard extends StatelessWidget {
                               child: const Text(
                                 'View Details',
                                 style: TextStyle(
-                                  color: Color(0xFF000233), // Keep text color as dark navy
+                                  color: Color(
+                                      0xFF000233), // Keep text color as dark navy
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -231,11 +238,12 @@ class ServiceRequestCard extends StatelessWidget {
                             height: 44,
                             margin: const EdgeInsets.only(left: 8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFAF00), // Changed to #FFAF00
+                              color:
+                                  const Color(0xFFFFAF00), // Changed to #FFAF00
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: onAccept,
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 backgroundColor: Colors.transparent,

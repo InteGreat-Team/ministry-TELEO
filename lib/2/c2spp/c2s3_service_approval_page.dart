@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'assignment_confirmation_page.dart';
+import 'models/facilitator_model.dart';
+import 'models/service_request_model.dart';
 
 class ServiceApprovalPage extends StatefulWidget {
   const ServiceApprovalPage({super.key});
@@ -10,55 +12,55 @@ class ServiceApprovalPage extends StatefulWidget {
 
 class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
   // Currently assigned facilitator
-  final Map<String, dynamic> _currentlyAssigned = {
-    'name': 'Lebron James',
-    'role': 'Pastor',
-    'status': 'Schedule Conflict',
-    'isAvailable': false,
-    'isActive': true,
-  };
+  final Facilitator _currentlyAssigned = Facilitator(
+    name: 'Lebron James',
+    role: 'Pastor',
+    status: 'Schedule Conflict',
+    isAvailable: false,
+    isActive: true,
+  );
 
-  final List<Map<String, dynamic>> _facilitators = [
-    {
-      'name': 'John Jhong Cook', // Updated name
-      'role': 'Pastor',
-      'status': 'Schedule Conflict',
-      'isAvailable': false,
-      'isSelected': true,
-      'isActive': true,
-    },
-    {
-      'name': 'Mah Shayla',
-      'role': 'Leader',
-      'status': 'Available',
-      'isAvailable': true,
-      'isSelected': true,
-      'isActive': false,
-    },
-    {
-      'name': 'Tailor Sweep',
-      'role': 'Leader',
-      'status': 'Available',
-      'isAvailable': true,
-      'isSelected': true,
-      'isActive': true,
-    },
-    {
-      'name': 'Sabrina Carpenter',
-      'role': 'Pastor',
-      'status': 'Available',
-      'isAvailable': true,
-      'isSelected': true,
-      'isActive': true,
-    },
-    {
-      'name': 'Harry Styles', // Added Harry Styles instead of Lebron James
-      'role': 'Pastor',
-      'status': 'Available',
-      'isAvailable': true,
-      'isSelected': true,
-      'isActive': true,
-    },
+  final List<Facilitator> _facilitators = [
+    Facilitator(
+      name: 'John Jhong Cook', // Updated name
+      role: 'Pastor',
+      status: 'Schedule Conflict',
+      isAvailable: false,
+      isSelected: true,
+      isActive: true,
+    ),
+    Facilitator(
+      name: 'Mah Shayla',
+      role: 'Leader',
+      status: 'Available',
+      isAvailable: true,
+      isSelected: true,
+      isActive: false,
+    ),
+    Facilitator(
+      name: 'Tailor Sweep',
+      role: 'Leader',
+      status: 'Available',
+      isAvailable: true,
+      isSelected: true,
+      isActive: true,
+    ),
+    Facilitator(
+      name: 'Sabrina Carpenter',
+      role: 'Pastor',
+      status: 'Available',
+      isAvailable: true,
+      isSelected: true,
+      isActive: true,
+    ),
+    Facilitator(
+      name: 'Harry Styles', // Added Harry Styles instead of Lebron James
+      role: 'Pastor',
+      status: 'Available',
+      isAvailable: true,
+      isSelected: true,
+      isActive: true,
+    ),
   ];
 
   bool _selectAll = true;
@@ -480,7 +482,7 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _currentlyAssigned['name'],
+                                _currentlyAssigned.name,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
@@ -489,7 +491,7 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                _currentlyAssigned['role'],
+                                _currentlyAssigned.role,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,
@@ -567,7 +569,7 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                           setState(() {
                             _selectAll = !_selectAll;
                             for (var facilitator in _facilitators) {
-                              facilitator['isSelected'] = _selectAll;
+                              facilitator.isSelected = _selectAll;
                             }
                           });
                         },
@@ -587,24 +589,22 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                               width: 24,
                               height: 24,
                               decoration: BoxDecoration(
-                                color:
-                                    _selectAll
-                                        ? const Color(0xFFFF6B35)
-                                        : Colors.white,
+                                color: _selectAll
+                                    ? const Color(0xFFFF6B35)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(4),
                                 border: Border.all(
                                   color: const Color(0xFFFF6B35),
                                   width: 2,
                                 ),
                               ),
-                              child:
-                                  _selectAll
-                                      ? const Icon(
-                                        Icons.check,
-                                        size: 16,
-                                        color: Colors.white, // White checkmark
-                                      )
-                                      : null,
+                              child: _selectAll
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.white, // White checkmark
+                                    )
+                                  : null,
                             ),
                           ],
                         ),
@@ -627,17 +627,14 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         // Get the list of selected facilitators
-                        List<String> selectedFacilitators =
-                            _facilitators
-                                .where(
-                                  (facilitator) =>
-                                      facilitator['isSelected'] == true,
-                                )
-                                .map(
-                                  (facilitator) =>
-                                      facilitator['name'] as String,
-                                )
-                                .toList();
+                        List<String> selectedFacilitators = _facilitators
+                            .where(
+                              (facilitator) => facilitator.isSelected,
+                            )
+                            .map(
+                              (facilitator) => facilitator.name,
+                            )
+                            .toList();
 
                         // Create a map with service details to pass to the confirmation page
                         Map<String, dynamic> serviceDetails = {
@@ -654,11 +651,20 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) => AssignmentConfirmationPage(
-                                  selectedFacilitators: selectedFacilitators,
-                                  serviceDetails: serviceDetails,
-                                ),
+                            builder: (context) => AssignmentConfirmationPage(
+                              selectedFacilitators: selectedFacilitators,
+                              serviceDetails: ServiceRequest(
+                                name: serviceDetails['name'],
+                                location: serviceDetails['location'],
+                                service: serviceDetails['service'],
+                                timeType:
+                                    'scheduled', // or 'fast' if you have it
+                                timeText: serviceDetails['timeText'],
+                                scheduledText: serviceDetails['scheduledText'],
+                                destination: serviceDetails['destination'],
+                                countdown: '',
+                              ),
+                            ),
                           ),
                         );
                       },
@@ -731,11 +737,11 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
     );
   }
 
-  Widget _buildFacilitatorItem(Map<String, dynamic> facilitator) {
+  Widget _buildFacilitatorItem(Facilitator facilitator) {
     Color statusColor;
     Color statusBgColor;
 
-    if (facilitator['status'] == 'Available') {
+    if (facilitator.status == 'Available') {
       statusColor = const Color(0xFF00A300);
       statusBgColor = const Color(0xFFE6FFE6);
     } else {
@@ -768,10 +774,9 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color:
-                            facilitator['isActive']
-                                ? const Color(0xFF15D474) // Green for active
-                                : const Color(0xFF757575), // Gray for inactive
+                        color: facilitator.isActive
+                            ? const Color(0xFF15D474) // Green for active
+                            : const Color(0xFF757575), // Gray for inactive
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 0),
                       ),
@@ -787,7 +792,7 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      facilitator['name'],
+                      facilitator.name,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -797,7 +802,7 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      facilitator['role'],
+                      facilitator.role,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -818,7 +823,7 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
-                  facilitator['status'],
+                  facilitator.status,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -832,10 +837,10 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
               GestureDetector(
                 onTap: () {
                   setState(() {
-                    facilitator['isSelected'] = !facilitator['isSelected'];
+                    facilitator.isSelected = !facilitator.isSelected;
                     // Check if all facilitators are selected to update _selectAll state
                     bool allSelected = _facilitators.every(
-                      (f) => f['isSelected'],
+                      (f) => f.isSelected,
                     );
                     _selectAll = allSelected;
                   });
@@ -844,24 +849,22 @@ class _ServiceRequestsPageState extends State<ServiceApprovalPage> {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color:
-                        facilitator['isSelected']
-                            ? const Color(0xFFFF6B35)
-                            : Colors.white,
+                    color: facilitator.isSelected
+                        ? const Color(0xFFFF6B35)
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
                       color: const Color(0xFFFF6B35),
                       width: 2,
                     ),
                   ),
-                  child:
-                      facilitator['isSelected']
-                          ? const Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Colors.white, // White checkmark
-                          )
-                          : null,
+                  child: facilitator.isSelected
+                      ? const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: Colors.white, // White checkmark
+                        )
+                      : null,
                 ),
               ),
             ],

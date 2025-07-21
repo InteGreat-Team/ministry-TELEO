@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'models/service_request_model.dart';
 
 class ServiceApprovalConfirmationPage extends StatelessWidget {
   final int facilitatorCount;
-  final Map<String, dynamic> serviceDetails;
+  final ServiceRequest serviceDetails;
 
   const ServiceApprovalConfirmationPage({
     super.key,
@@ -209,14 +210,14 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                serviceDetails['requesterName'] ?? 'Service Requester Name',
+                                serviceDetails.name,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
                               ),
                               Text(
-                                serviceDetails['location'] ?? 'Default location where they\'re booking from',
+                                serviceDetails.location,
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
@@ -232,7 +233,8 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                     // Service type
                     Row(
                       children: [
-                        const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                        const Icon(Icons.check_circle,
+                            color: Colors.green, size: 16),
                         const SizedBox(width: 8),
                         const Text(
                           'Service:',
@@ -243,7 +245,7 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          serviceDetails['service'] ?? 'Baptism and Dedication',
+                          serviceDetails.service,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -256,7 +258,8 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                     // Time
                     Row(
                       children: [
-                        const Icon(Icons.access_time, color: Colors.blue, size: 16),
+                        const Icon(Icons.access_time,
+                            color: Colors.blue, size: 16),
                         const SizedBox(width: 8),
                         const Text(
                           'Time:',
@@ -267,16 +270,17 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          serviceDetails['time'] ?? 'May 5, 3:00 PM',
+                          serviceDetails.timeText,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        if (serviceDetails['isScheduled'] == true)
+                        if (serviceDetails.scheduledText != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.blue.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
@@ -297,7 +301,8 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                     // Venue
                     Row(
                       children: [
-                        const Icon(Icons.location_on, color: Color(0xFFF59052), size: 16),
+                        const Icon(Icons.location_on,
+                            color: Color(0xFFF59052), size: 16),
                         const SizedBox(width: 8),
                         const Text(
                           'To:',
@@ -308,7 +313,7 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          serviceDetails['venue'] ?? 'the church',
+                          serviceDetails.destination,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -327,7 +332,7 @@ class ServiceApprovalConfirmationPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '"${serviceDetails['specialRequest'] ?? 'Please assign Fr. Lebron James if available'}"',
+                        '"${'Please assign Fr. Lebron James if available'}"',
                         style: const TextStyle(
                           fontStyle: FontStyle.italic,
                           color: Colors.grey,

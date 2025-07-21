@@ -6,6 +6,7 @@ import '../event_invitation_details_page.dart';
 import '../c2inbox/cancellation_request_page.dart';
 import '../c2inbox/cancelled_booking_details_page.dart';
 import '../c2inbox/service_assignment_details_page.dart';
+import 'models/inbox_notification_model.dart';
 
 // Change the InboxPage class from StatelessWidget to StatefulWidget
 class InboxPage extends StatefulWidget {
@@ -20,7 +21,8 @@ class _InboxPageState extends State<InboxPage> {
   bool _isAscending = false;
   final String _sortBy = 'Date';
   // Add this after the _sortBy declaration
-  final List<Widget> _notificationItems = [];
+  final List<InboxNotification> _notificationItems = [];
+  List<Widget> _sortedNotificationWidgets = [];
 
   // Toggle sort order function
   void _toggleSortOrder() {
@@ -36,69 +38,66 @@ class _InboxPageState extends State<InboxPage> {
     _notificationItems.clear();
 
     // Add all notification items with their dates for sorting
-    final items = [
-      {
-        'date': DateTime(2023, 5, 14), // May 14
-        'widget': _buildServiceAssignmentNotification(),
-      },
-      {
-        'date': DateTime(2023, 3, 1), // March 1
-        'widget': _buildUpdatedInvitationItem(
-          date: 'March 1',
-          churchName: 'Church Name',
-          eventName: 'Event Name Event Name Event',
-          waitingTime: '6 hours',
-        ),
-      },
-      {
-        'date': DateTime(2023, 3, 2), // March 2
-        'widget': _buildUpdatedInvitationItem(
-          date: 'March 2',
-          churchName: 'Church Name',
-          eventName: 'Event Name Event Name Event',
-          waitingTime: '22 hours',
-        ),
-      },
-      {
-        'date': DateTime(2023, 3, 4), // March 4
-        'widget': _buildServiceCancellationCard(
-          date: 'March 4',
-          isRequest: true,
-          serviceName: 'Anointment & Healing Service',
-          requesterName: 'Requester\'s Name',
-          location: 'To their location',
-          distance: '1.8km away',
-        ),
-      },
-      {
-        'date': DateTime(2023, 3, 2), // March 2
-        'widget': _buildServiceCancellationCard(
-          date: 'March 2',
-          isRequest: false,
-          serviceName: 'Anointment & Healing Service',
-          requesterName: 'Requester\'s Name',
-          location: 'To their location',
-          distance: '1.8km away',
-        ),
-      },
-    ];
+    _notificationItems.addAll([
+      InboxNotification(
+        notificationType: 'serviceAssignment',
+        date: DateTime(2023, 5, 14),
+        payload: {},
+      ),
+      InboxNotification(
+        notificationType: 'invitationUpdate',
+        date: DateTime(2023, 3, 1),
+        payload: {
+          'churchName': 'Church Name',
+          'eventName': 'Event Name Event Name Event',
+          'waitingTime': '6 hours',
+        },
+      ),
+      InboxNotification(
+        notificationType: 'invitationUpdate',
+        date: DateTime(2023, 3, 2),
+        payload: {
+          'churchName': 'Church Name',
+          'eventName': 'Event Name Event Name Event',
+          'waitingTime': '22 hours',
+        },
+      ),
+      InboxNotification(
+        notificationType: 'serviceCancellation',
+        date: DateTime(2023, 3, 4),
+        payload: {
+          'isRequest': true,
+          'serviceName': 'Anointment & Healing Service',
+          'requesterName': 'Requester\'s Name',
+          'location': 'To their location',
+          'distance': '1.8km away',
+        },
+      ),
+      InboxNotification(
+        notificationType: 'serviceCancellation',
+        date: DateTime(2023, 3, 2),
+        payload: {
+          'isRequest': false,
+          'serviceName': 'Anointment & Healing Service',
+          'requesterName': 'Requester\'s Name',
+          'location': 'To their location',
+          'distance': '1.8km away',
+        },
+      ),
+    ]);
 
     // Sort the items based on date
-    items.sort((a, b) {
-      final DateTime dateA = a['date'] as DateTime;
-      final DateTime dateB = b['date'] as DateTime;
-
+    _notificationItems.sort((a, b) {
       // If ascending, older dates first (smaller dates first)
       // If descending, newer dates first (larger dates first)
       return _isAscending
-          ? dateA.compareTo(dateB)  // Ascending (oldest first)
-          : dateB.compareTo(dateA); // Descending (newest first)
+          ? a.date.compareTo(b.date) // Ascending (oldest first)
+          : b.date.compareTo(a.date); // Descending (newest first)
     });
 
     // Add the sorted widgets to the notification items list
-    for (var item in items) {
-      _notificationItems.add(item['widget'] as Widget);
-    }
+    _sortedNotificationWidgets =
+        _notificationItems.map((item) => _buildNotificationItem(item)).toList();
   }
 
   @override
@@ -111,7 +110,8 @@ class _InboxPageState extends State<InboxPage> {
   Widget build(BuildContext context) {
     // *** ADJUST THIS VALUE to position the FAB ***
     // Increase the value to move the FAB down, decrease to move it up
-    final double fabPositionFromTop = -10.0; // Same value as service_requests_page.dart
+    final double fabPositionFromTop =
+        -10.0; // Same value as service_requests_page.dart
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -165,7 +165,8 @@ class _InboxPageState extends State<InboxPage> {
           // Main content in Expanded to take all available space
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.only(bottom: 100), // Add extra padding at bottom
+              padding: const EdgeInsets.only(
+                  bottom: 100), // Add extra padding at bottom
               children: [
                 // Notification categories
                 _buildNotificationCategory(
@@ -231,16 +232,20 @@ class _InboxPageState extends State<InboxPage> {
                 GestureDetector(
                   onTap: _toggleSortOrder,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     child: Row(
                       children: [
                         // Use the exact Font Awesome icons that were circled in the reference image
                         FaIcon(
                           _isAscending
-                              ? FontAwesomeIcons.sortAmountUpAlt  // Ascending icon (circled in reference)
-                              : FontAwesomeIcons.sortAmountDown,  // Descending icon (circled in reference)
+                              ? FontAwesomeIcons
+                                  .sortAmountUpAlt // Ascending icon (circled in reference)
+                              : FontAwesomeIcons
+                                  .sortAmountDown, // Descending icon (circled in reference)
                           size: 18,
-                          color: const Color(0xFF1F2156),  // Pink color from your image
+                          color: const Color(
+                              0xFF1F2156), // Pink color from your image
                         ),
                         const SizedBox(width: 8),
                         // Sort text without dropdown arrow
@@ -258,7 +263,7 @@ class _InboxPageState extends State<InboxPage> {
                 ),
 
                 // Replace the hardcoded notification items with the sorted list
-                ..._notificationItems,
+                ..._sortedNotificationWidgets,
 
                 // Add extra padding at the bottom to ensure content isn't hidden behind the FAB
                 const SizedBox(height: 80),
@@ -281,7 +286,8 @@ class _InboxPageState extends State<InboxPage> {
                   width: 70,
                   height: 70,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8A2BE2), // Changed to purple to match main.dart
+                    color: const Color(
+                        0xFF8A2BE2), // Changed to purple to match main.dart
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -304,6 +310,31 @@ class _InboxPageState extends State<InboxPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildNotificationItem(InboxNotification notification) {
+    switch (notification.notificationType) {
+      case 'serviceAssignment':
+        return _buildServiceAssignmentNotification();
+      case 'invitationUpdate':
+        return _buildUpdatedInvitationItem(
+          date: '${notification.date.month}/${notification.date.day}',
+          churchName: notification.payload['churchName'],
+          eventName: notification.payload['eventName'],
+          waitingTime: notification.payload['waitingTime'],
+        );
+      case 'serviceCancellation':
+        return _buildServiceCancellationCard(
+          date: '${notification.date.month}/${notification.date.day}',
+          isRequest: notification.payload['isRequest'],
+          serviceName: notification.payload['serviceName'],
+          requesterName: notification.payload['requesterName'],
+          location: notification.payload['location'],
+          distance: notification.payload['distance'],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   // KEEPING THIS UNCHANGED
@@ -531,10 +562,12 @@ class _InboxPageState extends State<InboxPage> {
               child: Row(
                 children: List.generate(
                   30, // Number of dashes
-                      (index) => Expanded(
+                  (index) => Expanded(
                     child: Container(
                       height: 1,
-                      color: index.isEven ? Colors.grey.shade300 : Colors.transparent,
+                      color: index.isEven
+                          ? Colors.grey.shade300
+                          : Colors.transparent,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                     ),
                   ),
@@ -698,7 +731,8 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE3F2FD),
                       borderRadius: BorderRadius.circular(12),
@@ -759,10 +793,12 @@ class _InboxPageState extends State<InboxPage> {
               child: Row(
                 children: List.generate(
                   30, // Number of dashes
-                      (index) => Expanded(
+                  (index) => Expanded(
                     child: Container(
                       height: 1,
-                      color: index.isEven ? Colors.grey.shade300 : Colors.transparent,
+                      color: index.isEven
+                          ? Colors.grey.shade300
+                          : Colors.transparent,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                     ),
                   ),
@@ -885,7 +921,8 @@ class _InboxPageState extends State<InboxPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE3F2FD),
                       borderRadius: BorderRadius.circular(12),
@@ -946,10 +983,12 @@ class _InboxPageState extends State<InboxPage> {
               child: Row(
                 children: List.generate(
                   30, // Number of dashes
-                      (index) => Expanded(
+                  (index) => Expanded(
                     child: Container(
                       height: 1,
-                      color: index.isEven ? Colors.grey.shade300 : Colors.transparent,
+                      color: index.isEven
+                          ? Colors.grey.shade300
+                          : Colors.transparent,
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                     ),
                   ),
@@ -1033,7 +1072,8 @@ class FooterSection extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildNavItem(Icons.chat_bubble_outline, 'Chat'), // Keep chat icon for inbox page
+          _buildNavItem(Icons.chat_bubble_outline,
+              'Chat'), // Keep chat icon for inbox page
           _buildNavItem(Icons.favorite_border, 'Favorite'),
           // Prayer icon is positioned separately in the Stack
           const SizedBox(width: 56), // Space for the Prayer icon

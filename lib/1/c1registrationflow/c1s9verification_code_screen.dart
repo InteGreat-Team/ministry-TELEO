@@ -14,6 +14,7 @@ class VerificationCodeScreen extends StatefulWidget {
   final String phone;
   final String password;
   final String location;
+  final String? sentCode;
 
   const VerificationCodeScreen({
     super.key,
@@ -26,6 +27,7 @@ class VerificationCodeScreen extends StatefulWidget {
     required this.phone,
     required this.password,
     required this.location,
+    this.sentCode,
   });
 
   @override

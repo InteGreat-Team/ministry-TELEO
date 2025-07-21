@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'models/service_request_model.dart';
+import 'models/facilitator_model.dart';
 
 class ServiceAcceptedPage extends StatelessWidget {
-  final Map<String, dynamic> serviceDetails;
-  final Map<String, dynamic> facilitatorDetails;
+  final ServiceRequest serviceDetails;
+  final Facilitator facilitatorDetails;
 
   const ServiceAcceptedPage({
     super.key,
@@ -39,7 +41,8 @@ class ServiceAcceptedPage extends StatelessWidget {
           children: [
             // Step indicator
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
               color: Colors.white,
               child: Row(
                 children: [
@@ -50,7 +53,8 @@ class ServiceAcceptedPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF000233), width: 2),
+                      border:
+                          Border.all(color: const Color(0xFF000233), width: 2),
                     ),
                     child: const Center(
                       child: Icon(
@@ -76,7 +80,8 @@ class ServiceAcceptedPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF000233),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF000233), width: 2),
+                      border:
+                          Border.all(color: const Color(0xFF000233), width: 2),
                     ),
                     child: const Center(
                       child: Text(
@@ -124,7 +129,8 @@ class ServiceAcceptedPage extends StatelessWidget {
 
             // Assign Service to a Facilitator heading
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Text(
                 'Assign Service to a Facilitator',
                 style: TextStyle(
@@ -234,7 +240,8 @@ class ServiceAcceptedPage extends StatelessWidget {
             // Explanation text
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40.0, vertical: 8.0),
                 child: Text(
                   'The service request has been automatically assigned.',
                   textAlign: TextAlign.center,
@@ -248,7 +255,8 @@ class ServiceAcceptedPage extends StatelessWidget {
 
             // Facilitator info
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -268,7 +276,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          facilitatorDetails['name'] ?? 'Lebron James',
+                          facilitatorDetails.name,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -277,7 +285,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          facilitatorDetails['role'] ?? 'Pastor',
+                          facilitatorDetails.role,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -297,7 +305,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Accepted on: ${facilitatorDetails['acceptedDate'] ?? 'Date'} at ${facilitatorDetails['acceptedTime'] ?? 'Time'}',
+                              'Accepted on: Date at Time',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -310,7 +318,8 @@ class ServiceAcceptedPage extends StatelessWidget {
                   ),
                   // Reassign button
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.red.shade300),
                       borderRadius: BorderRadius.circular(4),
@@ -331,7 +340,8 @@ class ServiceAcceptedPage extends StatelessWidget {
 
             // Service details card
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Color(0xFFFFC0CB), width: 1),
@@ -362,7 +372,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  serviceDetails['requesterName'] ?? 'Service Requester Name',
+                                  serviceDetails.name,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -371,7 +381,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  serviceDetails['location'] ?? 'Default location where they\'re booking from',
+                                  serviceDetails.location,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -402,7 +412,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            serviceDetails['service'] ?? 'Baptism and Dedication',
+                            serviceDetails.service,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -431,7 +441,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            serviceDetails['time'] ?? 'May 5, 3:00 PM',
+                            serviceDetails.timeText,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -439,9 +449,10 @@ class ServiceAcceptedPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          if (serviceDetails['isScheduled'] == true)
+                          if (serviceDetails.scheduledText != null)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE6F4FF),
                                 borderRadius: BorderRadius.circular(12),
@@ -470,7 +481,7 @@ class ServiceAcceptedPage extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            serviceDetails['venue'] ?? 'To the church',
+                            serviceDetails.destination,
                             style: TextStyle(
                               fontSize: 14,
                               color: Color(0xFF333333),
@@ -481,18 +492,17 @@ class ServiceAcceptedPage extends StatelessWidget {
                       const SizedBox(height: 12),
 
                       // Special request
-                      if (serviceDetails['specialRequest'] != null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 26.0),
-                          child: Text(
-                            '"${serviceDetails['specialRequest']}"',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.grey.shade600,
-                            ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 26.0),
+                        child: Text(
+                          '"Please assign Fr. Lebron James if available"',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -510,7 +520,8 @@ class ServiceAcceptedPage extends StatelessWidget {
                       height: 50,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF000233), width: 1),
+                        border: Border.all(
+                            color: const Color(0xFF000233), width: 1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextButton(

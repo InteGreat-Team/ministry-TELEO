@@ -61,6 +61,12 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
     });
   }
 
+  Future<String> sendVerificationCode(BuildContext context) async {
+    // Simulate sending a code
+    await Future.delayed(const Duration(seconds: 1));
+    return '123456'; // Dummy code
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -149,10 +155,7 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
                   onPressed: _isFormValid
                       ? () async {
                           try {
-                            final code = await sendVerificationCode(
-                              _emailController.text,
-                              '${widget.firstName} ${widget.lastName}',
-                            );
+                            final code = await sendVerificationCode(context);
 
                             if (!mounted) return;
 

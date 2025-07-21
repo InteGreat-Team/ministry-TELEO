@@ -1,35 +1,12 @@
 import 'package:flutter/material.dart';
+import 'models/booking_model.dart';
 
 class UpcomingBookingsPage extends StatefulWidget {
-  final String reference;
-  final String requesterName;
-  final String location;
-  final String serviceType;
-  final String date;
-  final String time;
-  final bool isScheduledForLater;
-  final String venue;
-  final String assignedTo;
-  final String cancelReason;
-  final String feedback;
-  final String cancelledBy;
-  final String cancelledDate;
+  final Booking booking;
 
   const UpcomingBookingsPage({
     super.key,
-    this.reference = 'AJSNDFB934U9382RFIWB',
-    this.requesterName = 'Service Requester Name',
-    this.location = 'Default location where they\'re booking from',
-    this.serviceType = 'Baptism and Dedication',
-    this.date = '[Date]',
-    this.time = 'May 5, 3:00 PM',
-    this.isScheduledForLater = true,
-    this.venue = 'To the church',
-    this.assignedTo = '@Lebron James',
-    this.cancelReason = 'Unavailable Facilitator',
-    this.feedback = 'Sorry, Fr. Lebron is too busy.',
-    this.cancelledBy = 'Church Name - Church Admin',
-    this.cancelledDate = '[Date] at [Time]',
+    required this.booking,
   });
 
   @override
@@ -92,7 +69,8 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
             Padding(
               padding: const EdgeInsets.only(left: 16.0, top: 16.0),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(16),
@@ -135,7 +113,8 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFEBEB),
                           borderRadius: BorderRadius.circular(16),
@@ -165,7 +144,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                         ),
                       ),
                       Text(
-                        widget.cancelledBy,
+                        widget.booking.cancelledBy ?? 'N/A',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -186,7 +165,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                         ),
                       ),
                       Text(
-                        widget.cancelledDate,
+                        widget.booking.cancelledDate ?? 'N/A',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -207,7 +186,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                         ),
                       ),
                       Text(
-                        widget.cancelReason,
+                        widget.booking.cancelReason ?? 'N/A',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -230,7 +209,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                       ),
                       Flexible(
                         child: Text(
-                          widget.feedback,
+                          widget.booking.feedback ?? 'N/A',
                           style: const TextStyle(
                             fontSize: 14,
                           ),
@@ -277,7 +256,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                         ),
                       ),
                       Text(
-                        widget.reference,
+                        widget.booking.reference,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -298,7 +277,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                         ),
                       ),
                       Text(
-                        widget.date,
+                        widget.booking.date,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -317,7 +296,8 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
 
             // Service Requester Info
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -337,14 +317,14 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.requesterName,
+                          widget.booking.requesterName,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         Text(
-                          widget.location,
+                          widget.booking.location,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade600,
@@ -359,7 +339,8 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
 
             // Service details
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Column(
                 children: [
                   // Service type
@@ -380,7 +361,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        widget.serviceType,
+                        widget.booking.serviceType,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -407,15 +388,16 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        widget.time,
+                        widget.booking.time,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      if (widget.isScheduledForLater)
+                      if (widget.booking.isScheduledForLater)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE6F4FF),
                             borderRadius: BorderRadius.circular(12),
@@ -442,7 +424,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        widget.venue,
+                        widget.booking.venue,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -469,7 +451,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        widget.assignedTo,
+                        widget.booking.assignedTo,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF4A90E2),
@@ -504,7 +486,8 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -536,10 +519,8 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
                     _buildSamplePersonalDetails(),
                   if (title == 'Service Information')
                     _buildSampleServiceInformation(),
-                  if (title == 'Payment Details')
-                    _buildSamplePaymentDetails(),
-                  if (title == 'Amount Paid')
-                    _buildSampleAmountPaid(),
+                  if (title == 'Payment Details') _buildSamplePaymentDetails(),
+                  if (title == 'Amount Paid') _buildSampleAmountPaid(),
                 ],
               ),
             ),
@@ -570,7 +551,7 @@ class _UpcomingBookingsPageState extends State<UpcomingBookingsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildDetailRow('Service Type', widget.serviceType),
+        _buildDetailRow('Service Type', widget.booking.serviceType),
         _buildDetailRow('Duration', '2 hours'),
         _buildDetailRow('Number of Attendees', '5'),
         _buildDetailRow('Special Requests', 'Please bring holy water'),

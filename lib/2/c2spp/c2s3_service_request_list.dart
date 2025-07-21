@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../c2inbox/service_request_details.dart';
 import '../c2inbox/service_assignment_page.dart';
+import 'models/service_request_model.dart';
 
 class ServiceRequestListPage extends StatefulWidget {
   const ServiceRequestListPage({super.key});
@@ -12,46 +13,46 @@ class ServiceRequestListPage extends StatefulWidget {
 
 class _ServiceRequestListPageState extends State<ServiceRequestListPage> {
   // Sample data for service requests
-  final List<Map<String, dynamic>> _serviceRequests = [
-    {
-      'name': 'Service Requestor Name',
-      'location': 'Default location where theyre booking from',
-      'service': 'Baptism and Dedication',
-      'timeType': 'fast',
-      'timeText': 'Fast Booking',
-      'destination': 'Room 444, UST Hospital, Lacson',
-      'countdown': '1:23',
-    },
-    {
-      'name': 'Service Requestor Name',
-      'location': 'Default location where theyre booking from',
-      'service': 'Baptism and Dedication',
-      'timeType': 'scheduled',
-      'timeText': 'May 5, 3:00 PM',
-      'scheduledText': 'Scheduled for Later',
-      'destination': 'To the church',
-      'countdown': '',
-    },
-    {
-      'name': 'Service Requestor Name',
-      'location': 'Default location where theyre booking from',
-      'service': 'Baptism and Dedication',
-      'timeType': 'scheduled',
-      'timeText': 'May 5, 3:00 PM',
-      'scheduledText': 'Scheduled for Later',
-      'destination': 'To the church',
-      'countdown': '',
-    },
-    {
-      'name': 'Service Requestor Name',
-      'location': 'Default location where theyre booking from',
-      'service': 'Baptism and Dedication',
-      'timeType': 'scheduled',
-      'timeText': 'May 5, 3:00 PM',
-      'scheduledText': 'Scheduled for Later',
-      'destination': 'To the church',
-      'countdown': '',
-    },
+  final List<ServiceRequest> _serviceRequests = [
+    ServiceRequest(
+      name: 'Service Requestor Name',
+      location: 'Default location where theyre booking from',
+      service: 'Baptism and Dedication',
+      timeType: 'fast',
+      timeText: 'Fast Booking',
+      destination: 'Room 444, UST Hospital, Lacson',
+      countdown: '1:23',
+    ),
+    ServiceRequest(
+      name: 'Service Requestor Name',
+      location: 'Default location where theyre booking from',
+      service: 'Baptism and Dedication',
+      timeType: 'scheduled',
+      timeText: 'May 5, 3:00 PM',
+      scheduledText: 'Scheduled for Later',
+      destination: 'To the church',
+      countdown: '',
+    ),
+    ServiceRequest(
+      name: 'Service Requestor Name',
+      location: 'Default location where theyre booking from',
+      service: 'Baptism and Dedication',
+      timeType: 'scheduled',
+      timeText: 'May 5, 3:00 PM',
+      scheduledText: 'Scheduled for Later',
+      destination: 'To the church',
+      countdown: '',
+    ),
+    ServiceRequest(
+      name: 'Service Requestor Name',
+      location: 'Default location where theyre booking from',
+      service: 'Baptism and Dedication',
+      timeType: 'scheduled',
+      timeText: 'May 5, 3:00 PM',
+      scheduledText: 'Scheduled for Later',
+      destination: 'To the church',
+      countdown: '',
+    ),
   ];
 
   @override
@@ -81,14 +82,7 @@ class _ServiceRequestListPageState extends State<ServiceRequestListPage> {
         itemBuilder: (context, index) {
           final request = _serviceRequests[index];
           return ServiceRequestCard(
-            serviceName: request['name'],
-            serviceLocation: request['location'],
-            serviceType: request['service'],
-            timeType: request['timeType'],
-            timeText: request['timeText'],
-            scheduledText: request['scheduledText'],
-            destination: request['destination'],
-            countdown: request['countdown'],
+            request: request,
           );
         },
       ),
@@ -97,25 +91,11 @@ class _ServiceRequestListPageState extends State<ServiceRequestListPage> {
 }
 
 class ServiceRequestCard extends StatelessWidget {
-  final String serviceName;
-  final String serviceLocation;
-  final String serviceType;
-  final String timeType;
-  final String timeText;
-  final String? scheduledText;
-  final String destination;
-  final String countdown;
+  final ServiceRequest request;
 
   const ServiceRequestCard({
     super.key,
-    required this.serviceName,
-    required this.serviceLocation,
-    required this.serviceType,
-    required this.timeType,
-    required this.timeText,
-    this.scheduledText,
-    required this.destination,
-    required this.countdown,
+    required this.request,
   });
 
   @override
@@ -179,7 +159,7 @@ class ServiceRequestCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                serviceName,
+                                request.name,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -188,7 +168,7 @@ class ServiceRequestCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                serviceLocation,
+                                request.location,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey.shade600,
@@ -222,7 +202,7 @@ class ServiceRequestCard extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            serviceType,
+                            request.service,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -269,16 +249,18 @@ class ServiceRequestCard extends StatelessWidget {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
-                                timeType == 'fast' ? 'Fast Booking' : timeText,
+                                request.timeType == 'fast'
+                                    ? 'Fast Booking'
+                                    : request.timeText,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color:
-                                      timeType == 'fast'
-                                          ? const Color(0xFF2196F3)
-                                          : const Color(0xFF333333),
+                                  color: request.timeType == 'fast'
+                                      ? const Color(0xFF2196F3)
+                                      : const Color(0xFF333333),
                                 ),
                               ),
-                              if (timeType != 'fast' && scheduledText != null)
+                              if (request.timeType != 'fast' &&
+                                  request.scheduledText != null)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
@@ -291,7 +273,7 @@ class ServiceRequestCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    scheduledText!,
+                                    request.scheduledText!,
                                     style: const TextStyle(
                                       fontSize: 14,
                                       color: Color(0xFF2196F3), // Blue text
@@ -318,7 +300,7 @@ class ServiceRequestCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'To your location: $destination',
+                            'To your location: ${request.destination}',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade600,
@@ -355,18 +337,18 @@ class ServiceRequestCard extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder:
-                                        (context) => ServiceRequestDetailsPage(
-                                          requestData: {
-                                            'name': serviceName,
-                                            'location': serviceLocation,
-                                            'service': serviceType,
-                                            'timeType': timeType,
-                                            'timeText': timeText,
-                                            'scheduledText': scheduledText,
-                                            'destination': destination,
-                                          },
-                                        ),
+                                    builder: (context) =>
+                                        ServiceRequestDetailsPage(
+                                      requestData: {
+                                        'name': request.name,
+                                        'location': request.location,
+                                        'service': request.service,
+                                        'timeType': request.timeType,
+                                        'timeText': request.timeText,
+                                        'scheduledText': request.scheduledText,
+                                        'destination': request.destination,
+                                      },
+                                    ),
                                   ),
                                 );
                               },
@@ -447,7 +429,7 @@ class ServiceRequestCard extends StatelessWidget {
                                             const SizedBox(height: 16),
                                             // Message
                                             Text(
-                                              'Are you sure you want to accept [$serviceType]?',
+                                              'Are you sure you want to accept [${request.service}]?',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
                                                 fontSize: 16,
@@ -466,22 +448,25 @@ class ServiceRequestCard extends StatelessWidget {
                                                         context,
                                                       ).pop();
                                                     },
-                                                    style: OutlinedButton.styleFrom(
+                                                    style: OutlinedButton
+                                                        .styleFrom(
                                                       side: const BorderSide(
                                                         color: Color(
                                                           0xFF000233,
                                                         ),
                                                       ),
-                                                      shape: RoundedRectangleBorder(
+                                                      shape:
+                                                          RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
+                                                            BorderRadius
+                                                                .circular(
+                                                          8,
+                                                        ),
                                                       ),
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            vertical: 12,
-                                                          ),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        vertical: 12,
+                                                      ),
                                                     ),
                                                     child: const Text(
                                                       'Cancel',
@@ -507,48 +492,55 @@ class ServiceRequestCard extends StatelessWidget {
                                                       Navigator.push(
                                                         context,
                                                         MaterialPageRoute(
-                                                          builder:
-                                                              (
-                                                                context,
-                                                              ) => ServiceAssignmentPage(
-                                                                serviceDetails: {
-                                                                  'name':
-                                                                      serviceName,
-                                                                  'location':
-                                                                      serviceLocation,
-                                                                  'service':
-                                                                      serviceType,
-                                                                  'timeType':
-                                                                      timeType,
-                                                                  'timeText':
-                                                                      timeText,
-                                                                  'scheduledText':
-                                                                      scheduledText ??
-                                                                      'Scheduled for Later',
-                                                                  'destination':
-                                                                      destination,
-                                                                  'note':
-                                                                      'Please assign Fr. Lebron James if available',
-                                                                },
-                                                              ),
+                                                          builder: (
+                                                            context,
+                                                          ) =>
+                                                              ServiceAssignmentPage(
+                                                            serviceDetails: {
+                                                              'name':
+                                                                  request.name,
+                                                              'location':
+                                                                  request
+                                                                      .location,
+                                                              'service': request
+                                                                  .service,
+                                                              'timeType':
+                                                                  request
+                                                                      .timeType,
+                                                              'timeText':
+                                                                  request
+                                                                      .timeText,
+                                                              'scheduledText': request
+                                                                      .scheduledText ??
+                                                                  'Scheduled for Later',
+                                                              'destination':
+                                                                  request
+                                                                      .destination,
+                                                              'note':
+                                                                  'Please assign Fr. Lebron James if available',
+                                                            },
+                                                          ),
                                                         ),
                                                       );
                                                     },
-                                                    style: ElevatedButton.styleFrom(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
                                                       backgroundColor:
                                                           const Color(
-                                                            0xFF000233,
-                                                          ),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
+                                                        0xFF000233,
                                                       ),
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            vertical: 12,
-                                                          ),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                          8,
+                                                        ),
+                                                      ),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        vertical: 12,
+                                                      ),
                                                     ),
                                                     child: const Text(
                                                       'Accept',
@@ -577,8 +569,8 @@ class ServiceRequestCard extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                countdown.isNotEmpty
-                                    ? 'Accept ($countdown)'
+                                request.countdown.isNotEmpty
+                                    ? 'Accept (${request.countdown})'
                                     : 'Accept',
                                 style: const TextStyle(
                                   color: Colors.white,

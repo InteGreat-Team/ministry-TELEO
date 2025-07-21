@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../c2inbox/service_accepted_page.dart';
+import 'models/service_request_model.dart';
+import 'models/facilitator_model.dart';
 
 class AssignmentConfirmationPage extends StatefulWidget {
   final List<String> selectedFacilitators;
-  final Map<String, dynamic> serviceDetails;
+  final ServiceRequest serviceDetails;
 
   const AssignmentConfirmationPage({
     super.key,
@@ -35,12 +37,13 @@ class _AssignmentConfirmationPageState
           MaterialPageRoute(
             builder: (context) => ServiceAcceptedPage(
               serviceDetails: widget.serviceDetails,
-              facilitatorDetails: {
-                'name': 'Lebron James',
-                'role': 'Pastor',
-                'acceptedDate': 'May 6, 2023',
-                'acceptedTime': '10:30 AM',
-              },
+              facilitatorDetails: Facilitator(
+                name: 'Lebron James',
+                role: 'Pastor',
+                status: 'Available',
+                isAvailable: true,
+                isActive: true,
+              ),
             ),
           ),
         );
@@ -215,8 +218,7 @@ class _AssignmentConfirmationPageState
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              widget.serviceDetails['name'] ??
-                                                  'Service Requestor Name',
+                                              widget.serviceDetails.name,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 15,
@@ -224,9 +226,7 @@ class _AssignmentConfirmationPageState
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             Text(
-                                              widget.serviceDetails[
-                                                      'location'] ??
-                                                  'Default location where theyre booking from',
+                                              widget.serviceDetails.location,
                                               style: TextStyle(
                                                 color: Colors.grey[600],
                                                 fontSize: 13,
@@ -257,8 +257,7 @@ class _AssignmentConfirmationPageState
                                       ),
                                       Expanded(
                                         child: Text(
-                                          widget.serviceDetails['service'] ??
-                                              'Baptism and Dedication',
+                                          widget.serviceDetails.service,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
@@ -291,8 +290,7 @@ class _AssignmentConfirmationPageState
                                             ),
                                           ),
                                           Text(
-                                            widget.serviceDetails['timeText'] ??
-                                                'May 5, 3:00 PM',
+                                            widget.serviceDetails.timeText,
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,
@@ -309,8 +307,7 @@ class _AssignmentConfirmationPageState
                                               BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          widget.serviceDetails[
-                                                  'scheduledText'] ??
+                                          widget.serviceDetails.scheduledText ??
                                               'Scheduled for Later',
                                           style: TextStyle(
                                             color: Colors.blue[400],
@@ -341,9 +338,7 @@ class _AssignmentConfirmationPageState
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              widget.serviceDetails[
-                                                      'destination'] ??
-                                                  'To the church',
+                                              widget.serviceDetails.destination,
                                               style:
                                                   const TextStyle(fontSize: 14),
                                               overflow: TextOverflow.ellipsis,
