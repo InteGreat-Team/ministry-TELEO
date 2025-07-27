@@ -1,0 +1,172 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // For LatLng
+import 'USER_SIGNUP_9.dart'; // Updated import for PasswordScreen
+import '../../backend/models/USER_SIGNUP_VAR.dart'; // Import for UserProfile
+import '../widgets/index.dart'; // Corrected import for TeleoBackButton and CustomElevatedButton
+import '../../lib/1/c1registrationflow/verification_service.dart'; // Keeping original import for now
+
+class ContactInfoScreen extends StatefulWidget {
+  final UserProfile userProfile;
+
+  const ContactInfoScreen({
+    super.key,
+    required this.userProfile,
+  });
+
+  @override
+  State<ContactInfoScreen> createState() => _ContactInfoScreenState();
+}
+
+class _ContactInfoScreenState extends State<ContactInfoScreen> {
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  String? _phoneError;
+
+  bool get _isFormValid =>
+      _emailController.text.isNotEmpty &&
+      _isValidEmail(_emailController.text) &&
+      _isValidPhone(_phoneController.text);
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool _isValidPhone(String phone) {
+    final phoneRegex = RegExp(r'^\d{10}$');
+    return phoneRegex.hasMatch(phone);
+  }
+
+  void _validatePhone() {
+    setState(() {
+      if (_phoneController.text.isEmpty) {
+        _phoneError = 'Phone number is required';
+      } else if (!_isValidPhone(_phoneController.text)) {
+        _phoneError = 'Enter a valid 10-digit phone number';
+      } else {
+        _phoneError = null;
+      }
+    });
+  }
+
+  Future<String> sendVerificationCode(BuildContext context) async {
+    // Simulate sending a code
+    await Future.delayed(const Duration(seconds: 1));
+    return '123456'; // Dummy code
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 16.0),
+                child: TeleoBackButton(),
+              ),
+              const SizedBox(height: 40),
+              const Center(
+                child: Text(
+                  "Let's keep in touch!",
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Center(
+                child: Text(
+                  "You'll need this to login",
+                  style: TextStyle(fontSize: 20, color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Email field
+              const Text('Email'),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  hintText: 'example@email.com',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 20),
+              // Phone field
+              const Text('Phone Number'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('+63'),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        hintText: '9123456789',
+                        border: const OutlineInputBorder(),
+                        errorText: _phoneError,
+                      ),
+                      onChanged: (_) => _validatePhone(),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              // Next button using CustomElevatedButton
+              CustomElevatedButton(
+                text: 'Next',
+                onPressed: _isFormValid
+                    ? () async {
+                        final updatedUserProfile = UserProfile(
+                          firstName: widget.userProfile.firstName,
+                          lastName: widget.userProfile.lastName,
+                          birthday: widget.userProfile.birthday,
+                          gender: widget.userProfile.gender,
+                          username: widget.userProfile.username,
+                          address: widget.userProfile.address,
+                          location: widget.userProfile.location,
+                          // Add email and phone to UserProfile if you want to persist them
+                          // email: _emailController.text,
+                          // phone: '+63${_phoneController.text}',
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PasswordScreen(
+                              userProfile: updatedUserProfile,
+                              email: _emailController.text,
+                              phone: '+63${_phoneController.text}',
+                            ),
+                          ),
+                        );
+                      }
+                    : null,
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
