@@ -7,8 +7,6 @@ import '../providers/prayer_provider.dart';
 import 'prayer_request_screen.dart';
 import 'viewed_prayers_screen.dart';
 
-
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Hardcoded user role for testing - change between 'pastor' and 'user'
   static const String userRole =
-      'user'; // Change this to 'user' to test different roles
+      'pastor'; // Change this to 'user' to test different roles
 
   int _selectedNavIndex = 2;
   int _currentCardIndex = 0;
@@ -36,7 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Provider.of<PrayerProvider>(context, listen: false).fetchPrayers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PrayerProvider>(context, listen: false).fetchPrayers();
+    });
   }
 
   void _onNavItemTapped(int index) {

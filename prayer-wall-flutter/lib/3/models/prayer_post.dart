@@ -14,7 +14,6 @@ class PrayerPost {
   bool hasPrayed;
   final Color cardColor;
 
-
   PrayerPost({
     required this.id,
     required this.userName,
@@ -38,7 +37,7 @@ class PrayerPost {
     return PrayerPost(
       id: json['id']?.toString() ?? '',
       userName: json['userName']?.toString() ?? 'Anonymous',
-      userAvatar: json['userAvatar'] ?? 'assets/images/default_avatar.png',
+      userAvatar: json['userAvatar'] ?? 'assets/images/profile.jpg',
       content: json['content']?.toString() ?? '',
       details: json['details']?.toString() ?? '',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
@@ -50,7 +49,6 @@ class PrayerPost {
       cardColor: parsedColor,
     );
   }
-
 
   static Color _hexToColor(String hex) {
     hex = hex.toUpperCase().replaceAll("#", "");

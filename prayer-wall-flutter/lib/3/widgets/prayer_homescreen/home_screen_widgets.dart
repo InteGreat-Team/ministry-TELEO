@@ -86,7 +86,7 @@ class HomeScreenWidgets {
                     width: 1,
                   ),
                 ),
-                child: const Icon(Icons.person, color: Colors.white, size: 20),
+                child: const Icon(Icons.history, color: Colors.white, size: 20),
               ),
             ),
           ),

@@ -16,6 +16,9 @@ class PrayerRequestProvider extends ChangeNotifier {
 
   bool isLoading = false;
   bool isTagsLoading = true;
+  bool isChurchDropdownOpen = false;
+  bool isPastorDropdownOpen = false;
+
   String? errorMessage;
 
   bool _isHashtagDropdownOpen = false;
@@ -86,6 +89,16 @@ class PrayerRequestProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleChurchDropdown() {
+    isChurchDropdownOpen = !isChurchDropdownOpen;
+    notifyListeners();
+  }
+
+  void togglePastorDropdown() {
+    isPastorDropdownOpen = !isPastorDropdownOpen;
+    notifyListeners();
+  }
+
   Future<void> fetchTags() async {
     isTagsLoading = true;
     errorMessage = null;
@@ -122,6 +135,9 @@ class PrayerRequestProvider extends ChangeNotifier {
     selectedChurch = null;
     selectedPastors.clear();
     errorMessage = null;
+    _isHashtagDropdownOpen = false;
+    isChurchDropdownOpen = false;
+    isPastorDropdownOpen = false;
     notifyListeners();
   }
 

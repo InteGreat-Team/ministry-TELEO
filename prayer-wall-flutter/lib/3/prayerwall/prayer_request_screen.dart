@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/prayer_post.dart';
 import '../providers/prayer_request_provider.dart';
-import '../widgets/prayer_request.dart';
+import '../widgets/prayer_request/prayer_request.dart';
 
 class PrayerRequestScreen extends StatelessWidget {
   final Function(PrayerPost) onPrayerAdded;
@@ -37,19 +37,20 @@ class PrayerRequestScreen extends StatelessWidget {
               errorMessage: provider.errorMessage,
               availableTags: provider.availableTags,
               selectedPostType: provider.selectedPostType,
-              isChurchDropdownOpen: false,
-              isPastorDropdownOpen: false,
+              // Fix: Use provider state instead of hardcoded false
+              isChurchDropdownOpen: provider.isChurchDropdownOpen,
+              isPastorDropdownOpen: provider.isPastorDropdownOpen,
               availableChurches: provider.availableChurches,
               availablePastors: provider.availablePastors,
               selectedChurch: provider.selectedChurch,
               selectedPastors: provider.selectedPastors,
               isLoading: provider.isLoading,
               onColorSelected: provider.setSelectedColor,
-              onHashtagToggle: provider.toggleHashtagDropdown, // Empty callback
+              onHashtagToggle: provider.toggleHashtagDropdown,
               onTagSelected: provider.toggleTag,
               onPostTypeChanged: provider.setPostType,
-              onChurchDropdownToggle: () {}, // Empty callback
-              onPastorDropdownToggle: () {}, // Empty callback
+              onChurchDropdownToggle: provider.toggleChurchDropdown,
+              onPastorDropdownToggle: provider.togglePastorDropdown,
               onChurchSelected: provider.setSelectedChurch,
               onPastorToggle: provider.togglePastor,
               onClearForm: provider.clearForm,
@@ -70,11 +71,8 @@ class PrayerRequestScreen extends StatelessWidget {
   ) async {
     try {
       final result = await provider.submitPrayer();
-
       if (!context.mounted) return; // Check if widget is still mounted
-
       _showSnackBar(context, result['message'], result['success']);
-
       if (result['success']) {
         final newPrayerPost = _createPrayerPost(provider);
         onPrayerAdded(newPrayerPost);
@@ -96,7 +94,7 @@ class PrayerRequestScreen extends StatelessWidget {
     return PrayerPost(
       id: DateTime.now().millisecondsSinceEpoch.toString(), // More unique ID
       userName: 'You',
-      userAvatar: 'assets/images/avatar.png',
+      userAvatar: '',
       createdAt: DateTime.now(),
       content: provider.subjectController.text,
       details: provider.requestController.text,

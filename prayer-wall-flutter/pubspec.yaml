@@ -69,17 +69,7 @@ flutter:
   assets:
     - assets/images/teleo_logo.png
     - assets/images/profile.jpg
-    - assets/images/church_interior.jpg
-    - assets/images/bible_icon.png
-    - assets/images/heart_icon.png
-    - assets/images/home_icon.png
-    - assets/images/pray_icon.png
-    - assets/images/profile_icon.png
-    - assets/images/blue_background.png
-    - assets/images/baptism_service.jpg
-    - assets/images/funeral_service.jpg
-    - assets/images/wedding_service.jpg
-    - assets/images/fish_logo.png
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
