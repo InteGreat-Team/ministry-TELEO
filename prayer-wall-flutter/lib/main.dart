@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:teleo_organized_new/3/prayerwall/home_screen.dart';
 import 'package:teleo_organized_new/3/providers/prayer_provider.dart';
+import 'package:teleo_organized_new/3/providers/prayer_request_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => PrayerProvider())],
+      providers: [ChangeNotifierProvider(create: (_) => PrayerProvider()),
+      ChangeNotifierProvider(create: (_) => PrayerRequestProvider()),
+
+      ],
+      
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Teleo App',

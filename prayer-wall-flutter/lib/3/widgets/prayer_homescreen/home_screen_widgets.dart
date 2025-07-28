@@ -13,21 +13,19 @@ class HomeScreenWidgets {
     required bool allCardsSwiped,
     required int currentCardIndex,
     required List<Color> cardColors,
-    required List<PrayerPost> viewedPrayers,
     // Callbacks
     required Function(int) onNavItemTapped,
     required VoidCallback onAddPrayer,
     required VoidCallback refreshPrayerWall,
-    required Function(PrayerPost) markPrayerAsViewed,
     required VoidCallback onLike,
     required Function(String?) onPray,
     required VoidCallback onComment,
     required Function(dynamic) onSwipe,
+    VoidCallback? onHistoryTapped,
   }) {
     return Scaffold(
-      backgroundColor:
-          Colors.white, // Fixed: Ensure consistent white background
-      appBar: _buildAppBar(selectedNavIndex, onNavItemTapped),
+      backgroundColor: Colors.white,
+      appBar: _buildAppBar(selectedNavIndex, onNavItemTapped, onHistoryTapped),
       body: _buildPrayersTab(
         context: context,
         isLoading: isLoading,
@@ -36,7 +34,6 @@ class HomeScreenWidgets {
         currentCardIndex: currentCardIndex,
         cardColors: cardColors,
         refreshPrayerWall: refreshPrayerWall,
-        markPrayerAsViewed: markPrayerAsViewed,
         onLike: onLike,
         onPray: onPray,
         onComment: onComment,
@@ -53,30 +50,47 @@ class HomeScreenWidgets {
   static PreferredSizeWidget _buildAppBar(
     int selectedNavIndex,
     Function(int) onNavItemTapped,
+    VoidCallback? onHistoryTapped,
   ) {
     return AppBar(
       backgroundColor: const Color(0xFF000233),
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: const Stack(
-        alignment: Alignment.center,
+      centerTitle: true,
+      title: const Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(FontAwesomeIcons.fish, color: Colors.white),
-              SizedBox(width: 8),
-              Text(
-                'Teleo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Icon(FontAwesomeIcons.fish, color: Colors.white),
+          SizedBox(width: 8),
+          Text(
+            'Teleo',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),
+      actions: [
+        // History button available for all users
+        if (onHistoryTapped != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: onHistoryTapped,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.2),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(Icons.person, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: Container(
@@ -141,7 +155,6 @@ class HomeScreenWidgets {
     required int currentCardIndex,
     required List<Color> cardColors,
     required VoidCallback refreshPrayerWall,
-    required Function(PrayerPost) markPrayerAsViewed,
     required VoidCallback onLike,
     required Function(String?) onPray,
     required VoidCallback onComment,
@@ -150,7 +163,7 @@ class HomeScreenWidgets {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
-      color: Colors.white, // Fixed: Ensure pure white background
+      color: Colors.white,
       child:
           isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -163,7 +176,6 @@ class HomeScreenWidgets {
                 prayerPosts: prayerPosts,
                 currentCardIndex: currentCardIndex,
                 cardColors: cardColors,
-                markPrayerAsViewed: markPrayerAsViewed,
                 onLike: onLike,
                 onPray: onPray,
                 onComment: onComment,
@@ -307,21 +319,14 @@ class HomeScreenWidgets {
     required List<PrayerPost> prayerPosts,
     required int currentCardIndex,
     required List<Color> cardColors,
-    required Function(PrayerPost) markPrayerAsViewed,
     required VoidCallback onLike,
     required Function(String?) onPray,
     required VoidCallback onComment,
     required Function(dynamic) onSwipe,
   }) {
-    // Ensure current prayer has a color assigned
-    if (prayerPosts.isNotEmpty) {
-      markPrayerAsViewed(prayerPosts[currentCardIndex]);
-    }
-
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Background cards
         for (int i = 0; i < math.min(3, prayerPosts.length - 1); i++)
           Positioned(
             child: Transform.scale(
@@ -332,9 +337,7 @@ class HomeScreenWidgets {
                   width: MediaQuery.of(context).size.width * 0.85,
                   height: 500,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      16,
-                    ), // Fixed: Consistent border radius
+                    borderRadius: BorderRadius.circular(16),
                     color:
                         cardColors[(currentCardIndex + i + 1) %
                             cardColors.length],
@@ -343,7 +346,6 @@ class HomeScreenWidgets {
               ),
             ),
           ),
-        // Main prayer card
         GestureDetector(
           onHorizontalDragEnd: (details) {
             onSwipe(details);

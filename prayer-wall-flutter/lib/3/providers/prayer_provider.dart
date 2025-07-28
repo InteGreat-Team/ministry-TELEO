@@ -69,7 +69,7 @@ class PrayerProvider with ChangeNotifier {
   }
 
   Future<bool> addComment(String prayerId, String comment) async {
-    final url = 'http://localhost:3000/api/comments';
+    const url = 'http://localhost:3000/api/comments';
     try {
       final res = await http.post(
         Uri.parse(url),

@@ -5,6 +5,9 @@ import '../widgets/prayer_homescreen/home_screen_widgets.dart';
 import '../widgets/prayer_homescreen/comments_bottom_sheet.dart';
 import '../providers/prayer_provider.dart';
 import 'prayer_request_screen.dart';
+import 'viewed_prayers_screen.dart';
+
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,11 +17,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Hardcoded user role for testing - change between 'pastor' and 'user'
+  static const String userRole =
+      'user'; // Change this to 'user' to test different roles
+
   int _selectedNavIndex = 2;
   int _currentCardIndex = 0;
   bool _allCardsSwiped = false;
-  final List<PrayerPost> _viewedPrayers = [];
-
   final List<Color> _cardColors = [
     const Color(0xFF6A1B9A),
     const Color(0xFF00897B),
@@ -57,6 +62,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _onHistoryTapped() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserPostsScreen(userRole: userRole),
+      ),
+    );
+  }
+
   void _showComments(PrayerPost post) {
     final provider = Provider.of<PrayerProvider>(context, listen: false);
     showModalBottomSheet(
@@ -87,21 +101,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = Provider.of<PrayerProvider>(context, listen: false);
     final prayer = provider.prayers[_currentCardIndex];
     final isLiking = !prayer.hasLiked;
-
     setState(() {
       prayer.hasLiked = isLiking;
       prayer.likes += isLiking ? 1 : -1;
     });
-
     provider.toggleLike(prayer.id, isLiking);
   }
 
   void _handlePray(String? prayerMessage) async {
     if (prayerMessage == null) return;
-
     final provider = Provider.of<PrayerProvider>(context, listen: false);
     final post = provider.prayers[_currentCardIndex];
-
     final success = await provider.addComment(post.id, prayerMessage);
     if (success) {
       setState(() {
@@ -133,20 +143,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _refreshPrayerWall() {
+  void _refreshPrayerWall() async {
     Provider.of<PrayerProvider>(context, listen: false).refresh();
+    setState(() {
+      _currentCardIndex = 0;
+      _allCardsSwiped = false;
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Prayer wall refreshed!'),
         backgroundColor: Colors.green,
       ),
     );
-  }
-
-  void _markPrayerAsViewed(PrayerPost prayer) {
-    if (!_viewedPrayers.any((p) => p.id == prayer.id)) {
-      _viewedPrayers.add(prayer);
-    }
   }
 
   @override
@@ -160,15 +168,14 @@ class _HomeScreenState extends State<HomeScreen> {
       allCardsSwiped: _allCardsSwiped,
       currentCardIndex: _currentCardIndex,
       cardColors: _cardColors,
-      viewedPrayers: _viewedPrayers,
       onNavItemTapped: _onNavItemTapped,
       onAddPrayer: _onAddPrayer,
       refreshPrayerWall: _refreshPrayerWall,
-      markPrayerAsViewed: _markPrayerAsViewed,
       onLike: _handleLike,
       onPray: _handlePray,
       onComment: _handleComment,
       onSwipe: _handleSwipe,
+      onHistoryTapped: _onHistoryTapped,
     );
   }
 }
