@@ -20,8 +20,9 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
         // 👇 use builder here to get a valid context
         builder: (context, child) {
-          return const HomeScreen(); // Now has access to PrayerProvider
+          return child!; // ✅ return the built widget
         },
+        home: const HomeScreen(),
       ),
     );
   }
