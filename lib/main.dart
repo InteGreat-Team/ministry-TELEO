@@ -3,13 +3,14 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-
-// Only import files that actually exist and are needed
-// Commented out problematic imports - uncomment and fix paths when files are ready
-// import 'features/start-screen/backend/models/SHARED_STARTSCREEN_VAR.dart';
-// import 'features/start-screen/backend/viewmodels/SHARED_STARTSCREEN_FUNC.dart';
-// import 'features/sign-up/backend/viewmodels/CHURCH_SIGNUP_FUNC.dart';
-// import 'features/sign-up/backend/viewmodels/USER_SIGNUP_FUNC.dart';
+import '../features/start-screen/frontend/screens/SHARED_WELCOMESCREEN.dart';
+import '../features/start-screen/frontend/screens/SHARED_LOGINSCREEN.dart';
+import '../features/start-screen/frontend/screens/SHARED_STARTSCREEN.dart';
+import '../features/start-screen/backend/models/SHARED_STARTSCREEN_VAR.dart';
+import '../features/start-screen/backend/viewmodels/SHARED_STARTSCREEN_FUNC.dart';
+import '../features/sign-up/backend/viewmodels/CHURCH_SIGNUP_FUNC.dart';
+import '../features/sign-up/backend/viewmodels/USER_SIGNUP_FUNC.dart';
+import '../features/sign-up/frontend/screens/USER_SIGNUP_1.dart' as signup;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,18 +22,17 @@ void main() async {
     debugPrint('Firebase initialization error: $e');
   }
   
-  // Disable debug overlays - uncomment when SharedStartScreenFunctions is available
-  // SharedStartScreenFunctions.disableDebugOverlays();
+  // Disable debug overlays
+  SharedStartScreenFunctions.disableDebugOverlays();
   
   runApp(
     MultiProvider(
       providers: [
-        // Uncomment when ViewModels are available
-        // ChangeNotifierProvider(create: (_) => ChurchSignupViewModel()),
-        // ChangeNotifierProvider(create: (_) => PersonViewModel()),
+        ChangeNotifierProvider(create: (_) => ChurchSignupViewModel()),
+        ChangeNotifierProvider(create: (_) => PersonViewModel()),
       ],
       child: ScreenUtilInit(
-        designSize: const Size(375, 812), // Default design size, replace with SharedStartScreenVariables.designSize when available
+        designSize: SharedStartScreenVariables.designSize,
         minTextAdapt: true,
         builder: (context, child) => const MyApp(),
       ),
@@ -46,32 +46,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Teleo', // Replace with SharedStartScreenVariables.appTitle when available
+      title: SharedStartScreenVariables.appTitle,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ), // Replace with SharedStartScreenVariables.appTheme when available
+      theme: SharedStartScreenVariables.appTheme,
       initialRoute: '/',
       routes: {
         '/': (context) => const WelcomeScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/start': (context) => const StartScreen(),
-        '/forgot-password': (context) => const Scaffold(
-          body: Center(child: Text('Forgot Password Screen - Coming Soon')),
-        ),
-        '/signup': (context) => const Scaffold(
-          body: Center(child: Text('Signup Screen - Coming Soon')),
-        ),
-        '/approval-status': (context) => const Scaffold(
-          body: Center(child: Text('Approval Status Screen - Coming Soon')),
-        ),
-        '/user-home': (context) => const Scaffold(
-          body: Center(child: Text('User Home Screen - Coming Soon')),
-        ),
-        '/admin-home': (context) => const Scaffold(
-          body: Center(child: Text('Admin Home Screen - Coming Soon')),
-        ),
+        '/login': (context) => const SHARED_LOGIN(),
+        '/signup': (context) => const signup.PersonListView(),
+        '/start': (context) => const SHARED_STARTSCREEN(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/approval-status': (context) => const ApprovalStatusCheckScreen(),
+        '/user-home': (context) => const HomePage(),
+        '/admin-home': (context) => const AdminHomePage(),
       },
       onUnknownRoute: (settings) {
         return MaterialPageRoute(
@@ -82,116 +69,47 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Welcome Screen
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+// Placeholder screens that will be replaced with actual implementations
+class ForgotPasswordScreen extends StatelessWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
+      appBar: AppBar(
+        title: const Text('Forgot Password'),
+        backgroundColor: const Color(0xFF002642),
+        foregroundColor: Colors.white,
+      ),
+      body: const Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(flex: 2),
-              // Logo placeholder
-              Container(
-                width: 120,
-                height: 120,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF002642),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.church,
-                  size: 60,
-                  color: Colors.white,
-                ),
+              Icon(
+                Icons.lock_reset,
+                size: 80,
+                color: Color(0xFF002642),
               ),
-              const SizedBox(height: 24),
-              // Welcome text
-              const Text(
-                'Welcome to Teleo!',
+              SizedBox(height: 24),
+              Text(
+                'Forgot Password',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF002642),
                 ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Password recovery functionality will be implemented here',
                 textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-              // Create a new account button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF002642),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Create a new account',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 16),
-              // Log in button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/login');
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF002642),
-                    side: const BorderSide(color: Color(0xFF002642)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: const Text(
-                    'Log in',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              // Registered Church? Sign Up text
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Registered Church? ',
-                    style: TextStyle(color: Colors.black87, fontSize: 14),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/signup');
-                    },
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -200,54 +118,47 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-// Login Screen
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class ApprovalStatusCheckScreen extends StatelessWidget {
+  const ApprovalStatusCheckScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF002642)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        title: const Text('Approval Status'),
+        backgroundColor: const Color(0xFF002642),
+        foregroundColor: Colors.white,
       ),
-      body: const SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.church,
-                  size: 80,
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.approval,
+                size: 80,
+                color: Color(0xFF002642),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Check Approval Status',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                   color: Color(0xFF002642),
                 ),
-                SizedBox(height: 24),
-                Text(
-                  'Login Screen',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF002642),
-                  ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Approval status checking functionality will be implemented here',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
                 ),
-                SizedBox(height: 16),
-                Text(
-                  'Login functionality will be implemented here',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -255,46 +166,95 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-// Start Screen
-class StartScreen extends StatelessWidget {
-  const StartScreen({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: const SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.church,
-                  size: 80,
+      appBar: AppBar(
+        title: const Text('Home'),
+        backgroundColor: const Color(0xFF002642),
+        foregroundColor: Colors.white,
+      ),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.home,
+                size: 80,
+                color: Color(0xFF002642),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Home Page',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                   color: Color(0xFF002642),
                 ),
-                SizedBox(height: 24),
-                Text(
-                  'Start Screen',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF002642),
-                  ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'User home page functionality will be implemented here',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
                 ),
-                SizedBox(height: 16),
-                Text(
-                  'Start screen functionality will be implemented here',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AdminHomePage extends StatelessWidget {
+  const AdminHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Admin Dashboard'),
+        backgroundColor: const Color(0xFF002642),
+        foregroundColor: Colors.white,
+      ),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.admin_panel_settings,
+                size: 80,
+                color: Color(0xFF002642),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Admin Dashboard',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF002642),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Admin dashboard functionality will be implemented here',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
           ),
         ),
       ),

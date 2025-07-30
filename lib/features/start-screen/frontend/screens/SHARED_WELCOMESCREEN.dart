@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'SHARED_LOGINSCREEN.dart';
-import '../../backend/models/SHARED_STARTSCREEN_VAR.dart';
-import '../../backend/viewmodels/SHARED_STARTSCREEN_FUNC.dart';
+import '../../../1/c1registrationflow/c1s1signupwelcome_screen.dart' as signup;
+import '../../../login_screen.dart';
+import '../../../1/c1homepage/home_page.dart';
+import '../../../2/c1registration/c1s1churchwelcome_screen.dart';
+import '../../../2/c1homepage/home_page.dart' as admin;
+import '../../../backend/models/SHARED_STARTSCREEN_VAR.dart';
+import '../../../backend/viewmodels/SHARED_STARTSCREEN_FUNC.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -63,7 +67,10 @@ class WelcomeScreen extends StatelessWidget {
                   icon: Icons.person_outline,
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/start');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomePage()),
+                    );
                   },
                 ),
                 const SizedBox(height: 16),
@@ -123,7 +130,12 @@ class WelcomeScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.pushNamed(context, '/admin');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const admin.HomePage(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF002642),
@@ -210,13 +222,16 @@ class WelcomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 2),
-              // Logo
-              Image.asset('assets/images/teleo_logo.png', height: 120),
+              // Logo - Using SharedStartScreenVariables if available
+              Image.asset(
+                SharedStartScreenVariables.logoPath ?? 'assets/images/teleo_logo.png',
+                height: 120,
+              ),
               const SizedBox(height: 24),
               // Welcome text
-              const Text(
-                'Welcome to Teleo!',
-                style: TextStyle(
+              Text(
+                SharedStartScreenVariables.welcomeTitle ?? 'Welcome to Teleo!',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF002642),
@@ -230,11 +245,16 @@ class WelcomeScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to signup welcome screen - will be implemented later
-                    Navigator.pushNamed(context, '/signup');
+                    // Navigate to signup welcome screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const signup.WelcomeScreen(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF002642),
+                    backgroundColor: SharedStartScreenVariables.primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -255,11 +275,16 @@ class WelcomeScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () {
                     // Navigate to login screen
-                    Navigator.pushNamed(context, '/login');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF002642),
-                    side: const BorderSide(color: Color(0xFF002642)),
+                    foregroundColor: SharedStartScreenVariables.primaryColor,
+                    side: BorderSide(color: SharedStartScreenVariables.primaryColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -304,7 +329,7 @@ class WelcomeScreen extends StatelessWidget {
                     _showGuestOptions(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF002642),
+                    backgroundColor: SharedStartScreenVariables.primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -329,7 +354,14 @@ class WelcomeScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       // Navigate to church registration welcome screen
-                      Navigator.pushNamed(context, '/church-signup');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChurchWelcomeScreen(
+                            firstName: 'Church Admin',
+                          ),
+                        ),
+                      );
                     },
                     child: const Text(
                       'Sign Up',

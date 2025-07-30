@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../sign-up/frontend/screens/USER_SIGNUP_1.dart' as signup;
+import '../../../login/frontend/screens/SHARED_LOGIN.dart';
 import '../../backend/models/SHARED_STARTSCREEN_VAR.dart';
 import '../../backend/viewmodels/SHARED_STARTSCREEN_FUNC.dart';
 
@@ -39,13 +41,6 @@ class _SHARED_STARTSCREENState extends State<SHARED_STARTSCREEN> {
               Image.asset(
                 'assets/images/teleo_logo.png',
                 height: 120,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.church,
-                    size: 120,
-                    color: Color(0xFF002642),
-                  );
-                },
               ),
               const SizedBox(height: 24),
               const Text(
@@ -72,11 +67,15 @@ class _SHARED_STARTSCREENState extends State<SHARED_STARTSCREEN> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/login');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SHARED_LOGIN(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF002642),
-                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
@@ -96,7 +95,12 @@ class _SHARED_STARTSCREENState extends State<SHARED_STARTSCREEN> {
                 height: 56,
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const signup.USER_SIGNUP_1(),
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF002642), width: 2),
