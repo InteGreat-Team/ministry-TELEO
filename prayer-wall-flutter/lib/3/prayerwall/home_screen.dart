@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const Color(0xFFD81B60),
     const Color(0xFF1A2A4A),
     const Color(0xFFE67E22),
-    const Color(0xFF009688),
+    const Color(0xFF059669),
   ];
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PrayerRequestWidgets {
   static Widget buildScaffold({
@@ -174,7 +175,7 @@ class PrayerRequestWidgets {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.pets, color: Colors.white),
+                    Icon(FontAwesomeIcons.fish, color: Colors.white, size: 20),
                     SizedBox(width: 8),
                     Text(
                       'Teleo',
@@ -484,7 +485,7 @@ class PrayerRequestWidgets {
                   borderRadius: BorderRadius.circular(8),
                   border:
                       selectedColor == themeColors[index]
-                          ? Border.all(color: Colors.white, width: 2)
+                          ? Border.all(color: Colors.black, width: 2)
                           : null,
                 ),
               ),
