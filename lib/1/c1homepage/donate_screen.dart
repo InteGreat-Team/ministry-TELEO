@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
-// For donation API
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(const DonationApp());
@@ -60,57 +58,48 @@ class _HomePageState extends State<HomePage> {
   final List<DonationProgram> _donationPrograms = [
     DonationProgram(
       id: 1,
-      title: 'Bahay Pag-ibig',
-      description: 'Help provide essential clothing and educational materials',
-      amount: 'P 10',
+      title: 'Feeding Program',
+      description: 'Help provide meals for families in need',
+      amount: 'P 50-500',
       location: 'Metro Manila',
-      icon: Icons.home,
-      category: 'housing',
+      icon: Icons.restaurant,
+      category: 'Feeding Program',
     ),
     DonationProgram(
       id: 2,
-      title: 'Bahay Pag-ibig',
-      description: 'Help provide essential clothing and educational materials',
-      amount: 'P 5',
+      title: 'Medical Mission',
+      description: 'Support healthcare services for communities',
+      amount: 'P 50-500',
       location: 'Baguio',
-      icon: Icons.favorite,
-      category: 'housing',
+      icon: Icons.medical_services,
+      category: 'Medical Mission',
     ),
     DonationProgram(
       id: 3,
-      title: 'Bahay Pag-ibig',
-      description: 'Help provide essential clothing and educational materials',
-      amount: 'P 3',
+      title: 'School Supplies',
+      description: 'Provide educational materials for students',
+      amount: 'P 50-500',
       location: 'Davao City',
-      icon: Icons.people,
-      category: 'housing',
+      icon: Icons.school,
+      category: 'School Supplies',
     ),
     DonationProgram(
       id: 4,
-      title: 'Bahay Pag-ibig',
-      description: 'Help provide essential clothing and educational materials',
-      amount: 'P 5',
-      location: 'Metro Manila',
-      icon: Icons.school,
-      category: 'education',
-    ),
-    DonationProgram(
-      id: 5,
-      title: 'Bahay Pag-ibig',
-      description: 'Help provide essential clothing and educational materials',
-      amount: 'P 3',
+      title: 'Housing Program',
+      description: 'Help build homes for families',
+      amount: 'P 100-500',
       location: 'Metro Manila',
       icon: Icons.home,
       category: 'housing',
     ),
     DonationProgram(
-      id: 6,
-      title: 'Bahay Pag-ibig',
-      description: 'Help provide essential clothing and educational materials',
-      amount: 'P 5',
-      location: 'Metro Manila',
-      icon: Icons.restaurant,
-      category: 'food',
+      id: 5,
+      title: 'Emergency Relief',
+      description: 'Disaster response and emergency aid',
+      amount: 'P 50-500',
+      location: 'Nationwide',
+      icon: Icons.emergency,
+      category: 'emergency',
     ),
   ];
 
@@ -221,116 +210,112 @@ class _HomePageState extends State<HomePage> {
 
             // Donation Programs Grid
             Expanded(
-              child:
-                  _filteredPrograms.isEmpty
-                      ? const Center(
-                        child: Text(
-                          'No donation programs found matching your search.',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
-                        ),
-                      )
-                      : GridView.builder(
-                        padding: const EdgeInsets.all(16.0),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16.0,
-                              mainAxisSpacing: 16.0,
-                              childAspectRatio: 0.8,
-                            ),
-                        itemCount: _filteredPrograms.length,
-                        itemBuilder: (context, index) {
-                          final program = _filteredPrograms[index];
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => DonatePage(program: program),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1A237E),
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8.0),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            8.0,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          program.icon,
-                                          color: const Color(0xFF1A237E),
-                                          size: 24,
-                                        ),
-                                      ),
-                                      Text(
-                                        program.amount,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    program.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    program.description,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const Spacer(),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on,
-                                        color: Colors.white54,
-                                        size: 12,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        program.location,
-                                        style: const TextStyle(
-                                          color: Colors.white54,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+              child: _filteredPrograms.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No donation programs found matching your search.',
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
                       ),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16.0,
+                        mainAxisSpacing: 16.0,
+                        childAspectRatio: 0.8,
+                      ),
+                      itemCount: _filteredPrograms.length,
+                      itemBuilder: (context, index) {
+                        final program = _filteredPrograms[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DonatePage(program: program),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A237E),
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8.0),
+                                      ),
+                                      child: Icon(
+                                        program.icon,
+                                        color: const Color(0xFF1A237E),
+                                        size: 24,
+                                      ),
+                                    ),
+                                    Text(
+                                      program.amount,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  program.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  program.description,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const Spacer(),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      color: Colors.white54,
+                                      size: 12,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      program.location,
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -353,11 +338,17 @@ class _DonatePageState extends State<DonatePage> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Update this URL to match your Express server
+  // For local development: 'http://localhost:5000'
+  // For Android emulator: 'http://10.0.2.2:5000'
+  // For physical device: Use your machine's IP (e.g., 'http://172.20.10.12:5000')
+  static const String _baseUrl = 'http://192.168.68.103';
+
   final List<Map<String, dynamic>> _donationAmounts = [
-    {'value': 25, 'label': 'P 25'},
     {'value': 50, 'label': 'P 50'},
     {'value': 100, 'label': 'P 100'},
     {'value': 200, 'label': 'P 200'},
+    {'value': 300, 'label': 'P 300'},
     {'value': 400, 'label': 'P 400'},
     {'value': 500, 'label': 'P 500'},
   ];
@@ -379,61 +370,180 @@ class _DonatePageState extends State<DonatePage> {
     });
 
     try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        setState(() {
-          _errorMessage = 'You must be logged in to donate.';
-          _isLoading = false;
-        });
-        return;
-      }
+      final url = Uri.parse("https://asia-southeast1-teleo-church-application.cloudfunctions.net/donationApi/donate");
 
-      String? idToken = await user.getIdToken();
-
-      final url = Uri.parse(
-        'https://dvpt2axvom47x.cloudfront.net/payment/create',
-      );
       final amount = _selectedAmount!;
+      final category = widget.program.category;
 
       final body = jsonEncode({
         "amount": amount,
-        "description": "Donation to ${widget.program.title}",
-        "currency": "PHP",
-        "successUrl": "https://yourapp.com/success",
-        "failureUrl": "https://yourapp.com/failure",
+        "category": category,
+        "description": "Donation"
       });
+
+      print('🚀 Making donation request to: $url');
+      print('📦 Request body: $body');
 
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $idToken',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: body,
       );
 
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Donation created successfully!'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-        Navigator.pop(context);
+        final data = jsonDecode(response.body);
+        final checkoutUrl = data['checkout_url'];
+
+        if (checkoutUrl != null) {
+          _showCheckoutDialog(checkoutUrl);
+        } else {
+          setState(() {
+            _errorMessage = 'No checkout URL received from server.';
+          });
+        }
       } else {
+        final errorData = jsonDecode(response.body);
         setState(() {
-          _errorMessage = 'Failed to create donation. Please try again.';
+          _errorMessage = errorData['error'] ?? 'Failed to create donation. Please try again.';
         });
       }
     } catch (e) {
+      print('❌ Error making donation request: $e');
       setState(() {
-        _errorMessage = 'An error occurred: $e';
+        _errorMessage = e.toString().contains('SocketException')
+            ? 'Network error: Cannot reach server. Check your connection or server IP.'
+            : 'Error: ${e.toString()}';
       });
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  void _showCheckoutDialog(String checkoutUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.payment,
+                color: const Color(0xFF1A237E),
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              const Text('Payment Ready'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your donation of ₱${_selectedAmount} for ${widget.program.title} has been created successfully!',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.blue[600], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Copy the link below and open it in your browser to complete the payment:',
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: SelectableText(
+                  checkoutUrl,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                _copyToClipboard(checkoutUrl);
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A237E),
+              ),
+              icon: const Icon(Icons.copy, color: Colors.white, size: 18),
+              label: const Text(
+                'Copy & Close',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Payment link copied! Open it in your browser to complete the donation.',
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.green[600],
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -512,7 +622,7 @@ class _DonatePageState extends State<DonatePage> {
                             ),
                           ),
                           const Text(
-                            'TAGLINE HERE',
+                            'MAKING A DIFFERENCE',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
@@ -577,13 +687,33 @@ class _DonatePageState extends State<DonatePage> {
                     const SizedBox(height: 32),
 
                     // Amount Selection
-                    const Text(
-                      'Select Your Gift Amount',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A237E),
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          'Select Your Gift Amount',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A237E),
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Max: ₱500',
+                            style: TextStyle(
+                              color: Colors.orange[800],
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
 
@@ -592,11 +722,11 @@ class _DonatePageState extends State<DonatePage> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 12.0,
-                            mainAxisSpacing: 12.0,
-                            childAspectRatio: 2.0,
-                          ),
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 12.0,
+                        mainAxisSpacing: 12.0,
+                        childAspectRatio: 2.0,
+                      ),
                       itemCount: _donationAmounts.length,
                       itemBuilder: (context, index) {
                         final amount = _donationAmounts[index];
@@ -610,10 +740,9 @@ class _DonatePageState extends State<DonatePage> {
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? const Color(0xFF1A237E)
-                                      : Colors.transparent,
+                              color: isSelected
+                                  ? const Color(0xFF1A237E)
+                                  : Colors.transparent,
                               border: Border.all(
                                 color: const Color(0xFF1A237E),
                                 width: 1.5,
@@ -624,10 +753,9 @@ class _DonatePageState extends State<DonatePage> {
                               child: Text(
                                 amount['label'],
                                 style: TextStyle(
-                                  color:
-                                      isSelected
-                                          ? Colors.white
-                                          : const Color(0xFF1A237E),
+                                  color: isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF1A237E),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -652,26 +780,25 @@ class _DonatePageState extends State<DonatePage> {
                           ),
                           disabledBackgroundColor: Colors.grey[300],
                         ),
-                        child:
-                            _isLoading
-                                ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                                : const Text(
-                                  'Gift with Purpose',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
                                   ),
                                 ),
+                              )
+                            : const Text(
+                                'Gift with Purpose',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -694,12 +821,20 @@ class _DonatePageState extends State<DonatePage> {
                             borderRadius: BorderRadius.circular(8.0),
                             border: Border.all(color: Colors.red[200]!),
                           ),
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(
-                              color: Colors.red[700],
-                              fontSize: 14,
-                            ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error, color: Colors.red[600], size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                    color: Colors.red[700],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
