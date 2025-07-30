@@ -160,27 +160,43 @@ class HomeScreenWidgets {
     required VoidCallback onComment,
     required Function(dynamic) onSwipe,
   }) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      color: Colors.white,
-      child:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : prayerPosts.isEmpty
-              ? _buildEmptyScreen(refreshPrayerWall)
-              : allCardsSwiped
-              ? _buildRefreshScreen(refreshPrayerWall)
-              : _buildPrayerCards(
-                context: context,
-                prayerPosts: prayerPosts,
-                currentCardIndex: currentCardIndex,
-                cardColors: cardColors,
-                onLike: onLike,
-                onPray: onPray,
-                onComment: onComment,
-                onSwipe: onSwipe,
+    return RefreshIndicator(
+      onRefresh: () async {
+        refreshPrayerWall();
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Center(
+                  child:
+                      isLoading
+                          ? const CircularProgressIndicator()
+                          : prayerPosts.isEmpty
+                          ? _buildEmptyScreen(refreshPrayerWall)
+                          : allCardsSwiped
+                          ? _buildRefreshScreen(refreshPrayerWall)
+                          : _buildPrayerCards(
+                            context: context,
+                            prayerPosts: prayerPosts,
+                            currentCardIndex: currentCardIndex,
+                            cardColors: cardColors,
+                            onLike: onLike,
+                            onPray: onPray,
+                            onComment: onComment,
+                            onSwipe: onSwipe,
+                          ),
+                ),
               ),
+            ),
+          );
+        },
+      ),
     );
   }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:teleo_organized_new/3/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-
 class CommentsBottomSheet extends StatefulWidget {
   final PrayerPost post;
   final Color cardColor;
@@ -57,16 +56,12 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                   borderRadius: BorderRadius.circular(2.5),
                 ),
               ),
-
               // Header with user info
               _buildHeader(),
-
               // Prayer content
               _buildPrayerContent(),
-
               // Comments header
               _buildCommentsHeader(),
-
               // Comments list
               Expanded(child: _buildCommentsList(scrollController)),
             ],
@@ -108,7 +103,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
           ),
           const Spacer(),
           Text(
-            '${widget.post.likes} likes · ${widget.post.prayers} prayers',
+            '${widget.post.likes} likes · ${_localComments.length} prayers',
             style: TextStyle(
               fontSize: 12,
               color: Colors.white.withOpacity(0.7),

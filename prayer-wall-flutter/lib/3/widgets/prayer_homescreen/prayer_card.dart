@@ -122,7 +122,10 @@ class _PrayerCardState extends State<PrayerCard>
                 child: CompositedTransformFollower(
                   link: _layerLink,
                   showWhenUnlinked: false,
-                  offset: Offset(0, -210), // Position directly above the button
+                  offset: const Offset(
+                    0,
+                    -210,
+                  ), // Position directly above the button
                   child: Material(
                     elevation: 8.0,
                     borderRadius: BorderRadius.circular(12),
@@ -495,8 +498,7 @@ class _PrayerCardState extends State<PrayerCard>
                             ),
                           ),
                           Text(
-                            timeago.format(widget.post.createdAt)
-,
+                            timeago.format(widget.post.createdAt),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.white.withOpacity(0.7),

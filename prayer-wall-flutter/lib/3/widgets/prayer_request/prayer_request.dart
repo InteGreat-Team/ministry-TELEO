@@ -89,6 +89,7 @@ class PrayerRequestWidgets {
                 onHashtagToggle: onHashtagToggle,
                 onTagSelected: onTagSelected,
                 onRefreshTags: onRefreshTags,
+                context: context,
               ),
               const SizedBox(height: 16),
 
@@ -277,7 +278,24 @@ class PrayerRequestWidgets {
     required VoidCallback onHashtagToggle,
     required Function(String) onTagSelected,
     required VoidCallback onRefreshTags,
+    required BuildContext context,
   }) {
+    void handleTagTap(String tag) {
+      if (selectedHashtags.contains(tag)) {
+        onTagSelected(tag); // allow deselection
+      } else if (selectedHashtags.length < 3) {
+        onTagSelected(tag); // allow selection
+      } else {
+        // Too many selected — show a message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You can only select up to 3 tags.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -334,11 +352,16 @@ class PrayerRequestWidgets {
                               ),
                             ],
                           )
-                          : Text(
-                            getHashtagsDisplayText(),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black87,
+                          : Expanded(
+                            child: Text(
+                              selectedHashtags.isEmpty
+                                  ? 'Select tags'
+                                  : selectedHashtags.map((e) => e).join(', '),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                       Icon(
@@ -374,7 +397,7 @@ class PrayerRequestWidgets {
                                   availableTags
                                       .map(
                                         (tag) => InkWell(
-                                          onTap: () => onTagSelected(tag),
+                                          onTap: () => handleTagTap(tag),
                                           child: Container(
                                             width: double.infinity,
                                             padding: const EdgeInsets.symmetric(
