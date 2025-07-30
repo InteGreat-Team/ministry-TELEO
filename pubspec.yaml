@@ -1,7 +1,6 @@
-name: teleo_organized_new
+name: ministry_teleo
 description: "A new Flutter project."
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
@@ -36,7 +35,6 @@ dependencies:
   google_place: ^0.4.7
   geolocator: ^10.1.0
   geocoding: ^2.1.0
-
 
 dev_dependencies:
   flutter_test:
