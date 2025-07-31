@@ -105,7 +105,11 @@ class PrayerRequestProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final res = await http.get(Uri.parse('http://localhost:3000/api/tags'));
+      final res = await http.get(
+        Uri.parse(
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/tags',
+        ),
+      );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         availableTags =
@@ -179,7 +183,9 @@ class PrayerRequestProvider extends ChangeNotifier {
 
     try {
       final res = await http.post(
-        Uri.parse('http://localhost:3000/api/prayers'),
+        Uri.parse(
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/addPrayer',
+        ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );

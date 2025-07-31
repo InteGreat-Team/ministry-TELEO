@@ -1,0 +1,13 @@
+{
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^4.4.1",
+    "pg": "^8.16.3"
+  }
+}

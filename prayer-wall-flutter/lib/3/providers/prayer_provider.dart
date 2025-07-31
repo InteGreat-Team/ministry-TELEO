@@ -18,7 +18,9 @@ class PrayerProvider with ChangeNotifier {
     notifyListeners();
     try {
       final res = await http.get(
-        Uri.parse('http://localhost:3000/api/prayers'),
+        Uri.parse(
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/getPrayers',
+        ),
       );
       if (res.statusCode == 200) {
         final List<dynamic> data = jsonDecode(res.body);
@@ -57,8 +59,8 @@ class PrayerProvider with ChangeNotifier {
   Future<void> toggleLike(String id, bool isLiked) async {
     final url =
         isLiked
-            ? 'http://localhost:3000/api/prayers/$id/like'
-            : 'http://localhost:3000/api/prayers/$id/unlike';
+            ? 'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/$id/likePrayer'
+            : 'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/$id/unlikePrayer';
 
     try {
       final res = await http.post(Uri.parse(url));
@@ -71,12 +73,13 @@ class PrayerProvider with ChangeNotifier {
   }
 
   Future<bool> addComment(String prayerId, String comment) async {
-    const url = 'http://localhost:3000/api/comments';
+    const url =
+        'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/comments';
     try {
       final res = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'prayer_id': int.parse(prayerId), 'text': comment}),
+        body: jsonEncode({'prayerId': int.parse(prayerId), 'text': comment}),
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
