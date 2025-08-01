@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() {
   runApp(const DonationApp());
@@ -338,12 +339,6 @@ class _DonatePageState extends State<DonatePage> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  // Update this URL to match your Express server
-  // For local development: 'http://localhost:5000'
-  // For Android emulator: 'http://10.0.2.2:5000'
-  // For physical device: Use your machine's IP (e.g., 'http://172.20.10.12:5000')
-  static const String _baseUrl = 'http://192.168.68.103';
-
   final List<Map<String, dynamic>> _donationAmounts = [
     {'value': 50, 'label': 'P 50'},
     {'value': 100, 'label': 'P 100'},
@@ -370,6 +365,25 @@ class _DonatePageState extends State<DonatePage> {
     });
 
     try {
+      // Get Firebase Auth ID token
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      
+      if (currentUser == null) {
+        setState(() {
+          _errorMessage = 'Please sign in to make a donation.';
+        });
+        return;
+      }
+
+      final String? token = await currentUser.getIdToken();
+      
+      if (token == null) {
+        setState(() {
+          _errorMessage = 'Failed to get authentication token. Please try signing in again.';
+        });
+        return;
+      }
+
       final url = Uri.parse("https://asia-southeast1-teleo-church-application.cloudfunctions.net/donationApi/donate");
 
       final amount = _selectedAmount!;
@@ -383,10 +397,14 @@ class _DonatePageState extends State<DonatePage> {
 
       print('🚀 Making donation request to: $url');
       print('📦 Request body: $body');
+      print('🔐 Using Firebase Auth token: ${token.substring(0, 20)}...');
 
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: body,
       );
 
@@ -404,6 +422,10 @@ class _DonatePageState extends State<DonatePage> {
             _errorMessage = 'No checkout URL received from server.';
           });
         }
+      } else if (response.statusCode == 401) {
+        setState(() {
+          _errorMessage = 'Authentication failed. Please sign in again.';
+        });
       } else {
         final errorData = jsonDecode(response.body);
         setState(() {
@@ -414,7 +436,7 @@ class _DonatePageState extends State<DonatePage> {
       print('❌ Error making donation request: $e');
       setState(() {
         _errorMessage = e.toString().contains('SocketException')
-            ? 'Network error: Cannot reach server. Check your connection or server IP.'
+            ? 'Network error: Cannot reach server. Check your connection.'
             : 'Error: ${e.toString()}';
       });
     } finally {

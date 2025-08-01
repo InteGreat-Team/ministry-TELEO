@@ -1,4 +1,4 @@
-console.log("🚨🚨 Running FULL donation.js with PayMongo + DB (Firebase Version)");
+console.log("🚨🚨 Running FULL donation.js with PayMongo + DB (Firebase + Auth)");
 
 const functions = require("firebase-functions");
 const express = require("express");
@@ -6,8 +6,14 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const axios = require("axios");
 const { Pool } = require("pg");
+const admin = require("firebase-admin");
 
 dotenv.config();
+
+// Initialize Firebase Admin SDK
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 const app = express();
 
@@ -31,6 +37,9 @@ const initDB = async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS donations (
         id SERIAL PRIMARY KEY,
+        user_id TEXT,
+        user_name TEXT,
+        user_email TEXT,
         reference_number VARCHAR(50) UNIQUE,
         amount INTEGER NOT NULL,
         description TEXT,
@@ -46,7 +55,26 @@ const initDB = async () => {
   }
 };
 
-// Health check route
+// 🔒 Firebase Auth Middleware
+const authenticate = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized: Missing or invalid token" });
+  }
+
+  const idToken = authHeader.split("Bearer ")[1];
+  try {
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    req.user = decoded;
+    console.log("👤 Decoded Firebase user:", decoded); // ✅ Step 1 log added
+    next();
+  } catch (err) {
+    console.error("❌ Token verification failed:", err.message);
+    return res.status(401).json({ error: "Unauthorized: Invalid token" });
+  }
+};
+
+// ✅ Health check route
 app.get("/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -56,18 +84,18 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// Donation route
-app.post("/donate", async (req, res) => {
+// ✅ Donation route (secured)
+app.post("/donate", authenticate, async (req, res) => {
   console.log("📥 /donate request:", req.body);
 
   const { amount, description, category } = req.body;
+  const { uid, name, email } = req.user;
 
   if (!amount || !category || typeof amount !== "number" || amount < 100) {
     return res.status(400).json({ error: "Invalid donation: amount and category are required, amount >= 100." });
   }
 
   try {
-    // Call PayMongo
     const paymongoRes = await axios.post(
       "https://api.paymongo.com/v1/links",
       {
@@ -92,10 +120,13 @@ app.post("/donate", async (req, res) => {
 
     try {
       await pool.query(
-        `INSERT INTO donations (reference_number, amount, description, category, status, checkout_url)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO donations (user_id, user_name, user_email, reference_number, amount, description, category, status, checkout_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT (reference_number) DO NOTHING`,
         [
+          uid,
+          name || null,
+          email || null,
           link.reference_number,
           link.amount,
           description || "Donation",
@@ -120,11 +151,11 @@ app.post("/donate", async (req, res) => {
   }
 });
 
-// 404 for unmatched routes
+// 404 fallback
 app.use((req, res) => {
   res.status(404).send(`🛑 No route found for ${req.method} ${req.originalUrl}`);
 });
 
 // ✅ Export for Firebase Functions
-initDB(); // Only call this once on cold start
+initDB();
 exports.donationApi = functions.https.onRequest(app);
