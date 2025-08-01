@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/prayer_post.dart';
 import '../widgets/prayer_homescreen/home_screen_widgets.dart';
 import '../widgets/prayer_homescreen/comments_bottom_sheet.dart';
-import '../providers/prayer_provider.dart';
+import '../../BE/providers/prayer_provider.dart';
 import 'prayer_request_screen.dart';
 import 'viewed_prayers_screen.dart';
 

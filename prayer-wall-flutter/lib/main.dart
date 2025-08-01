@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:teleo_organized_new/3/prayerwall/home_screen.dart';
-import 'package:teleo_organized_new/3/providers/prayer_provider.dart';
-import 'package:teleo_organized_new/3/providers/prayer_request_provider.dart';
+import 'package:teleo_organized_new/prayer_wall/FE/prayerwall/home_screen.dart';
+import 'package:teleo_organized_new/prayer_wall/BE/providers/prayer_provider.dart';
+import 'package:teleo_organized_new/prayer_wall/BE/providers/prayer_request_provider.dart';
 
 void main() {
   runApp(const MyApp());

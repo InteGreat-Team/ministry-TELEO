@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../models/prayer_post.dart';
+import '../../FE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class PrayerProvider with ChangeNotifier {

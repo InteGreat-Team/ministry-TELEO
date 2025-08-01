@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:teleo_organized_new/3/models/prayer_post.dart';
+import 'package:teleo_organized_new/prayer_wall/FE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CommentsBottomSheet extends StatefulWidget {

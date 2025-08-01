@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/prayer_post.dart';
-import '../providers/prayer_request_provider.dart';
+import '../../BE/providers/prayer_request_provider.dart';
 import '../widgets/prayer_request/prayer_request.dart';
 
 class PrayerRequestScreen extends StatelessWidget {
@@ -21,6 +21,12 @@ class PrayerRequestScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final utc = DateTime.now().toUtc();
+    debugPrint('📅 Local Time: $now');
+    debugPrint('🌐 UTC Time: $utc');
+
+
     return ChangeNotifierProvider(
       create: (_) => PrayerRequestProvider()..fetchTags(),
       child: Consumer<PrayerRequestProvider>(
