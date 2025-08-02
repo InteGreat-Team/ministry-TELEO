@@ -1,0 +1,119 @@
+// lib/sidebar/frontend/settings/CHURCH_CHANGE_PHONE_SETTING.dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../models/admin_models.dart';
+import '../../../sidebar/backend/settings/church_settings_viewmodel.dart';
+
+class ChurchChangePhoneSetting extends StatelessWidget {
+  final AdminData adminData;
+  final Function(AdminView, {AuthenticatorFlow? flow, String? newValue})
+      onNavigate;
+
+  const ChurchChangePhoneSetting({
+    super.key,
+    required this.adminData,
+    required this.onNavigate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => ChurchSettingsViewModel(
+        adminData: adminData,
+        onNavigate: onNavigate,
+      ),
+      child: Consumer<ChurchSettingsViewModel>(
+        builder: (context, viewModel, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Change Phone Number'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: SafeArea(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height -
+                      AppBar().preferredSize.height -
+                      MediaQuery.of(context).padding.top,
+                ),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 24.0,
+                    ),
+                    child: Form(
+                      key: viewModel.phoneFormKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Old Phone Number
+                              TextFormField(
+                                initialValue: viewModel.currentPhoneNumber,
+                                enabled: false,
+                                decoration: InputDecoration(
+                                  labelText: 'Old Phone Number',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              // New Phone Number
+                              TextFormField(
+                                controller: viewModel.newPhoneController,
+                                decoration: InputDecoration(
+                                  labelText: 'New Phone Number',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.phone,
+                                validator: viewModel.validatePhoneNumber,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 40),
+                          // Submit Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: viewModel.submitChangePhone,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1A1A2E),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Send Code',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

@@ -4,7 +4,11 @@ import '../1/c1registrationflow/c1s1signupwelcome_screen.dart'
 import 'login_screen.dart'; // Login
 import '../1/c1homepage/home_page.dart'; // Guest homepage
 import '../2/c1registration/c1s1churchwelcome_screen.dart'; // Church registration
-import '../2/c1homepage/home_page.dart' as admin; // Admin homepage
+import '../2/c1homepage/landing_page/frontend/CHURCH_LANDING_PAGE.dart'
+    as admin; // Admin homepage
+import 'package:provider/provider.dart';
+import '../2/c1homepage/landing_page/backend/church_landing_page_viewmodel.dart';
+import '../2/c1homepage/models/admin_models.dart'; // Add this line
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -140,7 +144,36 @@ class WelcomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const admin.AdminHomePage(),
+                    builder: (context) => ChangeNotifierProvider(
+                      create: (_) => ChurchHomePageViewModel(
+                        onNavigate: (view, {flow, newValue}) {},
+                        adminData: AdminData(
+                          churchName: 'Demo Church',
+                          location: 'Demo Location',
+                          posts: [],
+                          currentEmail: 'demo@church.com',
+                          currentPhoneNumber: '123-456-7890',
+                          following: 0,
+                          followers: 0,
+                          loginActivity: '',
+                          loginActivityPercentage: '',
+                          dailyFollows: '',
+                          dailyFollowsPercentage: '',
+                          dailyVisits: '',
+                          dailyVisitsPercentage: '',
+                          bookings: '',
+                          bookingsPercentage: '',
+                          password: '',
+                          description: '',
+                          schedule: '',
+                          gcash: '',
+                          maya: '',
+                          bdo: '',
+                          bpi: '',
+                        ),
+                      ),
+                      child: const admin.ChurchLandingPage(),
+                    ),
                   ),
                 );
               },
@@ -369,10 +402,9 @@ class WelcomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) => const ChurchWelcomeScreen(
-                                firstName: 'Church Admin',
-                              ),
+                          builder: (context) => const ChurchWelcomeScreen(
+                            firstName: 'Church Admin',
+                          ),
                         ),
                       );
                     },

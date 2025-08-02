@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'c2homepage/schedule_tab.dart';
+import 'c1homepage/main.dart' as c1homepage;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,11 +34,41 @@ class MyApp extends StatelessWidget {
           primary: const Color(0xFF000233),
         ),
         fontFamily: 'Poppins',
-        // Make sure there are no default borders or outlines in the theme
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(elevation: 0),
       ),
-      home: const ScheduleTab(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const ScheduleTab(),
+        '/c1homepage': (context) => c1homepage.MyApp(),
+      },
+      builder: (context, child) {
+        return Scaffold(
+          drawer: Drawer(
+            child: ListView(
+              children: [
+                const DrawerHeader(child: Text('Teleo App Navigation')),
+                ListTile(
+                  title: const Text('ScheduleTab'),
+                  onTap: () {
+                    Navigator.of(context).pushReplacementNamed('/');
+                  },
+                ),
+                ListTile(
+                  title: const Text('C1Homepage (Admin Dashboard)'),
+                  onTap: () {
+                    Navigator.of(context).pushReplacementNamed('/c1homepage');
+                  },
+                ),
+              ],
+            ),
+          ),
+          body: child,
+        );
+      },
     );
   }
 }
+
+// Import the c1homepage entry point
+import 'c1homepage/main.dart' as c1homepage;

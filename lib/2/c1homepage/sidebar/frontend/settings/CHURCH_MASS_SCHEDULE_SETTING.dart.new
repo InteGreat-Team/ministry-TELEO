@@ -1,0 +1,212 @@
+// lib/sidebar/frontend/settings/CHURCH_MASS_SCHEDULE_SETTING.dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../models/admin_models.dart';
+import '../../../sidebar/backend/settings/church_settings_viewmodel.dart';
+
+class ChurchMassScheduleSetting extends StatelessWidget {
+  final Function(AdminView) onNavigate;
+
+  const ChurchMassScheduleSetting({
+    super.key,
+    required this.onNavigate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final parentSettings =
+        Provider.of<ChurchSettingsViewModel?>(context, listen: false);
+    final adminData = parentSettings?.adminData ??
+        AdminData(
+          churchName: '',
+          posts: [],
+          following: 0,
+          followers: 0,
+          loginActivity: '',
+          loginActivityPercentage: '',
+          dailyFollows: '',
+          dailyFollowsPercentage: '',
+          dailyVisits: '',
+          dailyVisitsPercentage: '',
+          bookings: '',
+          bookingsPercentage: '',
+          currentEmail: '',
+          currentPhoneNumber: '',
+          password: '',
+          location: '',
+          description: '',
+          schedule: '',
+          gcash: '',
+          maya: '',
+          bdo: '',
+          bpi: '',
+        );
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ChangeNotifierProvider(
+        create: (context) => ChurchSettingsViewModel(
+          adminData: adminData,
+          onNavigate: (view, {flow, newValue}) => onNavigate(view),
+        ),
+        child: Consumer<ChurchSettingsViewModel>(
+          builder: (context, viewModel, child) {
+            return Scaffold(
+              backgroundColor: Colors.white,
+              appBar: AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: viewModel.goBack,
+                ),
+                title: const Text(
+                  'Mass Schedule',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
+              ),
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        const Text(
+                          'New Mass Schedule',
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 24),
+                        // Date picker
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Datepicker',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: () => viewModel.selectDate(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      viewModel.formatDate(viewModel.selectedDate),
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                    const Icon(Icons.keyboard_arrow_down),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Time picker
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Timepicker',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: () => viewModel.selectTimeRange(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '${viewModel.formatTime(viewModel.startTime)} to ${viewModel.formatTime(viewModel.endTime)}',
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                    const Icon(Icons.keyboard_arrow_down),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Add button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => viewModel.addScheduleItem(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[200],
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text('Add Another Time Slot'),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Schedule list
+                        if (viewModel.scheduleItems.isNotEmpty) ...[
+                          const Text(
+                            'Scheduled Masses',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 200,
+                            child: ListView.builder(
+                              itemCount: viewModel.scheduleItems.length,
+                              itemBuilder: (context, index) {
+                                final item = viewModel.scheduleItems[index];
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  child: ListTile(
+                                    title: Text(viewModel.formatDate(item.date)),
+                                    subtitle: Text(
+                                      '${viewModel.formatTime(item.startTime)} to ${viewModel.formatTime(item.endTime)}',
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () => viewModel.removeScheduleItem(index),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
