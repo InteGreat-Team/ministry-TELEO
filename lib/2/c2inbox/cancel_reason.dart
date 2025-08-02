@@ -1,28 +1,13 @@
 import 'package:flutter/material.dart';
 import '../c2spp/upcoming_bookings_page.dart';
+import '../c2spp/models/booking_model.dart';
 
 class CancelReasonPage extends StatefulWidget {
-  final String reference;
-  final String requesterName;
-  final String location;
-  final String serviceType;
-  final String date;
-  final String time;
-  final bool isScheduledForLater;
-  final String venue;
-  final String assignedTo;
+  final Booking booking;
 
   const CancelReasonPage({
     super.key,
-    required this.reference,
-    required this.requesterName,
-    required this.location,
-    required this.serviceType,
-    required this.date,
-    required this.time,
-    required this.isScheduledForLater,
-    required this.venue,
-    required this.assignedTo,
+    required this.booking,
   });
 
   @override
@@ -163,31 +148,25 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
             child: ElevatedButton(
               onPressed: () {
                 // Extract facilitator name from assignedTo (remove the @ symbol)
-                String facilitatorName = widget.assignedTo.startsWith('@')
-                    ? widget.assignedTo.substring(1)
-                    : widget.assignedTo;
+                String facilitatorName =
+                    widget.booking.assignedTo.startsWith('@')
+                        ? widget.booking.assignedTo.substring(1)
+                        : widget.booking.assignedTo;
 
                 // Navigate directly to UpcomingBookingsPage with cancellation details
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => UpcomingBookingsPage(
-                      reference: widget.reference,
-                      requesterName: widget.requesterName,
-                      location: widget.location,
-                      serviceType: widget.serviceType,
-                      date: widget.date,
-                      time: widget.time,
-                      isScheduledForLater: widget.isScheduledForLater,
-                      venue: widget.venue,
-                      assignedTo: widget.assignedTo,
-                      cancelReason:
-                          _selectedReason ?? 'Unavailable Facilitator',
-                      feedback: _feedbackController.text.isNotEmpty
-                          ? _feedbackController.text
-                          : 'Sorry, Fr. $facilitatorName is too busy.',
-                      cancelledBy: 'Church Name - Church Admin',
-                      cancelledDate: '[Date] at [Time]',
+                      booking: widget.booking.copyWith(
+                        cancelReason:
+                            _selectedReason ?? 'Unavailable Facilitator',
+                        feedback: _feedbackController.text.isNotEmpty
+                            ? _feedbackController.text
+                            : 'Sorry, Fr. $facilitatorName is too busy.',
+                        cancelledBy: 'Church Name - Church Admin',
+                        cancelledDate: '[Date] at [Time]',
+                      ),
                     ),
                   ),
                 );

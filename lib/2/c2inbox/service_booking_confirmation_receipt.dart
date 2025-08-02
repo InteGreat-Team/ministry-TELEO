@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../c2spp/models/transaction_details_model.dart';
 
 class ServiceBookingConfirmationReceipt extends StatefulWidget {
   final Map<String, dynamic> serviceDetails;
-  final Map<String, dynamic> personalDetails;
-  final Map<String, dynamic> paymentDetails;
+  final PersonalDetails personalDetails;
+  final PaymentDetails paymentDetails;
 
   const ServiceBookingConfirmationReceipt({
     super.key,
@@ -13,10 +14,12 @@ class ServiceBookingConfirmationReceipt extends StatefulWidget {
   });
 
   @override
-  State<ServiceBookingConfirmationReceipt> createState() => _ServiceBookingConfirmationReceiptState();
+  State<ServiceBookingConfirmationReceipt> createState() =>
+      _ServiceBookingConfirmationReceiptState();
 }
 
-class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfirmationReceipt> {
+class _ServiceBookingConfirmationReceiptState
+    extends State<ServiceBookingConfirmationReceipt> {
   bool _isPersonalDetailsExpanded = false;
   bool _isServiceInfoExpanded = false;
   bool _isPaymentDetailsExpanded = false;
@@ -57,7 +60,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
               // Step indicator - Now part of the scrollable content
               Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 20.0),
                 child: Row(
                   children: [
                     // Step 1 - Inactive
@@ -182,7 +186,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     // Reference number
                     _buildDetailRow(
                       'Reference #',
-                      widget.serviceDetails['reference'] ?? 'AJSNDF8034U93829FWB',
+                      widget.serviceDetails['reference'] ??
+                          'AJSNDF8034U93829FWB',
                     ),
 
                     // Date
@@ -210,14 +215,16 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.serviceDetails['name'] ?? 'Service Requestor Name',
+                                widget.serviceDetails['name'] ??
+                                    'Service Requestor Name',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
                                 ),
                               ),
                               Text(
-                                widget.serviceDetails['location'] ?? 'Default location where theyre booking from',
+                                widget.serviceDetails['location'] ??
+                                    'Default location where theyre booking from',
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,
@@ -234,7 +241,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     // Service details
                     Row(
                       children: [
-                        Icon(Icons.favorite_border, size: 18, color: Colors.grey[600]),
+                        Icon(Icons.favorite_border,
+                            size: 18, color: Colors.grey[600]),
                         const SizedBox(width: 8),
                         Text(
                           'Service: ',
@@ -245,7 +253,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                         ),
                         Expanded(
                           child: Text(
-                            widget.serviceDetails['service'] ?? 'Baptism and Dedication',
+                            widget.serviceDetails['service'] ??
+                                'Baptism and Dedication',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -260,7 +269,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     // Time
                     Row(
                       children: [
-                        Icon(Icons.access_time, size: 18, color: Colors.grey[600]),
+                        Icon(Icons.access_time,
+                            size: 18, color: Colors.grey[600]),
                         const SizedBox(width: 8),
                         Text(
                           'Time: ',
@@ -278,13 +288,15 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.blue[50],
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            widget.serviceDetails['scheduledText'] ?? 'Scheduled for Later',
+                            widget.serviceDetails['scheduledText'] ??
+                                'Scheduled for Later',
                             style: TextStyle(
                               color: Colors.blue[400],
                               fontSize: 12,
@@ -303,12 +315,14 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 2.0),
-                          child: Icon(Icons.location_on_outlined, size: 18, color: Colors.grey[600]),
+                          child: Icon(Icons.location_on_outlined,
+                              size: 18, color: Colors.grey[600]),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            widget.serviceDetails['destination'] ?? 'To the church',
+                            widget.serviceDetails['destination'] ??
+                                'To the church',
                             style: const TextStyle(fontSize: 14),
                           ),
                         ),
@@ -323,7 +337,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(top: 2.0),
-                          child: Icon(Icons.person_outline, size: 18, color: Colors.grey[600]),
+                          child: Icon(Icons.person_outline,
+                              size: 18, color: Colors.grey[600]),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -355,35 +370,35 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                   children: [
                     _buildDetailRow(
                       'Full Name',
-                      widget.personalDetails['fullName'] ?? 'John G. Dela Cruz',
+                      widget.personalDetails.fullName,
                     ),
                     _buildDetailRow(
                       'Age',
-                      widget.personalDetails['age'] ?? '27',
+                      widget.personalDetails.age,
                     ),
                     _buildDetailRow(
                       'Gender',
-                      widget.personalDetails['gender'] ?? 'Male',
+                      widget.personalDetails.gender,
                     ),
                     _buildDetailRow(
                       'Contact Number',
-                      widget.personalDetails['contactNumber'] ?? '09272944324',
+                      widget.personalDetails.contactNumber,
                     ),
                     _buildDetailRow(
                       'Email Address',
-                      widget.personalDetails['emailAddress'] ?? 'johngdelacruz@gmail.com',
+                      widget.personalDetails.emailAddress,
                     ),
                     _buildDetailRow(
                       'Primary Emergency Person',
-                      widget.personalDetails['emergencyPerson'] ?? 'Maria B. Dela Cruz',
+                      widget.personalDetails.emergencyPerson,
                     ),
                     _buildDetailRow(
                       'Primary Emergency Person Number',
-                      widget.personalDetails['emergencyNumber'] ?? '0999999999',
+                      widget.personalDetails.emergencyNumber,
                     ),
                     _buildDetailRow(
                       'Primary Emergency Person Relation',
-                      widget.personalDetails['emergencyRelation'] ?? 'Spouse',
+                      widget.personalDetails.emergencyRelation,
                     ),
                   ],
                 ),
@@ -405,11 +420,13 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                   children: [
                     _buildDetailRow(
                       'Event Booking',
-                      widget.serviceDetails['eventBooking'] ?? 'Event API stuff',
+                      widget.serviceDetails['eventBooking'] ??
+                          'Event API stuff',
                     ),
                     _buildDetailRow(
                       'Baptizand Full Name',
-                      widget.serviceDetails['baptizandName'] ?? 'Baby G. Dela Cruz',
+                      widget.serviceDetails['baptizandName'] ??
+                          'Baby G. Dela Cruz',
                     ),
                     _buildDetailRow(
                       'Date of Birth',
@@ -425,7 +442,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     ),
                     _buildDetailRow(
                       'Name of Parent/Guardian',
-                      widget.serviceDetails['parentName'] ?? 'John G. Dela Cruz',
+                      widget.serviceDetails['parentName'] ??
+                          'John G. Dela Cruz',
                     ),
                     _buildDetailRow(
                       'Relation to Baptizand',
@@ -433,11 +451,13 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     ),
                     _buildDetailRow(
                       'Purpose/Reason for Service',
-                      widget.serviceDetails['purpose'] ?? 'Our son is to be baptized into Christianity.',
+                      widget.serviceDetails['purpose'] ??
+                          'Our son is to be baptized into Christianity.',
                     ),
                     _buildDetailRow(
                       'Anything else we need to know?',
-                      widget.serviceDetails['additionalInfo'] ?? 'Please assign Fr. Lebron James if available.',
+                      widget.serviceDetails['additionalInfo'] ??
+                          'Please assign Fr. Lebron James if available.',
                     ),
                   ],
                 ),
@@ -459,28 +479,29 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                   children: [
                     _buildDetailRow(
                       'Status',
-                      widget.paymentDetails['status'] ?? 'Paid',
+                      widget.paymentDetails.status,
                       valueColor: Colors.green,
                       valueBold: true,
                       valueBackground: Colors.green.withOpacity(0.1),
-                      valuePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      valuePadding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       valueBorderRadius: BorderRadius.circular(4),
                     ),
                     _buildDetailRow(
                       'Date',
-                      widget.paymentDetails['date'] ?? '[Date when paid]',
+                      widget.paymentDetails.date,
                     ),
                     _buildDetailRow(
                       'Method',
-                      widget.paymentDetails['method'] ?? 'Credit Card',
+                      widget.paymentDetails.method,
                     ),
                     _buildDetailRow(
                       'Holder\'s Full Name',
-                      widget.paymentDetails['holderName'] ?? 'Jack Black',
+                      widget.paymentDetails.holderName,
                     ),
                     _buildDetailRow(
                       'Transaction ID',
-                      widget.paymentDetails['transactionId'] ?? 'JSDBK-2893-2384',
+                      widget.paymentDetails.transactionId,
                     ),
                   ],
                 ),
@@ -503,13 +524,13 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     // Service Fee
                     _buildAmountRow(
                       'Service Fee',
-                      widget.paymentDetails['serviceFee'] ?? '200.00',
+                      widget.paymentDetails.serviceFee,
                     ),
 
                     // Distance Fee
                     _buildAmountRow(
                       'Distance Fee (₱ per exceeding 1km)',
-                      widget.paymentDetails['distanceFee'] ?? '20.20',
+                      widget.paymentDetails.distanceFee,
                     ),
 
                     const Divider(),
@@ -517,7 +538,7 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                     // Total
                     _buildAmountRow(
                       'Total',
-                      widget.paymentDetails['total'] ?? '220.20',
+                      widget.paymentDetails.total,
                       isBold: true,
                     ),
                   ],
@@ -528,7 +549,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
 
               // View in 'Our Bookings' Tab button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 10.0),
                 child: SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -576,7 +598,8 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
         InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -589,7 +612,9 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
                   ),
                 ),
                 Icon(
-                  isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                   color: Colors.grey[600],
                 ),
               ],
@@ -599,10 +624,12 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
         AnimatedCrossFade(
           firstChild: const SizedBox(height: 0),
           secondChild: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             child: content,
           ),
-          crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState:
+              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 300),
         ),
       ],
@@ -611,14 +638,14 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
 
   // Helper method to build detail rows
   Widget _buildDetailRow(
-      String label,
-      String value, {
-        Color? valueColor,
-        bool valueBold = false,
-        Color? valueBackground,
-        EdgeInsets? valuePadding,
-        BorderRadius? valueBorderRadius,
-      }) {
+    String label,
+    String value, {
+    Color? valueColor,
+    bool valueBold = false,
+    Color? valueBackground,
+    EdgeInsets? valuePadding,
+    BorderRadius? valueBorderRadius,
+  }) {
     final textWidget = Text(
       value,
       style: TextStyle(
@@ -649,13 +676,13 @@ class _ServiceBookingConfirmationReceiptState extends State<ServiceBookingConfir
             flex: 3,
             child: valueBackground != null
                 ? Container(
-              padding: valuePadding,
-              decoration: BoxDecoration(
-                color: valueBackground,
-                borderRadius: valueBorderRadius,
-              ),
-              child: textWidget,
-            )
+                    padding: valuePadding,
+                    decoration: BoxDecoration(
+                      color: valueBackground,
+                      borderRadius: valueBorderRadius,
+                    ),
+                    child: textWidget,
+                  )
                 : textWidget,
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'booking_details_page.dart';
+import 'models/booking_model.dart';
 
 class UpcomingServicesPage extends StatelessWidget {
   const UpcomingServicesPage({super.key});
@@ -8,6 +9,21 @@ class UpcomingServicesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Define the exact color to ensure consistency
     const Color navyBlue = Color(0xFF000233);
+
+    final List<Booking> upcomingServices = List.generate(
+      8,
+      (index) => Booking(
+        reference: 'AJSNDFB934U9382RFIWB',
+        requesterName: 'Service Requester Name',
+        location: 'P. Sherman, 42 Wallaby Way',
+        serviceType: 'Baptism',
+        date: 'February 14, 2025',
+        time: '3:00 PM - 6:00 PM',
+        isScheduledForLater: true,
+        venue: 'To the church',
+        assignedTo: '@Pastor John',
+      ),
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -63,9 +79,11 @@ class UpcomingServicesPage extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Search for something...',
                     hintStyle: TextStyle(color: Colors.grey.shade500),
-                    suffixIcon: Icon(Icons.search, color: const Color(0xFFFF6B35)),
+                    suffixIcon:
+                        Icon(Icons.search, color: const Color(0xFFFF6B35)),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 16),
                   ),
                 ),
               ),
@@ -75,7 +93,7 @@ class UpcomingServicesPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
-                'Upcoming Services (8)',
+                'Upcoming Services (${upcomingServices.length})',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -90,18 +108,12 @@ class UpcomingServicesPage extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                physics: const ClampingScrollPhysics(), // Prevents overscroll effects
-                itemCount: 8,
+                physics:
+                    const ClampingScrollPhysics(), // Prevents overscroll effects
+                itemCount: upcomingServices.length,
                 itemBuilder: (context, index) {
                   // Sample data for each card
-                  final Map<String, String> serviceData = {
-                    'title': 'Baptism',
-                    'location': 'P. Sherman, 42 Wallaby Way',
-                    'date': 'February 14, 2025',
-                    'time': '3:00 PM - 6:00 PM',
-                    'assignedTo': '@Pastor John',
-                    'reference': 'AJSNDFB934U9382RFIWB',
-                  };
+                  final serviceData = upcomingServices[index];
 
                   return BaptismServiceCard(
                     serviceData: serviceData,
@@ -110,15 +122,7 @@ class UpcomingServicesPage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => BookingDetailsPage(
-                            reference: serviceData['reference']!,
-                            requesterName: 'Service Requester Name',
-                            location: 'Default location where they\'re booking from',
-                            serviceType: 'Baptism and Dedication',
-                            date: serviceData['date']!,
-                            time: '3:00 PM',
-                            isScheduledForLater: true,
-                            venue: 'To the church',
-                            assignedTo: '@Lebron James',
+                            booking: serviceData,
                           ),
                         ),
                       );
@@ -135,7 +139,7 @@ class UpcomingServicesPage extends StatelessWidget {
 }
 
 class BaptismServiceCard extends StatelessWidget {
-  final Map<String, String> serviceData;
+  final Booking serviceData;
   final VoidCallback onTap;
 
   const BaptismServiceCard({
@@ -188,7 +192,7 @@ class BaptismServiceCard extends StatelessWidget {
                     children: [
                       // Title
                       Text(
-                        serviceData['title'] ?? 'Baptism',
+                        serviceData.serviceType,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -209,7 +213,7 @@ class BaptismServiceCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              serviceData['location'] ?? 'P. Sherman, 42 Wallaby Way',
+                              serviceData.location,
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF666666),
@@ -232,7 +236,7 @@ class BaptismServiceCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              '${serviceData['date'] ?? 'February 14, 2025'} - ${serviceData['time'] ?? '3:00 PM - 6:00 PM'}',
+                              '${serviceData.date} - ${serviceData.time}',
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF666666),
@@ -261,7 +265,7 @@ class BaptismServiceCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            serviceData['assignedTo'] ?? '@Pastor John',
+                            serviceData.assignedTo,
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFF4A90E2),

@@ -26,7 +26,7 @@ import 'admin_views/admin_change_password_view.dart';
 import 'admin_views/admin_change_phone_view.dart';
 import 'admin_views/admin_terms_conditions_view.dart';
 import '../../3/nav_bar.dart';
-import '../../2/c2homepage/home_page.dart' as admin_home;
+import '../../2/c2homepage/schedule_tab.dart' as admin_home;
 import 'admin_views/admin_profile_screen.dart';
 
 class AdminHomePage extends StatefulWidget {
@@ -386,7 +386,7 @@ class _AdminHomePageState extends State<AdminHomePage>
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder:
-                    (context) => admin_home.HomePage(
+                    (context) => admin_home.ScheduleTab(
                       adminData: _adminData,
                       onUpdateAdminData: _updateAdminData,
                     ),

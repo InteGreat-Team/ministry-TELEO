@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../c2inbox/service_booking_confirmation_receipt.dart';
+import 'models/transaction_details_model.dart';
 
 class ServiceNotificationConfirmationPage extends StatefulWidget {
   final Map<String, dynamic> serviceDetails;
   final Map<String, dynamic> facilitatorDetails;
+  final TransactionDetails transactionDetails;
 
   const ServiceNotificationConfirmationPage({
     super.key,
     required this.serviceDetails,
     required this.facilitatorDetails,
+    required this.transactionDetails,
   });
 
   @override
@@ -38,8 +41,8 @@ class _ServiceNotificationConfirmationPageState
               MaterialPageRoute(
                 builder: (context) => ServiceBookingConfirmationReceipt(
                   serviceDetails: widget.serviceDetails,
-                  personalDetails: _personalDetails,
-                  paymentDetails: _paymentDetails,
+                  personalDetails: widget.transactionDetails.personalDetails,
+                  paymentDetails: widget.transactionDetails.paymentDetails,
                 ),
               ),
             );
@@ -57,27 +60,6 @@ class _ServiceNotificationConfirmationPageState
   }
 
   // Sample data for the receipt page
-  Map<String, dynamic> get _personalDetails => {
-        'fullName': 'John G. Dela Cruz',
-        'age': '27',
-        'gender': 'Male',
-        'contactNumber': '09272944324',
-        'emailAddress': 'johngdelacruz@gmail.com',
-        'emergencyPerson': 'Maria B. Dela Cruz',
-        'emergencyNumber': '0999999999',
-        'emergencyRelation': 'Spouse',
-      };
-
-  Map<String, dynamic> get _paymentDetails => {
-        'status': 'Paid',
-        'date': '[Date when paid]',
-        'method': 'Credit Card',
-        'holderName': 'Jack Black',
-        'transactionId': 'JSDBK-2893-2384',
-        'serviceFee': '200.00',
-        'distanceFee': '20.20',
-        'total': '220.20',
-      };
 
   @override
   Widget build(BuildContext context) {

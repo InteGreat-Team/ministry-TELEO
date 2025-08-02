@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../c2spp/assignment_confirmation_page.dart';
+import '../c2spp/models/service_request_model.dart';
 
 class ServiceAssignmentPage extends StatefulWidget {
   final Map<String, dynamic> serviceDetails;
@@ -497,7 +498,16 @@ class _ServiceAssignmentPageState extends State<ServiceAssignmentPage> {
               MaterialPageRoute(
                 builder: (context) => AssignmentConfirmationPage(
                   selectedFacilitators: selectedFacilitators,
-                  serviceDetails: widget.serviceDetails,
+                  serviceDetails: ServiceRequest(
+                    name: widget.serviceDetails['name'],
+                    location: widget.serviceDetails['location'],
+                    service: widget.serviceDetails['service'],
+                    timeType: widget.serviceDetails['timeType'] ?? 'scheduled',
+                    timeText: widget.serviceDetails['timeText'],
+                    scheduledText: widget.serviceDetails['scheduledText'],
+                    destination: widget.serviceDetails['destination'],
+                    countdown: '',
+                  ),
                 ),
               ),
             );

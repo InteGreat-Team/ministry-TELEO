@@ -1,29 +1,14 @@
 import 'package:flutter/material.dart';
 import 'c2s3_service_approval_page.dart';
 import '../c2inbox/cancel_reason.dart';
+import 'models/booking_model.dart';
 
 class BookingDetailsPage extends StatefulWidget {
-  final String reference;
-  final String requesterName;
-  final String location;
-  final String serviceType;
-  final String date;
-  final String time;
-  final bool isScheduledForLater;
-  final String venue;
-  final String assignedTo;
+  final Booking booking;
 
   const BookingDetailsPage({
     super.key,
-    this.reference = 'AJSNDFB934U9382RFIWB',
-    this.requesterName = 'Service Requester Name',
-    this.location = 'Default location where they\'re booking from',
-    this.serviceType = 'Baptism and Dedication',
-    this.date = '[Date]',
-    this.time = '3:00 PM',
-    this.isScheduledForLater = true,
-    this.venue = 'To the church',
-    this.assignedTo = '@Lebron James',
+    required this.booking,
   });
 
   @override
@@ -107,7 +92,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                         ),
                       ),
                       Text(
-                        widget.reference,
+                        widget.booking.reference,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -125,7 +110,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                         ),
                       ),
                       Text(
-                        '${widget.date} at ${widget.time}',
+                        '${widget.booking.date} at ${widget.booking.time}',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -159,14 +144,14 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.requesterName,
+                          widget.booking.requesterName,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         Text(
-                          widget.location,
+                          widget.booking.location,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade600,
@@ -203,7 +188,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        widget.serviceType,
+                        widget.booking.serviceType,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -230,13 +215,13 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        widget.time,
+                        widget.booking.time,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      if (widget.isScheduledForLater)
+                      if (widget.booking.isScheduledForLater)
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
@@ -266,7 +251,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        widget.venue,
+                        widget.booking.venue,
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -293,7 +278,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        widget.assignedTo,
+                        widget.booking.assignedTo,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF4A90E2),
@@ -384,15 +369,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       context,
       MaterialPageRoute(
         builder: (context) => CancelReasonPage(
-          reference: widget.reference,
-          requesterName: widget.requesterName,
-          location: widget.location,
-          serviceType: widget.serviceType,
-          date: widget.date,
-          time: widget.time,
-          isScheduledForLater: widget.isScheduledForLater,
-          venue: widget.venue,
-          assignedTo: widget.assignedTo,
+          booking: widget.booking,
         ),
       ),
     );

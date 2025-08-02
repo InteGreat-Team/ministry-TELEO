@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import '../c2spp/service_notification_confirmation_page.dart'; // Import the notification page
+import '../c2spp/models/service_request_model.dart';
+import '../c2spp/models/facilitator_model.dart';
+import '../c2spp/service_notification_confirmation_page.dart';
+import '../c2spp/models/transaction_details_model.dart';
 
 class ServiceAcceptedPage extends StatelessWidget {
-  final Map<String, dynamic> serviceDetails;
-  final Map<String, dynamic> facilitatorDetails;
+  final ServiceRequest serviceDetails;
+  final Facilitator facilitatorDetails;
 
   const ServiceAcceptedPage({
     super.key,
@@ -14,451 +17,491 @@ class ServiceAcceptedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF000233),
-        elevation: 0,
-        centerTitle: true,
-        // Add these properties to prevent color change when scrolling
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        flexibleSpace: Container(color: const Color(0xFF000233)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF000233), // Dark navy blue color
+          ),
+        ),
         title: const Text(
           'Service Requests',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
           ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        centerTitle: true,
+        elevation: 0,
       ),
-      body: Container(
-        color: Colors.white,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Step indicator - FIXED TO HIGHLIGHT STEP 2
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    vertical: 16.0, horizontal: 20.0),
-                child: Row(
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Step indicator
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+              color: Colors.white,
+              child: Row(
+                children: [
+                  // Step 1 (completed)
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: const Color(0xFF000233), width: 2),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.check,
+                        color: Color(0xFF000233),
+                        size: 16,
+                      ),
+                    ),
+                  ),
+
+                  // Line between step 1 and 2
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      color: const Color(0xFF000233),
+                    ),
+                  ),
+
+                  // Step 2 (active)
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF000233),
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: const Color(0xFF000233), width: 2),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '2',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Line between step 2 and 3
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+
+                  // Step 3 (inactive)
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade300, width: 2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '3',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Assign Service to a Facilitator heading
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Text(
+                'Assign Service to a Facilitator',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
+                ),
+              ),
+            ),
+
+            // Success illustrations
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    // Step 1 - Inactive (white with blue border)
+                    // Green envelope with checkmark
                     Container(
-                      width: 30,
-                      height: 30,
+                      width: 70,
+                      height: 70,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
                         color: Colors.white,
-                        border: Border.all(
-                          color: const Color(0xFF000233),
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "1",
-                          style: TextStyle(
-                            color: Color(0xFF000233),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Line between 1 and 2
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    // Step 2 - Active (dark blue with white text)
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF000233),
-                        border: Border.all(
-                          color: const Color(0xFF000233),
-                          width: 2,
-                        ),
                       ),
-                      child: const Center(
-                        child: Text(
-                          "2",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Icon(
+                        Icons.email,
+                        color: Colors.green,
+                        size: 40,
                       ),
                     ),
 
-                    // Line between 2 and 3
-                    Expanded(
+                    // Green checkmark on envelope
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
                       child: Container(
-                        height: 2,
-                        color: Colors.black,
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 14,
+                        ),
                       ),
                     ),
 
-                    // Step 3 - Inactive
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        border: Border.all(
-                          color: const Color(0xFF000233),
-                          width: 2,
+                    // Green hand (positioned to the left)
+                    Positioned(
+                      left: 70,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.back_hand,
+                          color: Colors.green,
+                          size: 30,
                         ),
                       ),
-                      child: const Center(
-                        child: Text(
-                          "3",
-                          style: TextStyle(
-                            color: Color(0xFF000233),
-                            fontWeight: FontWeight.bold,
-                          ),
+                    ),
+
+                    // Green smiley face (positioned to the right)
+                    Positioned(
+                      right: 70,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.sentiment_very_satisfied,
+                          color: Colors.green,
+                          size: 30,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
 
-              const SizedBox(
-                  height: 30), // Increased spacing after step indicator
-
-              // Green illustrations - Adjusted spacing and size
-              Image.asset(
-                'assets/images/service_accepted_illustration.JPG',
-                height: 220, // Adjusted height to match second image
-                width: double.infinity,
-                fit: BoxFit.contain,
+            // I Volunteer as Tribute text
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Text(
+                  'I Volunteer as Tribute!',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                  ),
+                ),
               ),
+            ),
 
-              const SizedBox(height: 20), // Adjusted spacing after image
-
-              // Automatically assigned text
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40.0),
+            // Explanation text
+            Center(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40.0, vertical: 8.0),
                 child: Text(
                   'The service request has been automatically assigned.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey,
+                    color: Colors.grey.shade600,
                   ),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
+            // Facilitator info
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Profile image
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Name and role
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          facilitatorDetails.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF333333),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          facilitatorDetails.role,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Online status
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Accepted on: Date at Time',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Reassign button
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.red.shade300),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Reassign\nFacilitator',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red.shade300,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-              // Facilitator info - FIXED OVERFLOW ISSUE
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left side: Avatar and info
-                    Flexible(
-                      flex: 3,
-                      child: Row(
+            // Service details card
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Color(0xFFFFC0CB), width: 1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Service requester info
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Profile image
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Colors.grey[300],
-                            // Removed the child property that was displaying the text
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                           const SizedBox(width: 12),
-
-                          // Name, role and acceptance info
-                          Flexible(
+                          // Name and location
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  facilitatorDetails['name'] ?? 'Lebron James',
-                                  style: const TextStyle(
+                                  serviceDetails.name,
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF333333),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  facilitatorDetails['role'] ?? 'Pastor',
+                                  serviceDetails.location,
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.green,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      child: Text(
-                                        'Accepted on: ${facilitatorDetails['acceptedDate'] ?? '[Date]'} at ${facilitatorDetails['acceptedTime'] ?? '[Time]'}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const Divider(height: 24),
 
-                    const SizedBox(width: 8),
+                      // Service type
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite_border,
+                            size: 18,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Service: ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          Text(
+                            serviceDetails.service,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF333333),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
 
-                    // Right side: Reassign button
-                    Flexible(
-                      flex: 1,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 8),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.red),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'Reassign\nFacilitator',
+                      // Time
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 18,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Time: ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          Text(
+                            serviceDetails.timeText,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF333333),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (serviceDetails.scheduledText != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE6F4FF),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                serviceDetails.scheduledText!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF0078D4),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Location
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 18,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            serviceDetails.destination,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF333333),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Special request
+                      Padding(
+                        padding: const EdgeInsets.only(left: 26.0),
+                        child: Text(
+                          '"Please assign Fr. Lebron James if available"',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.red,
-                            height: 1.2,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Service request summary card
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Pink left border
-                      Container(
-                        width: 8,
-                        decoration: BoxDecoration(
-                          color: Colors.pink,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            bottomLeft: Radius.circular(12),
-                          ),
-                        ),
-                      ),
-
-                      // Card content
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Service requestor info
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 22,
-                                    backgroundColor: Colors.grey[300],
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          serviceDetails['name'] ??
-                                              'Service Requestor Name',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          serviceDetails['location'] ??
-                                              'Default location where theyre booking from',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 13,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Service type
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.favorite_border,
-                                      size: 18, color: Colors.grey[600]),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Service: ',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      serviceDetails['service'] ??
-                                          'Baptism and Dedication',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Time
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 8,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.access_time,
-                                          size: 18, color: Colors.grey[600]),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Time: ',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      Text(
-                                        serviceDetails['timeText'] ??
-                                            'May 5, 3:00 PM',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[50],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      serviceDetails['scheduledText'] ??
-                                          'Scheduled for Later',
-                                      style: TextStyle(
-                                        color: Colors.blue[400],
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Location
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2.0),
-                                    child: Icon(Icons.location_on_outlined,
-                                        size: 18, color: Colors.grey[600]),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          serviceDetails['destination'] ??
-                                              'To the church',
-                                          style: const TextStyle(fontSize: 14),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '"Please assign Fr. Lebron James if available"',
-                                          style: TextStyle(
-                                            fontStyle: FontStyle.italic,
-                                            fontSize: 13,
-                                            color: Colors.grey[500],
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
                           ),
                         ),
                       ),
@@ -466,25 +509,30 @@ class ServiceAcceptedPage extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 30),
-
-              // Action buttons
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 10.0),
-                child: Row(
-                  children: [
-                    // Cancel Booking button
-                    Expanded(
-                      child: OutlinedButton(
+            // Action buttons
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  // Cancel Booking button
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: const Color(0xFF000233), width: 1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextButton(
                         onPressed: () {
                           // Handle cancel booking
-                          Navigator.pop(context);
+                          Navigator.of(context).pop();
                         },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF000233)),
-                          padding: const EdgeInsets.symmetric(vertical: 15),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -493,34 +541,60 @@ class ServiceAcceptedPage extends StatelessWidget {
                           'Cancel Booking',
                           style: TextStyle(
                             color: Color(0xFF000233),
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                     ),
+                  ),
 
-                    const SizedBox(width: 16),
-
-                    // Notify Requester button - UPDATED with navigation
-                    Expanded(
-                      child: ElevatedButton(
+                  // Notify Requester button
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      margin: const EdgeInsets.only(left: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF000233),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextButton(
                         onPressed: () {
-                          // Navigate to the notification confirmation page
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   ServiceNotificationConfirmationPage(
-                                serviceDetails: serviceDetails,
-                                facilitatorDetails: facilitatorDetails,
+                                serviceDetails: serviceDetails.toMap(),
+                                facilitatorDetails: facilitatorDetails.toMap(),
+                                transactionDetails: TransactionDetails(
+                                  personalDetails: PersonalDetails(
+                                    fullName: 'John G. Dela Cruz',
+                                    age: '27',
+                                    gender: 'Male',
+                                    contactNumber: '09272944324',
+                                    emailAddress: 'johngdelacruz@gmail.com',
+                                    emergencyPerson: 'Maria B. Dela Cruz',
+                                    emergencyNumber: '0999999999',
+                                    emergencyRelation: 'Spouse',
+                                  ),
+                                  paymentDetails: PaymentDetails(
+                                    status: 'Paid',
+                                    date: '[Date when paid]',
+                                    method: 'Credit Card',
+                                    holderName: 'Jack Black',
+                                    transactionId: 'JSDBK-2893-2384',
+                                    serviceFee: '200.00',
+                                    distanceFee: '20.20',
+                                    total: '220.20',
+                                  ),
+                                ),
                               ),
                             ),
                           );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF000233),
-                          padding: const EdgeInsets.symmetric(vertical: 15),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          backgroundColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -529,19 +603,16 @@ class ServiceAcceptedPage extends StatelessWidget {
                           'Notify Requester',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
