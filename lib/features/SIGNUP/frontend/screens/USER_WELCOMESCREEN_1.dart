@@ -1,34 +1,15 @@
 //IMPORT PACKAGE
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:async';
 
 //IMPORT MVVM UPDATED
-import '../../../START/frontend/screens/SHARED_WELCOMESCREEN.dart' as main_welcome;
 import '../../backend/viewmodels/USER_SIGNUPVIEWMODELS.dart';
 
 // NOT MVVM UPDATED IMPORTS
-import '../../../../3/c1widgets/animated_wave_background.dart'; // Corrected import
-import '../../../../1/c1registrationflow/c1s2name_screen.dart';
+import '../../../../3/c1widgets/animated_wave_background.dart'; 
+//import '../../../../1/c1registrationflow/c1s2name_screen.dart';
 
-// Assuming NameScreen is a placeholder for the next step in user signup
-class NameScreen extends StatelessWidget {
-  const NameScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Name Screen'),
-      ),
-      body: const Center(
-        child: Text('Enter your name'),
-      ),
-    );
-  }
-}
-
-class WelcomeScreen extends StatefulWidget { // Keep as StatefulWidget to provide TickerProvider
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
@@ -40,6 +21,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
+    // Get the ViewModel and initialize animations and context
     final viewModel = Provider.of<UserSignupViewModel>(context, listen: false);
     viewModel.initAnimations(this); // Pass TickerProvider
     viewModel.setContext(context); // Pass context to ViewModel
@@ -47,7 +29,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   @override
   void dispose() {
-    Provider.of<UserSignupViewModel>(context, listen: false).dispose(); // Dispose ViewModel's resources
+    // Dispose the ViewModel's resources
+    Provider.of<UserSignupViewModel>(context, listen: false).dispose();
     super.dispose();
   }
 
@@ -60,7 +43,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
           Consumer<UserSignupViewModel>(
             builder: (context, viewModel, child) {
               return GestureDetector(
-                onTap: () => viewModel.skipWelcome(context),
+                onTap: () => viewModel.skipWelcome(context), // Delegate to ViewModel
                 child: AnimatedWaveBackground(
                   backgroundColor: const Color(0xFF0077BE),
                   waveColors: const [
@@ -73,12 +56,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                       // Hello! text with animation
                       Center(
                         child: AnimatedBuilder(
-                          animation: viewModel.textAnimationController,
+                          animation: viewModel.textAnimationController, // Use ViewModel's controller
                           builder: (context, child) {
                             return Opacity(
-                              opacity: viewModel.fadeInAnimation.value,
+                              opacity: viewModel.fadeInAnimation.value, // Use ViewModel's animation
                               child: Transform.scale(
-                                scale: viewModel.scaleAnimation.value,
+                                scale: viewModel.scaleAnimation.value, // Use ViewModel's animation
                                 child: const Text(
                                   'Hello!',
                                   style: TextStyle(
@@ -115,7 +98,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                 color: Colors.white,
                 size: 28,
               ),
-              onPressed: () => Provider.of<UserSignupViewModel>(context, listen: false).navigateBackToWelcome(context),
+              onPressed: () => Provider.of<UserSignupViewModel>(context, listen: false).navigateBackToWelcome(context), // Delegate to ViewModel
               tooltip: 'Back',
             ),
           ),

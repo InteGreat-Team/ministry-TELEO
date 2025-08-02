@@ -1,17 +1,16 @@
 // lib/features/SIGNUP/backend/viewmodels/CHURCH_SIGNUPVIEWMODELS.dart
-
+//IMPORT PACKAGES
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// Import the model if needed
 
+//IMPORT MVVM UPDATED
 
-// Assuming these are the paths to your screens
+// IMPORT NOT MVVM UPDATED
 import '../../../../2/c1registration/c1s2church_location_screen.dart';
 import '../../../../2/c1registration/c1s11approval_status_screen.dart';
 import '../../../../2/church_model.dart'; // Assuming ChurchModel is here
 import '../../../../2/c1approvalstatus/approval_status_check_screen.dart';
-import '../../../../2/c1approvalstatus/approval_status_result_screen.dart';
 
 class ChurchSignupViewModel extends ChangeNotifier {
   // You can add state variables here if needed for the church signup process

@@ -1,12 +1,17 @@
-// lib/features/SIGNUP/frontend/screens/USER_WELCOMESCREEN_2.dart
-
+// lib/features/SIGNUP/frontend/screens/USER_USERNAMESCREEN_5.dart
+//IMPORT PACKAGE 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../3/c1widgets/back_button.dart'; // Assuming this path for TeleoBackButton
+
+//IMPORT MVVM UPDATED 
 import '../../backend/viewmodels/USER_SIGNUPVIEWMODELS.dart'; // Import the ViewModel
 
-class UserWelcomeScreen2 extends StatelessWidget {
-  const UserWelcomeScreen2({super.key});
+//IMPORT NOT MVVM UPDATED 
+import '../../../../3/c1widgets/back_button.dart'; // Assuming this path for TeleoBackButton
+import '../../../../1/c1registrationflow/c1s5_1location_question_screen.dart';
+
+class UserUsernameScreen5 extends StatelessWidget {
+  const UserUsernameScreen5({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,27 +37,29 @@ class UserWelcomeScreen2 extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
                   const Text(
-                    'Hello!',
+                    "How should we call you?",
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    "What's your name?",
+                    "Give yourself a cool nickname",
                     style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.black,
+                      fontSize: 20,
+                      color: Colors.black54,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
-                  // First Name field
+                  // Username field
                   TextField(
-                    controller: TextEditingController(text: viewModel.firstName), // Use ViewModel's data
+                    controller: viewModel.usernameController, // Use ViewModel's controller
                     decoration: InputDecoration(
-                      hintText: 'First Name',
+                      hintText: 'Username',
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       border: OutlineInputBorder(
@@ -68,30 +75,7 @@ class UserWelcomeScreen2 extends StatelessWidget {
                         borderSide: const BorderSide(color: Color(0xFF002642)),
                       ),
                     ),
-                    onChanged: viewModel.setFirstName, // Update ViewModel
-                  ),
-                  const SizedBox(height: 16),
-                  // Last Name field
-                  TextField(
-                    controller: TextEditingController(text: viewModel.lastName), // Use ViewModel's data
-                    decoration: InputDecoration(
-                      hintText: 'Last Name',
-                      hintStyle: TextStyle(color: Colors.grey.shade400),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF002642)),
-                      ),
-                    ),
-                    onChanged: viewModel.setLastName, // Update ViewModel
+                    onChanged: viewModel.setUsername, // Explicitly call ViewModel setter
                   ),
                   const Spacer(),
                   // Next button
@@ -101,8 +85,8 @@ class UserWelcomeScreen2 extends StatelessWidget {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: viewModel.isNameFormValid
-                            ? () => viewModel.navigateToBirthdayScreen(context) // Delegate navigation to ViewModel
+                        onPressed: viewModel.isUsernameInputValid // Enable if username is entered
+                            ? () => viewModel.navigateToLocationQuestionScreen(context) // Delegate navigation to ViewModel
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF002642),

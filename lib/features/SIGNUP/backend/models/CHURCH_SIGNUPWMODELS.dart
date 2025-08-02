@@ -1,18 +1,18 @@
-// lib/features/SIGNUP/backend/models/CHURCH_SIGNUPMODELS.dart
+// lib/features/SIGNUP/backend/models/USER_SIGNUPMODELS.dart
 
-// Assuming ChurchModel is defined elsewhere (e.g., in '2/church_model.dart')
-// If not, you might define a simplified version here or import it.
-// For this example, we'll assume ChurchModel is accessible via its original import path.
+class UserSignupData {
+  String firstName;
+  String lastName;
 
-class ChurchSignupData {
-  // This model can hold data related to church signup, e.g.,
-  // String? churchName;
-  // String? churchLocation;
-  // ChurchModel? churchDetails; // If you need to pass a full ChurchModel
+  UserSignupData({
+    this.firstName = '',
+    this.lastName = '',
+  });
 
-  // For now, it's a placeholder.
-  ChurchSignupData();
+  // Getter for validation
+  bool get isValid => firstName.isNotEmpty && lastName.isNotEmpty;
 
-  // Example: factory ChurchSignupData.fromJson(Map<String, dynamic> json) { ... }
+  // You can add methods for validation or conversion here if needed
+  // Example: factory UserSignupData.fromJson(Map<String, dynamic> json) { ... }
   // Example: Map<String, dynamic> toJson() { ... }
 }

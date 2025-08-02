@@ -36,6 +36,7 @@ dependencies:
   google_place: ^0.4.7
   geolocator: ^10.1.0
   geocoding: ^2.1.0
+  flutter_bloc: ^9.1.1
 
 
 dev_dependencies:
