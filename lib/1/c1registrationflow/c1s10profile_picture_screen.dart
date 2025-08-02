@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'c1s11signup_complete_screen.dart';
 import '../../3/c1widgets/back_button.dart';
+import 'profile_upload_service.dart'; // <-- NEW: Upload Service
 
 class ProfilePictureScreen extends StatefulWidget {
   final String firstName;
@@ -11,10 +12,14 @@ class ProfilePictureScreen extends StatefulWidget {
   final String gender;
   final String username;
   final String email;
-  final String phone;
   final String password;
   final String verificationCode;
-  final String location;
+  final String? phoneNumber;
+  final String address;
+  final double lat;
+  final double lng;
+  final bool isEmailVerified;
+  final bool hasAcceptedTerms;
 
   const ProfilePictureScreen({
     super.key,
@@ -24,10 +29,14 @@ class ProfilePictureScreen extends StatefulWidget {
     required this.gender,
     required this.username,
     required this.email,
-    required this.phone,
     required this.password,
     required this.verificationCode,
-    required this.location,
+    required this.address,
+    required this.lat,
+    required this.lng,
+    required this.phoneNumber,
+    required this.isEmailVerified,
+    required this.hasAcceptedTerms,
   });
 
   @override
@@ -55,7 +64,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                 title: const Text('Photo Gallery'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImageFromGallery();
+                  _pickImage(ImageSource.gallery);
                 },
               ),
               ListTile(
@@ -63,15 +72,13 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                 title: const Text('Camera'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImageFromCamera();
+                  _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.cancel),
                 title: const Text('Cancel'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
               ),
             ],
           ),
@@ -80,63 +87,14 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
     );
   }
 
-  Future<void> _pickImageFromGallery() async {
+  Future<void> _pickImage(ImageSource source) async {
     try {
-      setState(() {
-        _isUploading = true;
-      });
-      
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-      );
-
+      final XFile? image = await _picker.pickImage(source: source, imageQuality: 80);
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-          _isUploading = false;
-        });
-      } else {
-        setState(() {
-          _isUploading = false;
-        });
+        setState(() => _selectedImage = File(image.path));
       }
     } catch (e) {
-      setState(() {
-        _isUploading = false;
-      });
-      print('Error picking image from gallery: $e');
-      _showErrorDialog('Failed to pick image from gallery');
-    }
-  }
-
-  Future<void> _pickImageFromCamera() async {
-    try {
-      setState(() {
-        _isUploading = true;
-      });
-      
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-
-      if (photo != null) {
-        setState(() {
-          _selectedImage = File(photo.path);
-          _isUploading = false;
-        });
-      } else {
-        setState(() {
-          _isUploading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _isUploading = false;
-      });
-      print('Error picking image from camera: $e');
-      _showErrorDialog('Failed to pick image from camera');
+      _showErrorDialog('Failed to pick image: $e');
     }
   }
 
@@ -149,9 +107,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('OK'),
             ),
           ],
@@ -162,17 +118,13 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
 
   Future<void> _uploadImage() async {
     if (_selectedImage == null) return;
-    
-    setState(() {
-      _isUploading = true;
-    });
-    
+
+    setState(() => _isUploading = true);
+
     try {
-      // In a real app, you would upload the image to your server here
-      // For this demo, we'll just simulate a network delay
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Navigate to the next screen
+      final uploadedUrl = await ProfileUploadService.uploadProfilePicture(_selectedImage!);
+      if (uploadedUrl == null) throw Exception("Upload failed");
+
       if (mounted) {
         Navigator.push(
           context,
@@ -184,20 +136,22 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
               gender: widget.gender,
               username: widget.username,
               email: widget.email,
-              phone: widget.phone,
+              phoneNumber: widget.phoneNumber,
               password: widget.password,
-              location: widget.location,
-              profilePicture: _selectedImage,
+              address: widget.address,
+              lat: widget.lat,
+              lng: widget.lng,
+              profilePictureUrl: uploadedUrl, // <-- Pass URL
+              hasAcceptedTerms: widget.hasAcceptedTerms,
+              isEmailVerified: widget.isEmailVerified,
             ),
           ),
         );
       }
     } catch (e) {
-      setState(() {
-        _isUploading = false;
-      });
-      print('Error uploading image: $e');
-      _showErrorDialog('Failed to upload image');
+      _showErrorDialog('Failed to upload image: $e');
+    } finally {
+      setState(() => _isUploading = false);
     }
   }
 
@@ -211,32 +165,48 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button
               const Padding(
                 padding: EdgeInsets.only(top: 16.0),
                 child: TeleoBackButton(),
               ),
               const SizedBox(height: 40),
-              
               const Text(
                 "Add a Profile Picture",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               const Text(
                 "This will help people recognize you",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 20),
+              // Testing indicator
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  border: Border.all(color: Colors.orange.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.science, color: Colors.orange.shade700, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Testing Feature: Profile pictures won't reflect in your account yet",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.orange.shade800,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 40),
-              
-              // Profile picture selection
+              const SizedBox(height: 20),
               Center(
                 child: GestureDetector(
                   onTap: _isUploading ? null : _showImageSourceOptions,
@@ -246,53 +216,31 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF002642),
-                        width: 2,
-                      ),
+                      border: Border.all(color: const Color(0xFF002642), width: 2),
                       image: _selectedImage != null
-                          ? DecorationImage(
-                              image: FileImage(_selectedImage!),
-                              fit: BoxFit.cover,
-                            )
+                          ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
                           : null,
                     ),
                     child: _isUploading
-                        ? const Center(
-                            child: CircularProgressIndicator(),
-                          )
+                        ? const Center(child: CircularProgressIndicator())
                         : _selectedImage == null
                             ? const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.add_a_photo,
-                                    color: Color(0xFF002642),
-                                    size: 50,
-                                  ),
+                                  Icon(Icons.add_a_photo, color: Color(0xFF002642), size: 50),
                                   SizedBox(height: 8),
-                                  Text(
-                                    "Add Photo",
-                                    style: TextStyle(
-                                      color: Color(0xFF002642),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+                                  Text("Add Photo", style: TextStyle(color: Color(0xFF002642), fontWeight: FontWeight.w500)),
                                 ],
                               )
                             : null,
                   ),
                 ),
               ),
-              
               const Spacer(),
-              
-              // Skip and Next buttons
               Padding(
                 padding: const EdgeInsets.only(bottom: 40.0),
                 child: Row(
                   children: [
-                    // Skip button
                     Expanded(
                       child: TextButton(
                         onPressed: _isUploading
@@ -308,51 +256,37 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                                       gender: widget.gender,
                                       username: widget.username,
                                       email: widget.email,
-                                      phone: widget.phone,
+                                      phoneNumber: widget.phoneNumber,
                                       password: widget.password,
-                                      location: widget.location,
+                                      address: widget.address,
+                                      lat: widget.lat,
+                                      lng: widget.lng,
+                                      profilePictureUrl: null, // <-- Skipped
+                                      hasAcceptedTerms: widget.hasAcceptedTerms,
+                                      isEmailVerified: widget.isEmailVerified,
                                     ),
                                   ),
                                 );
                               },
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.grey.shade700,
-                        ),
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
+                        child: const Text('Skip', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // Next button
                     Expanded(
                       flex: 2,
                       child: ElevatedButton(
-                        onPressed: (_selectedImage != null && !_isUploading)
-                            ? _uploadImage
-                            : null,
+                        onPressed: (_selectedImage != null && !_isUploading) ? _uploadImage : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF002642),
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           elevation: 4,
                           shadowColor: Colors.black.withOpacity(0.3),
                         ),
-                        child: Text(
-                          _isUploading ? 'Uploading...' : 'Next',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        child: Text(_isUploading ? 'Uploading...' : 'Next', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],

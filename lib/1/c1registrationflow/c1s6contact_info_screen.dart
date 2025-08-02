@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'c1s9verification_code_screen.dart';
-import '../../3/c1widgets/back_button.dart';
-import 'verification_service.dart';
+import 'c1s7password_screen.dart';
+import 'email_service.dart'; // Import the email service
 
 class ContactInfoScreen extends StatefulWidget {
   final String firstName;
@@ -11,8 +8,9 @@ class ContactInfoScreen extends StatefulWidget {
   final DateTime birthday;
   final String gender;
   final String username;
-  final LatLng location;
   final String address;
+  final double lat;
+  final double lng;
 
   const ContactInfoScreen({
     super.key,
@@ -21,8 +19,9 @@ class ContactInfoScreen extends StatefulWidget {
     required this.birthday,
     required this.gender,
     required this.username,
-    required this.location,
     required this.address,
+    required this.lat,
+    required this.lng,
   });
 
   @override
@@ -30,161 +29,120 @@ class ContactInfoScreen extends StatefulWidget {
 }
 
 class _ContactInfoScreenState extends State<ContactInfoScreen> {
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  String? _phoneError;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  bool _isLoading = false; // Add loading state
 
-  bool get _isFormValid =>
-      _emailController.text.isNotEmpty &&
-      _isValidEmail(_emailController.text) &&
-      _isValidPhone(_phoneController.text);
+  void _goToPasswordScreen() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
 
-  bool _isValidEmail(String email) {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
-  }
+      try {
+        // Send verification code to email
+        final sentCode = await EmailService.sendVerificationCode(
+          _emailController.text.trim(),
+          '${widget.firstName} ${widget.lastName}',
+        );
 
-  bool _isValidPhone(String phone) {
-    final phoneRegex = RegExp(r'^\d{10}$');
-    return phoneRegex.hasMatch(phone);
-  }
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
 
-  void _validatePhone() {
-    setState(() {
-      if (_phoneController.text.isEmpty) {
-        _phoneError = 'Phone number is required';
-      } else if (!_isValidPhone(_phoneController.text)) {
-        _phoneError = 'Enter a valid 10-digit phone number';
-      } else {
-        _phoneError = null;
+          // Navigate to password screen with the sent code
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PasswordScreen(
+                firstName: widget.firstName,
+                lastName: widget.lastName,
+                birthday: widget.birthday,
+                gender: widget.gender,
+                username: widget.username,
+                address: widget.address,
+                lat: widget.lat,
+                lng: widget.lng,
+                email: _emailController.text.trim(),
+                phoneNumber: _phoneController.text.trim().isEmpty
+                    ? null
+                    : _phoneController.text.trim(),
+                sentCode: sentCode, // Pass the actual sent code
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send verification code: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
-    });
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _phoneController.dispose();
-    super.dispose();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      appBar: AppBar(title: const Text('Contact Information')),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 16.0),
-                child: TeleoBackButton(),
-              ),
-              const SizedBox(height: 40),
-              const Center(
-                child: Text(
-                  "Let's keep in touch!",
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Center(
-                child: Text(
-                  "You'll need this to login",
-                  style: TextStyle(fontSize: 20, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Email field
-              const Text('Email'),
-              const SizedBox(height: 8),
-              TextField(
+              TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Email'),
+                enabled: !_isLoading, // Disable when loading
+                validator: (value) {
+                  if (value == null || value.isEmpty || !value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
-                  hintText: 'example@email.com',
-                  border: OutlineInputBorder(),
+                  labelText: 'Phone Number (Optional)',
                 ),
-                onChanged: (_) => setState(() {}),
+                enabled: !_isLoading, // Disable when loading
+                validator: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    final phoneRegex = RegExp(r'^\+63\d{10}$');
+                    if (!phoneRegex.hasMatch(value)) {
+                      return 'Enter a valid +63XXXXXXXXXX number';
+                    }
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: 20),
-
-              // Phone field
-              const Text('Phone Number'),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('+63'),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        hintText: '9123456789',
-                        border: const OutlineInputBorder(),
-                        errorText: _phoneError,
-                      ),
-                      onChanged: (_) => _validatePhone(),
-                    ),
-                  ),
-                ],
-              ),
-
               const Spacer(),
-
-              // Next button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isFormValid
-                      ? () async {
-                          try {
-                            final code = await sendVerificationCode(
-                              _emailController.text,
-                              '${widget.firstName} ${widget.lastName}',
-                            );
-
-                            if (!mounted) return;
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VerificationCodeScreen(
-                                  firstName: widget.firstName,
-                                  lastName: widget.lastName,
-                                  birthday: widget.birthday,
-                                  gender: widget.gender,
-                                  username: widget.username,
-                                  email: _emailController.text,
-                                  phone: '+63${_phoneController.text}',
-                                  location: widget.address,
-                                  password: '',
-                                  sentCode: code,
-                                ),
-                              ),
-                            );
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
-                          }
-                        }
-                      : null,
-                  child: const Text('Next'),
-                ),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _goToPasswordScreen,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Next'),
               ),
-              const SizedBox(height: 40),
             ],
           ),
         ),

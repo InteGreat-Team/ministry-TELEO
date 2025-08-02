@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'email_service.dart';
 import 'c1s10profile_picture_screen.dart';
 import '../../3/c1widgets/back_button.dart';
 
@@ -11,9 +11,15 @@ class VerificationCodeScreen extends StatefulWidget {
   final String gender;
   final String username;
   final String email;
-  final String phone;
   final String password;
-  final String location;
+  final String sentCode;
+  final String? phoneNumber;
+  final String address;
+  final double lat;
+  final double lng;
+  final bool hasAcceptedTerms;
+
+
 
   const VerificationCodeScreen({
     super.key,
@@ -23,9 +29,13 @@ class VerificationCodeScreen extends StatefulWidget {
     required this.gender,
     required this.username,
     required this.email,
-    required this.phone,
     required this.password,
-    required this.location,
+    required this.sentCode,
+    required this.phoneNumber,
+    required this.address,
+    required this.lat,
+    required this.lng,
+    required this.hasAcceptedTerms,
   });
 
   @override
@@ -33,25 +43,19 @@ class VerificationCodeScreen extends StatefulWidget {
 }
 
 class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
-  final List<TextEditingController> _controllers = List.generate(
-    6, 
-    (_) => TextEditingController()
-  );
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  final List<FocusNode> _focusNodes = List.generate(
-    6, 
-    (_) => FocusNode()
-  );
-
-  // Cooldown timer variables
   bool _isResendEnabled = true;
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
+  String? _error;
+  String? _currentCode;
 
   @override
   void initState() {
     super.initState();
-    // Simulate sending the initial verification code
+    _currentCode = widget.sentCode;
     _startCooldownTimer();
   }
 
@@ -70,10 +74,11 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   void _startCooldownTimer() {
     setState(() {
       _isResendEnabled = false;
-      _cooldownSeconds = 300; // 5 minutes in seconds
+      _cooldownSeconds = 60;
     });
 
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       setState(() {
         if (_cooldownSeconds > 0) {
           _cooldownSeconds--;
@@ -91,31 +96,57 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  bool get _isCodeComplete {
-    for (var controller in _controllers) {
-      if (controller.text.isEmpty) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool get _isCodeComplete => _controllers.every((c) => c.text.isNotEmpty);
+  String get _fullCode => _controllers.map((c) => c.text).join();
 
-  String get _fullCode {
-    return _controllers.map((controller) => controller.text).join();
-  }
-
-  void _resendCode() {
+  Future<void> _resendCode() async {
     if (!_isResendEnabled) return;
 
-    // In a real app, this would resend the verification code
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Verification code resent to your email'),
-      ),
-    );
+    final newCode = await EmailService.sendVerificationCode(widget.email, "${widget.firstName} ${widget.lastName}");
+    if (!mounted) return;
 
-    // Restart the cooldown timer
+    setState(() {
+      _currentCode = newCode;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verification code resent!')));
     _startCooldownTimer();
+  }
+
+  Future<void> _validateCodeAndProceed() async {
+    try {
+      final isValid = await EmailService.verifyCode(widget.email, _fullCode);
+      if (!mounted) return;
+
+      if (isValid) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePictureScreen(
+            firstName: widget.firstName,
+            lastName: widget.lastName,
+            birthday: widget.birthday,
+            gender: widget.gender,
+            username: widget.username,
+            email: widget.email,
+            phoneNumber: widget.phoneNumber,
+            password: widget.password,
+            address: widget.address,
+            lat: widget.lat,
+            lng: widget.lng,
+            verificationCode: _fullCode,
+            hasAcceptedTerms: widget.hasAcceptedTerms,
+            isEmailVerified: true,
+          ),
+          ),
+        );
+      } else {
+        setState(() => _error = 'Incorrect code. Please try again.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Verification failed: $e')));
+    }
   }
 
   @override
@@ -126,161 +157,68 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button row
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.only(top: 16.0),
-                  child: TeleoBackButton(),
-                ),
+              const Padding(
+                padding: EdgeInsets.only(top: 16.0),
+                child: TeleoBackButton(),
               ),
               const SizedBox(height: 40),
-              
               const Text(
-                "We've sent a code to your email!",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
+                'Enter Verification Code',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                "Enter the six digit code generated by your authentication app.",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 60),
-              
-              // Verification code input
+              const SizedBox(height: 12),
+              Text('A code has been sent to ${widget.email}'),
+              const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(
-                  6,
-                  (index) => SizedBox(
-                    width: 45,
-                    height: 60,
+                children: List.generate(6, (index) {
+                  return SizedBox(
+                    width: 40,
                     child: TextField(
                       controller: _controllers[index],
                       focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
                       maxLength: 1,
-                      decoration: InputDecoration(
-                        counterText: '',
-                        contentPadding: EdgeInsets.zero,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF002642)),
-                        ),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      decoration: const InputDecoration(counterText: ''),
                       onChanged: (value) {
                         if (value.isNotEmpty && index < 5) {
                           _focusNodes[index + 1].requestFocus();
+                        } else if (value.isEmpty && index > 0) {
+                          _focusNodes[index - 1].requestFocus();
                         }
                         setState(() {});
                       },
                     ),
-                  ),
+                  );
+                }),
+              ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                ),
+              const SizedBox(height: 24),
+              Center(
+                child: TextButton(
+                  onPressed: _isResendEnabled ? _resendCode : null,
+                  child: Text(_isResendEnabled
+                      ? 'Resend Code'
+                      : 'Resend in $_formatCooldownTime'),
                 ),
               ),
-              
-              const SizedBox(height: 40),
-              
-              // Resend code with cooldown
-              GestureDetector(
-                onTap: _isResendEnabled ? _resendCode : null,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Haven't got the code yet? ",
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      _isResendEnabled 
-                          ? "Resend code" 
-                          : "Resend code ($_formatCooldownTime)",
-                      style: TextStyle(
-                        color: _isResendEnabled ? Colors.blue : Colors.grey.shade400,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
               const Spacer(),
-              
-              // Next button
-              Padding(
-                padding: const EdgeInsets.only(bottom: 40.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isCodeComplete
-                        ? () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProfilePictureScreen(
-                                  firstName: widget.firstName,
-                                  lastName: widget.lastName,
-                                  birthday: widget.birthday,
-                                  gender: widget.gender,
-                                  username: widget.username,
-                                  email: widget.email,
-                                  phone: widget.phone,
-                                  password: widget.password,
-                                  location: widget.location,
-                                  verificationCode: _fullCode,
-                                ),
-                              ),
-                            );
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF002642),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.3),
-                    ),
-                    child: const Text(
-                      'Next',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isCodeComplete ? _validateCodeAndProceed : null,
+                  child: const Text('Verify'),
                 ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
