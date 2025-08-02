@@ -10,6 +10,8 @@ const tagsRouter = require("./prayerwall/routes/tags");
 const commentsRouter = require("./prayerwall/routes/comments");
 const prayerLikesRouter = require("./prayerwall/routes/prayer_likes");
 
+const emailRoleRouter = require("./user/routes/getUserRole");
+
 const DATABASE_URL = defineSecret("DATABASE_URL");
 
 exports.prayerwall = onRequest(
@@ -40,6 +42,32 @@ exports.prayerwall = onRequest(
       app.use("/api/tags", tagsRouter);
       app.use("/api/comments", commentsRouter);
       app.use("/api/prayerLikes", prayerLikesRouter);
+
+      return app(req, res);
+    },
+);
+
+exports.emailrole = onRequest(
+    {
+      secrets: [DATABASE_URL],
+      region: "asia-southeast1",
+    },
+    (req, res) => {
+      const app = express();
+      app.use(express.json());
+
+      const dbUrl = DATABASE_URL.value();
+      const pool = new Pool({
+        connectionString: dbUrl,
+        ssl: {rejectUnauthorized: false},
+      });
+
+      app.use((req, _, next) => {
+        req.env = {db: pool};
+        next();
+      });
+
+      app.use("/api/emailRole", emailRoleRouter);
 
       return app(req, res);
     },

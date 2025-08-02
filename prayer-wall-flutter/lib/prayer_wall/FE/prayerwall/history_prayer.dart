@@ -214,7 +214,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ),
                               ),
                               Text(
-                                timeago.format(prayer.createdAt),
+                                timeago.format(prayer.createdAt.toLocal()),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.white.withOpacity(0.7),
@@ -314,7 +314,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ),
                               ),
                               Text(
-                                timeago.format(prayer.createdAt),
+                                timeago.format(prayer.createdAt.toLocal()),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.white.withOpacity(0.7),

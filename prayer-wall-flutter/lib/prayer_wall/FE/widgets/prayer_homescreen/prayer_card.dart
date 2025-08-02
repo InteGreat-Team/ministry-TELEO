@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:teleo_organized_new/prayer_wall/BE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
 
 // Define SwipeDirection enum to fix the undefined class error
 enum SwipeDirection { right, left }
@@ -324,7 +325,9 @@ class _PrayerCardState extends State<PrayerCard>
                     ),
                   ),
                   Text(
-                    timeago.format(widget.post.createdAt.toLocal()),
+                    DateFormat(
+                      'MMM d, yyyy • hh:mm a',
+                    ).format(widget.post.createdAt),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white.withOpacity(0.7),
@@ -498,7 +501,9 @@ class _PrayerCardState extends State<PrayerCard>
                             ),
                           ),
                           Text(
-                            timeago.format(widget.post.createdAt),
+                            DateFormat(
+                              'MMM d, yyyy • hh:mm a',
+                            ).format(widget.post.createdAt.toLocal()),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.white.withOpacity(0.7),
