@@ -25,11 +25,10 @@ class PrayerProvider with ChangeNotifier {
       }
 
       final idToken = await user.getIdToken();
-      print(idToken);
 
       final res = await http.get(
         Uri.parse(
-          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/getPrayers',
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/getPrayers',
         ),
         headers: {'Authorization': 'Bearer $idToken'},
       );

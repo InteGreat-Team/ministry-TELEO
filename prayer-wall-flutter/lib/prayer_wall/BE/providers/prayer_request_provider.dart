@@ -193,7 +193,7 @@ class PrayerRequestProvider extends ChangeNotifier {
 
       final res = await http.post(
         Uri.parse(
-          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/addPrayer',
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/addPrayer',
         ),
         headers: {
           'Content-Type': 'application/json',

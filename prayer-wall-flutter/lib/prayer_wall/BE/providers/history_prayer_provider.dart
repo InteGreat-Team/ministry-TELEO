@@ -62,7 +62,7 @@ class UserPostsViewModel extends ChangeNotifier {
 
       final response = await http.get(
         Uri.parse(
-          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/getMyPrayers',
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/getMyPrayers',
         ),
         headers: {
           'Content-Type': 'application/json',

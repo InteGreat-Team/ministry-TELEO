@@ -324,7 +324,7 @@ class _PrayerCardState extends State<PrayerCard>
                     ),
                   ),
                   Text(
-                    timeago.format(widget.post.createdAt),
+                    timeago.format(widget.post.createdAt.toLocal()),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white.withOpacity(0.7),

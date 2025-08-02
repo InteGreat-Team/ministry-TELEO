@@ -74,9 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } else {
       // Optional: handle case where role is not yet loaded
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('User role not available yet.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User role not available yet.')),
+      );
     }
   }
 

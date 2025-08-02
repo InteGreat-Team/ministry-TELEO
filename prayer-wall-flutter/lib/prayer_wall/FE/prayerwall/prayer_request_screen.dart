@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../BE/models/prayer_post.dart';
 import '../../BE/providers/prayer_request_provider.dart';
@@ -30,25 +29,10 @@ class _PrayerRequestScreenState extends State<PrayerRequestScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserName();
-  }
-
-  Future<void> _loadUserName() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      setState(() {
-        userName = user.displayName ?? user.email ?? 'Anonymous';
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final utc = DateTime.now().toUtc();
-    debugPrint('📅 Local Time: $now');
-    debugPrint('🌐 UTC Time: $utc');
-
     return ChangeNotifierProvider(
       create: (_) => PrayerRequestProvider()..fetchTags(),
       child: Consumer<PrayerRequestProvider>(
@@ -120,7 +104,7 @@ class _PrayerRequestScreenState extends State<PrayerRequestScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userName: userName,
       userAvatar: '',
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toLocal(),
       content: provider.subjectController.text,
       details: provider.requestController.text,
       likes: 0,

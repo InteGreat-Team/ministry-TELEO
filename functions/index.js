@@ -3,7 +3,9 @@ const {defineSecret} = require("firebase-functions/params");
 const express = require("express");
 const {Pool} = require("pg");
 
-const prayersRouter = require("./prayerwall/routes/prayers");
+const getPrayersRouter = require("./prayerwall/routes/getPrayers");
+const addPrayerRouter = require("./prayerwall/routes/addPrayer");
+const getMyPrayers = require("./prayerwall/routes/getMyPrayers");
 const tagsRouter = require("./prayerwall/routes/tags");
 const commentsRouter = require("./prayerwall/routes/comments");
 const prayerLikesRouter = require("./prayerwall/routes/prayer_likes");
@@ -32,7 +34,9 @@ exports.prayerwall = onRequest(
         next();
       });
 
-      app.use("/api/prayers", prayersRouter);
+      app.use("/api/getPrayers", getPrayersRouter);
+      app.use("/api/addPrayer", addPrayerRouter);
+      app.use("/api/getMyPrayers", getMyPrayers);
       app.use("/api/tags", tagsRouter);
       app.use("/api/comments", commentsRouter);
       app.use("/api/prayerLikes", prayerLikesRouter);
