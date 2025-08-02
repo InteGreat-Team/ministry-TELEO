@@ -36,6 +36,9 @@ dependencies:
   google_place: ^0.4.7
   geolocator: ^10.1.0
   geocoding: ^2.1.0
+  webview_flutter: ^4.13.0
+  webview_flutter_android: ^4.8.2
+  webview_flutter_wkwebview: ^3.22.1
 
 
 dev_dependencies:

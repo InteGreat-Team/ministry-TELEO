@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// Import your home page
+import '../c1homepage/donate_screen.dart';
 
 void main() {
   runApp(const DonationApp());
@@ -130,13 +132,51 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header with Back Button
             Container(
               padding: const EdgeInsets.all(16.0),
               color: const Color(0xFF1A237E),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Back button row
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate back to the specific home page
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(), // Replace with your actual home page widget// fix this shit
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Donations',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   const Text(
                     'Total Donations',
                     style: TextStyle(color: Colors.white70, fontSize: 14),
@@ -416,7 +456,7 @@ class _DonatePageState extends State<DonatePage> {
         final checkoutUrl = data['checkout_url'];
 
         if (checkoutUrl != null) {
-          _showCheckoutDialog(checkoutUrl);
+          _showPaymentDialog(checkoutUrl);
         } else {
           setState(() {
             _errorMessage = 'No checkout URL received from server.';
@@ -446,9 +486,10 @@ class _DonatePageState extends State<DonatePage> {
     }
   }
 
-  void _showCheckoutDialog(String checkoutUrl) {
+  void _showPaymentDialog(String checkoutUrl) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Row(
@@ -474,19 +515,19 @@ class _DonatePageState extends State<DonatePage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: Colors.green[50],
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: Colors.green[200]!),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info, color: Colors.blue[600], size: 20),
+                    Icon(Icons.check_circle, color: Colors.green[600], size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Copy the link below and open it in your browser to complete the payment:',
+                        'Payment link has been copied to your clipboard. Open your browser and paste the link to complete the payment.',
                         style: TextStyle(
-                          color: Colors.blue[800],
+                          color: Colors.green[800],
                           fontSize: 14,
                         ),
                       ),
@@ -524,13 +565,39 @@ class _DonatePageState extends State<DonatePage> {
                 _copyToClipboard(checkoutUrl);
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
+                
+                // Show success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Payment link copied! Open your browser and paste the link to complete the donation.',
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.green[600],
+                    duration: const Duration(seconds: 5),
+                    action: SnackBarAction(
+                      label: 'OK',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      },
+                    ),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A237E),
               ),
               icon: const Icon(Icons.copy, color: Colors.white, size: 18),
               label: const Text(
-                'Copy & Close',
+                'Copy Link & Close',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -542,30 +609,6 @@ class _DonatePageState extends State<DonatePage> {
 
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Payment link copied! Open it in your browser to complete the donation.',
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.green[600],
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-      ),
-    );
   }
 
   @override
@@ -576,7 +619,7 @@ class _DonatePageState extends State<DonatePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Header with enhanced back button
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: const BoxDecoration(
@@ -586,11 +629,26 @@ class _DonatePageState extends State<DonatePage> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        size: 24,
-                        color: Colors.black54,
+                      onTap: () {
+                        // Navigate back to the specific home page
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomePage(), // Replace with your actual home page widget
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A237E).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          size: 24,
+                          color: Color(0xFF1A237E),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),

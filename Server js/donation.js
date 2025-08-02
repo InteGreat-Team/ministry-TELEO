@@ -31,15 +31,13 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Initialize DB
+// ✅ Updated DB initializer with column checks
 const initDB = async () => {
   try {
+    // Create the table if it doesn't exist
     await pool.query(`
       CREATE TABLE IF NOT EXISTS donations (
         id SERIAL PRIMARY KEY,
-        user_id TEXT,
-        user_name TEXT,
-        user_email TEXT,
         reference_number VARCHAR(50) UNIQUE,
         amount INTEGER NOT NULL,
         description TEXT,
@@ -49,9 +47,21 @@ const initDB = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    console.log("✅ Table 'donations' ready");
+
+    // Add missing columns safely
+    const alterQueries = [
+      `ALTER TABLE donations ADD COLUMN IF NOT EXISTS user_id TEXT;`,
+      `ALTER TABLE donations ADD COLUMN IF NOT EXISTS user_name TEXT;`,
+      `ALTER TABLE donations ADD COLUMN IF NOT EXISTS user_email TEXT;`
+    ];
+
+    for (const query of alterQueries) {
+      await pool.query(query);
+    }
+
+    console.log("✅ Table 'donations' ready and up-to-date");
   } catch (err) {
-    console.error("❌ DB init error:", err.message);
+    console.error("❌ DB init/migration error:", err.message);
   }
 };
 
@@ -66,7 +76,7 @@ const authenticate = async (req, res, next) => {
   try {
     const decoded = await admin.auth().verifyIdToken(idToken);
     req.user = decoded;
-    console.log("👤 Decoded Firebase user:", decoded); // ✅ Step 1 log added
+    console.log("👤 Decoded Firebase user:", decoded);
     next();
   } catch (err) {
     console.error("❌ Token verification failed:", err.message);
@@ -151,7 +161,7 @@ app.post("/donate", authenticate, async (req, res) => {
   }
 });
 
-// 404 fallback
+// Fallback for unmatched routes
 app.use((req, res) => {
   res.status(404).send(`🛑 No route found for ${req.method} ${req.originalUrl}`);
 });
