@@ -1,4 +1,4 @@
-console.log("🚨🚨 Running FULL donation.js with PayMongo + DB (Firebase + Auth)");
+console.log("🚨🚨 Running FULL donation.js with PayMongo + DB (Firebase + Auth + Webhook)");
 
 const functions = require("firebase-functions");
 const express = require("express");
@@ -21,23 +21,24 @@ const app = express();
 console.log("ENV: PAYMONGO_SECRET_KEY", process.env.PAYMONGO_SECRET_KEY ? "Loaded" : "Missing");
 console.log("ENV: NEON_DB_URL", process.env.NEON_DB_URL ? "Loaded" : "Missing");
 
-// Middleware
 app.use(cors({ origin: true }));
 app.use(express.json());
 
 // PostgreSQL setup (Neon DB)
 const pool = new Pool({
   connectionString: process.env.NEON_DB_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
 });
 
-// ✅ Updated DB initializer with column checks
+// Initialize DB
 const initDB = async () => {
   try {
-    // Create the table if it doesn't exist
     await pool.query(`
       CREATE TABLE IF NOT EXISTS donations (
         id SERIAL PRIMARY KEY,
+        user_id TEXT,
+        user_name TEXT,
+        user_email TEXT,
         reference_number VARCHAR(50) UNIQUE,
         amount INTEGER NOT NULL,
         description TEXT,
@@ -48,20 +49,16 @@ const initDB = async () => {
       );
     `);
 
-    // Add missing columns safely
     const alterQueries = [
       `ALTER TABLE donations ADD COLUMN IF NOT EXISTS user_id TEXT;`,
       `ALTER TABLE donations ADD COLUMN IF NOT EXISTS user_name TEXT;`,
       `ALTER TABLE donations ADD COLUMN IF NOT EXISTS user_email TEXT;`
     ];
-
-    for (const query of alterQueries) {
-      await pool.query(query);
-    }
+    for (const q of alterQueries) await pool.query(q);
 
     console.log("✅ Table 'donations' ready and up-to-date");
   } catch (err) {
-    console.error("❌ DB init/migration error:", err.message);
+    console.error("❌ DB init error:", err.message);
   }
 };
 
@@ -94,12 +91,20 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// ✅ Donation route (secured)
+// ✅ Donation route
 app.post("/donate", authenticate, async (req, res) => {
-  console.log("📥 /donate request:", req.body);
-
   const { amount, description, category } = req.body;
-  const { uid, name, email } = req.user;
+  const { uid, email } = req.user;
+
+  let name = req.user.name || null;
+  if (!name || !email) {
+    try {
+      const userRecord = await admin.auth().getUser(uid);
+      name = userRecord.displayName || null;
+    } catch (err) {
+      console.warn("⚠️ Could not fetch full user info:", err.message);
+    }
+  }
 
   if (!amount || !category || typeof amount !== "number" || amount < 100) {
     return res.status(400).json({ error: "Invalid donation: amount and category are required, amount >= 100." });
@@ -114,7 +119,7 @@ app.post("/donate", authenticate, async (req, res) => {
             amount: amount * 100,
             currency: "PHP",
             description: description || "Donation",
-            remarks: category
+            remarks: category,
           }
         }
       },
@@ -128,44 +133,78 @@ app.post("/donate", authenticate, async (req, res) => {
 
     const link = paymongoRes.data.data.attributes;
 
-    try {
-      await pool.query(
-        `INSERT INTO donations (user_id, user_name, user_email, reference_number, amount, description, category, status, checkout_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT (reference_number) DO NOTHING`,
-        [
-          uid,
-          name || null,
-          email || null,
-          link.reference_number,
-          link.amount,
-          description || "Donation",
-          category,
-          link.status,
-          link.checkout_url
-        ]
-      );
-      console.log("✅ Saved to DB:", link.reference_number);
-    } catch (dbErr) {
-      console.error("❌ DB error:", dbErr.message);
-      return res.status(500).json({ error: `Database insert failed: ${dbErr.message}` });
-    }
+    await pool.query(
+      `INSERT INTO donations (user_id, user_name, user_email, reference_number, amount, description, category, status, checkout_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (reference_number) DO NOTHING`,
+      [
+        uid,
+        name,
+        email || null,
+        link.reference_number,
+        link.amount,
+        description || "Donation",
+        category,
+        link.status,
+        link.checkout_url
+      ]
+    );
 
+    console.log("✅ Saved to DB:", link.reference_number);
     res.json({ checkout_url: link.checkout_url, reference: link.reference_number });
 
   } catch (err) {
-    console.error("❌ PayMongo error:", err.response?.data || err.message);
+    console.error("❌ Donation error:", err.response?.data || err.message);
     res.status(500).json({
       error: err.response?.data?.errors?.[0]?.detail || "PayMongo failed"
     });
   }
 });
 
-// Fallback for unmatched routes
+// ✅ Webhook route
+app.post("/webhook", async (req, res) => {
+  const event = req.body.data;
+  console.log("📩 Webhook received:", event?.type);
+
+  if (!event || !event.type || !event.attributes) {
+    return res.status(400).json({ error: "Invalid webhook data" });
+  }
+
+  const reference = event.attributes.billing?.reference_number;
+  if (!reference) {
+    return res.status(400).json({ error: "Missing reference number" });
+  }
+
+  try {
+    if (event.type === "payment.paid") {
+      const update = await pool.query(
+        `UPDATE donations SET status = 'paid' WHERE reference_number = $1`,
+        [reference]
+      );
+      console.log(`✅ Updated donation to 'paid' (${reference})`);
+    }
+
+    if (event.type === "payment.failed") {
+      const update = await pool.query(
+        `UPDATE donations SET status = 'failed' WHERE reference_number = $1`,
+        [reference]
+      );
+      console.log(`❌ Updated donation to 'failed' (${reference})`);
+    }
+
+    res.status(200).json({ received: true });
+
+  } catch (err) {
+    console.error("❌ Webhook error:", err.message);
+    res.status(500).json({ error: "Failed to process webhook" });
+  }
+});
+
+// 404 fallback
 app.use((req, res) => {
   res.status(404).send(`🛑 No route found for ${req.method} ${req.originalUrl}`);
 });
 
-// ✅ Export for Firebase Functions
+// Export for Firebase
 initDB();
 exports.donationApi = functions.https.onRequest(app);

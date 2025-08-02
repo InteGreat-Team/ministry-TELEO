@@ -90,7 +90,7 @@ class _HomePageState extends State<HomePage> {
       id: 4,
       title: 'Housing Program',
       description: 'Help build homes for families',
-      amount: 'P 100-500',
+      amount: 'P 50-500',
       location: 'Metro Manila',
       icon: Icons.home,
       category: 'housing',
@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const Text(
-                    'P 1,500',
+                    'P ---',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -194,21 +194,21 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Last Donation: April 1, 2025',
+                        '---',
                         style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: const [
                           Text(
-                            'This Month',
+                            '---',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
                             ),
                           ),
                           Text(
-                            'P 500',
+                            '----',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
