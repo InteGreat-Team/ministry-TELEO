@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../BE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../BE/providers/history_prayer_provider.dart';
+import 'package:intl/intl.dart';
 
 class UserPostsScreen extends StatefulWidget {
   final String userRole;
@@ -214,7 +215,9 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ),
                               ),
                               Text(
-                                timeago.format(prayer.createdAt.toLocal()),
+                                DateFormat(
+                                  'MMM d, yyyy • hh:mm a',
+                                ).format(prayer.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.white.withOpacity(0.7),
@@ -314,7 +317,9 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ),
                               ),
                               Text(
-                                timeago.format(prayer.createdAt.toLocal()),
+                                DateFormat(
+                                  'MMM d, yyyy • hh:mm a',
+                                ).format(prayer.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.white.withOpacity(0.7),

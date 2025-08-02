@@ -71,9 +71,7 @@ class PrayerPost {
       userAvatar: json['userAvatar'] ?? 'assets/images/profile.jpg',
       content: json['content']?.toString() ?? '',
       details: json['details']?.toString() ?? '',
-      createdAt:
-          DateTime.tryParse(json['created_at'] ?? '')?.toLocal() ??
-          DateTime.now(),
+      createdAt: DateTime.parse(json['created_at']),
       likes: int.tryParse(json['likes'].toString()) ?? 0,
       prayers: json['prayers'] ?? 0,
       comments: parsedComments.length,

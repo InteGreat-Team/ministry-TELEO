@@ -17,39 +17,37 @@ router.get("/", async (req, res) => {
     );
   }
 
-
   const idToken = authHeader.split("Bearer ")[1];
-  const client = await pool.connect();
+  let decodedToken;
+  try {
+    decodedToken = await admin.auth().verifyIdToken(idToken);
+  } catch (err) {
+    console.error("Firebase auth error:", err);
+    return res.status(401).json({error: "Invalid or expired token"});
+  }
+
+  const uid = decodedToken.uid;
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const uid = decodedToken.uid;
-
-    const userResult = await client.query(
+    // Check user existence with pool.query instead of manual client connection
+    const userResult = await pool.query(
         `SELECT id FROM users WHERE firebase_uid = $1`,
         [uid],
     );
     if (userResult.rows.length === 0) {
-      return res.status(404).json({error: "User not found in database"});
+      return res.status(404).json();
     }
 
-    const limit = parseInt(req.query.limit) || 20;
-    const offset = parseInt(req.query.offset) || 0;
+    // Parse limit & offset with safe defaults
+    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+    const offset = Math.max(parseInt(req.query.offset) || 0, 0);
 
-    // --- Optimized with JOINs and subqueries ---
     const prayersQuery = `
       SELECT 
         p.*,
         u.first_name,
         COALESCE(l.like_count, 0) AS likes,
-        json_agg(
-          json_build_object(
-            'id', c.id,
-            'text', c.text,
-            'created_at', c.created_at,
-            'first_name', cu.first_name
-          )
-        ) FILTER (WHERE c.id IS NOT NULL) AS comments
+        COALESCE(comments.comments, '[]') AS comments
       FROM prayers p
       JOIN users u ON p.user_id = u.id
       LEFT JOIN (
@@ -57,21 +55,27 @@ router.get("/", async (req, res) => {
         FROM likes
         GROUP BY prayer_id
       ) l ON l.prayer_id = p.id
-      LEFT JOIN comments c ON c.prayer_id = p.id
-      LEFT JOIN users cu ON cu.id = c.user_id
+      LEFT JOIN (
+        SELECT c.prayer_id, json_agg(json_build_object(
+          'id', c.id,
+          'text', c.text,
+          'created_at', c.created_at,
+          'first_name', cu.first_name
+        )) AS comments
+        FROM comments c
+        JOIN users cu ON cu.id = c.user_id
+        GROUP BY c.prayer_id
+      ) comments ON comments.prayer_id = p.id
       WHERE p.post_type = 'public'
-      GROUP BY p.id, u.first_name, l.like_count
       ORDER BY p.created_at DESC
-      LIMIT $1 OFFSET $2
+      LIMIT $1 OFFSET $2;
     `;
 
-    const result = await client.query(prayersQuery, [limit, offset]);
+    const result = await pool.query(prayersQuery, [limit, offset]);
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching prayers:", err);
     res.status(500).json({error: "Failed to fetch prayers"});
-  } finally {
-    client.release;
   }
 });
 
