@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/prayer_post.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../BE/models/prayer_post.dart';
 import '../../BE/providers/prayer_request_provider.dart';
 import '../widgets/prayer_request/prayer_request.dart';
 
-class PrayerRequestScreen extends StatelessWidget {
+class PrayerRequestScreen extends StatefulWidget {
   final Function(PrayerPost) onPrayerAdded;
 
   const PrayerRequestScreen({super.key, required this.onPrayerAdded});
 
-  // Extract theme colors as a static constant
   static const List<Color> _themeColors = [
     Color(0xFF1A2A4A),
     Color(0xFF00A19A),
@@ -20,12 +21,33 @@ class PrayerRequestScreen extends StatelessWidget {
   ];
 
   @override
+  State<PrayerRequestScreen> createState() => _PrayerRequestScreenState();
+}
+
+class _PrayerRequestScreenState extends State<PrayerRequestScreen> {
+  String userName = 'You'; // Default fallback
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        userName = user.displayName ?? user.email ?? 'Anonymous';
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final utc = DateTime.now().toUtc();
     debugPrint('📅 Local Time: $now');
     debugPrint('🌐 UTC Time: $utc');
-
 
     return ChangeNotifierProvider(
       create: (_) => PrayerRequestProvider()..fetchTags(),
@@ -36,14 +58,13 @@ class PrayerRequestScreen extends StatelessWidget {
               subjectController: provider.subjectController,
               requestController: provider.requestController,
               selectedColor: provider.selectedColor,
-              themeColors: _themeColors,
+              themeColors: PrayerRequestScreen._themeColors,
               selectedHashtags: provider.selectedHashtags,
               isHashtagDropdownOpen: provider.isHashtagDropdownOpen,
               isTagsLoading: provider.isTagsLoading,
               errorMessage: provider.errorMessage,
               availableTags: provider.availableTags,
               selectedPostType: provider.selectedPostType,
-              // Fix: Use provider state instead of hardcoded false
               isChurchDropdownOpen: provider.isChurchDropdownOpen,
               isPastorDropdownOpen: provider.isPastorDropdownOpen,
               availableChurches: provider.availableChurches,
@@ -70,18 +91,17 @@ class PrayerRequestScreen extends StatelessWidget {
     );
   }
 
-  // Extract submit handler for better readability and error handling
   Future<void> _handleSubmitPrayer(
     BuildContext context,
     PrayerRequestProvider provider,
   ) async {
     try {
       final result = await provider.submitPrayer();
-      if (!context.mounted) return; // Check if widget is still mounted
+      if (!context.mounted) return;
       _showSnackBar(context, result['message'], result['success']);
       if (result['success']) {
         final newPrayerPost = _createPrayerPost(provider);
-        onPrayerAdded(newPrayerPost);
+        widget.onPrayerAdded(newPrayerPost);
         Navigator.pop(context);
       }
     } catch (e) {
@@ -95,11 +115,10 @@ class PrayerRequestScreen extends StatelessWidget {
     }
   }
 
-  // Extract PrayerPost creation for better readability
   PrayerPost _createPrayerPost(PrayerRequestProvider provider) {
     return PrayerPost(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // More unique ID
-      userName: 'You',
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userName: userName,
       userAvatar: '',
       createdAt: DateTime.now(),
       content: provider.subjectController.text,
@@ -110,10 +129,10 @@ class PrayerRequestScreen extends StatelessWidget {
       hasLiked: false,
       hasPrayed: false,
       cardColor: provider.selectedColor,
+      commentList: [],
     );
   }
 
-  // Extract SnackBar display for reusability
   void _showSnackBar(BuildContext context, String message, bool isSuccess) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -124,7 +143,6 @@ class PrayerRequestScreen extends StatelessWidget {
     );
   }
 
-  // Extract display text methods for better organization
   String _getHashtagsDisplayText(PrayerRequestProvider provider) {
     final selectedTags = provider.selectedHashtags;
     if (selectedTags.isEmpty) return 'Select tags';

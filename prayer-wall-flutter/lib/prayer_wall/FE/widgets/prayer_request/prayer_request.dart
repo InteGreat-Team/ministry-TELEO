@@ -522,7 +522,7 @@ class PrayerRequestWidgets {
         _buildAudienceOption(
           'church_community',
           'Church Community',
-          '(Visible to pastors and leaders)',
+          '(Visible to pastors)',
           selectedPostType,
           onPostTypeChanged,
         ),
@@ -544,8 +544,10 @@ class PrayerRequestWidgets {
     String selectedPostType,
     Function(String) onPostTypeChanged,
   ) {
+    final bool isDisabled = value == 'church_community'; // Disable this option
+
     return GestureDetector(
-      onTap: () => onPostTypeChanged(value),
+      onTap: isDisabled ? null : () => onPostTypeChanged(value),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Row(
@@ -553,7 +555,10 @@ class PrayerRequestWidgets {
             Radio<String>(
               value: value,
               groupValue: selectedPostType,
-              onChanged: (newValue) => onPostTypeChanged(newValue!),
+              onChanged:
+                  isDisabled
+                      ? null
+                      : (newValue) => onPostTypeChanged(newValue!),
               activeColor: const Color(0xFF0A0E2D),
             ),
             const SizedBox(width: 8),
@@ -561,17 +566,36 @@ class PrayerRequestWidgets {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: isDisabled ? Colors.grey : Colors.black87,
+                        ),
+                      ),
+                      if (isDisabled)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            '(Coming soon)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDisabled ? Colors.grey[400] : Colors.grey[600],
+                    ),
                   ),
                 ],
               ),

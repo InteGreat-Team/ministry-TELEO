@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:teleo_organized_new/prayer_wall/FE/models/prayer_post.dart';
+import 'package:teleo_organized_new/prayer_wall/BE/models/prayer_post.dart';
 import 'package:teleo_organized_new/prayer_wall/FE/widgets/prayer_homescreen/prayer_card.dart';
 import 'dart:math' as math;
 

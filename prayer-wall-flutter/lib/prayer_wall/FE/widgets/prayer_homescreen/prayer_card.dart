@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'package:teleo_organized_new/prayer_wall/FE/models/prayer_post.dart';
+import 'package:teleo_organized_new/prayer_wall/BE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 // Define SwipeDirection enum to fix the undefined class error

@@ -16,8 +16,6 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error("Error fetching tags:", error);
     res.status(500).json("Failed to fetch tags");
-  } finally {
-    pool.release();
   }
 });
 
@@ -36,8 +34,6 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.error("Error adding tag:", error);
     res.status(500).json({success: false, message: "Failed to add tag"});
-  } finally {
-    pool.release();
   }
 });
 

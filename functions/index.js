@@ -6,6 +6,7 @@ const {Pool} = require("pg");
 const prayersRouter = require("./prayerwall/routes/prayers");
 const tagsRouter = require("./prayerwall/routes/tags");
 const commentsRouter = require("./prayerwall/routes/comments");
+const prayerLikesRouter = require("./prayerwall/routes/prayer_likes");
 
 const DATABASE_URL = defineSecret("DATABASE_URL");
 
@@ -34,6 +35,7 @@ exports.prayerwall = onRequest(
       app.use("/api/prayers", prayersRouter);
       app.use("/api/tags", tagsRouter);
       app.use("/api/comments", commentsRouter);
+      app.use("/api/prayerLikes", prayerLikesRouter);
 
       return app(req, res);
     },

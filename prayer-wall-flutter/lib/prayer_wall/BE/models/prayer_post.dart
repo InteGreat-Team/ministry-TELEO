@@ -1,5 +1,28 @@
 import 'package:flutter/material.dart';
 
+class Comment {
+  final String id;
+  final String text;
+  final String userName;
+  final DateTime createdAt;
+
+  Comment({
+    required this.id,
+    required this.text,
+    required this.userName,
+    required this.createdAt,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      id: json['id']?.toString() ?? '',
+      text: json['text']?.toString() ?? '',
+      userName: json['first_name']?.toString() ?? 'Anonymous',
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+    );
+  }
+}
+
 class PrayerPost {
   final String id;
   final String userName;
@@ -13,6 +36,7 @@ class PrayerPost {
   bool hasLiked;
   bool hasPrayed;
   final Color cardColor;
+  final List<Comment> commentList;
 
   PrayerPost({
     required this.id,
@@ -27,6 +51,7 @@ class PrayerPost {
     required this.hasLiked,
     required this.hasPrayed,
     required this.cardColor,
+    required this.commentList,
   });
 
   factory PrayerPost.fromJson(Map<String, dynamic> json) {
@@ -34,19 +59,26 @@ class PrayerPost {
     Color parsedColor =
         themeColorHex != null ? _hexToColor(themeColorHex) : Colors.blue;
 
+    final List<Comment> parsedComments =
+        (json['comments'] as List<dynamic>?)
+            ?.map((commentJson) => Comment.fromJson(commentJson))
+            .toList() ??
+        [];
+
     return PrayerPost(
       id: json['id']?.toString() ?? '',
-      userName: json['userName']?.toString() ?? 'Anonymous',
+      userName: json['first_name']?.toString() ?? 'Anonymous',
       userAvatar: json['userAvatar'] ?? 'assets/images/profile.jpg',
       content: json['content']?.toString() ?? '',
       details: json['details']?.toString() ?? '',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       likes: json['likes'] ?? 0,
       prayers: json['prayers'] ?? 0,
-      comments: (json['comments'] as List?)?.length ?? 0,
+      comments: parsedComments.length,
       hasLiked: json['hasLiked'] ?? false,
       hasPrayed: json['hasPrayed'] ?? false,
       cardColor: parsedColor,
+      commentList: parsedComments,
     );
   }
 

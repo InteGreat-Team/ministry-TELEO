@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/prayer_post.dart';
+
+import '../../BE/models/prayer_post.dart';
 import '../widgets/prayer_homescreen/home_screen_widgets.dart';
 import '../widgets/prayer_homescreen/comments_bottom_sheet.dart';
 import '../../BE/providers/prayer_provider.dart';
+import '../../BE/providers/history_prayer_provider.dart';
 import 'prayer_request_screen.dart';
-import 'viewed_prayers_screen.dart';
+import 'history_prayer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,13 +17,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Hardcoded user role for testing - change between 'pastor' and 'user'
-  static const String userRole =
-      'pastor'; // Change this to 'user' to test different roles
-
   int _selectedNavIndex = 2;
   int _currentCardIndex = 0;
   bool _allCardsSwiped = false;
+
   final List<Color> _cardColors = [
     const Color(0xFF6A1B9A),
     const Color(0xFF00897B),
@@ -36,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PrayerProvider>(context, listen: false).fetchPrayers();
+      Provider.of<UserPostsViewModel>(context, listen: false).fetchData();
     });
   }
 
@@ -63,12 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onHistoryTapped() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const UserPostsScreen(userRole: userRole),
-      ),
-    );
+    final userRole = context.read<UserPostsViewModel>().userRole;
+
+    if (userRole != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => UserPostsScreen(userRole: userRole),
+        ),
+      );
+    } else {
+      // Optional: handle case where role is not yet loaded
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User role not available yet.')));
+    }
   }
 
   void _showComments(PrayerPost post) {
@@ -101,11 +110,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = Provider.of<PrayerProvider>(context, listen: false);
     final prayer = provider.prayers[_currentCardIndex];
     final isLiking = !prayer.hasLiked;
+
+    // Save old state for rollback
+    final previousLiked = prayer.hasLiked;
+    final previousLikes = prayer.likes;
+
     setState(() {
       prayer.hasLiked = isLiking;
       prayer.likes += isLiking ? 1 : -1;
     });
-    provider.toggleLike(prayer.id, isLiking);
+
+    provider.toggleLike(prayer.id, isLiking).catchError((e) {
+      // Revert on error
+      setState(() {
+        prayer.hasLiked = previousLiked;
+        prayer.likes = previousLikes;
+      });
+    });
   }
 
   void _handlePray(String? prayerMessage) async {

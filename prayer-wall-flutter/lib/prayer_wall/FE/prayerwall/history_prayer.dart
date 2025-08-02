@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/prayer_post.dart';
+import 'package:provider/provider.dart';
+import '../../BE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../BE/providers/history_prayer_provider.dart';
 
 class UserPostsScreen extends StatefulWidget {
   final String userRole;
@@ -14,19 +16,13 @@ class UserPostsScreen extends StatefulWidget {
 class _UserPostsScreenState extends State<UserPostsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<PrayerPost> _sharedByMe = [];
-  List<PrayerPost> _specificRequests = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // Set tab length based on user role
     int tabLength = widget.userRole == 'pastor' ? 2 : 1;
     _tabController = TabController(length: tabLength, vsync: this);
-    _tabController.addListener(() {
-      setState(() {});
-    });
+    _tabController.addListener(() => setState(() {}));
     _fetchData();
   }
 
@@ -37,70 +33,22 @@ class _UserPostsScreenState extends State<UserPostsScreen>
   }
 
   Future<void> _fetchData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    final viewModel = Provider.of<UserPostsViewModel>(context, listen: false);
     try {
-      // Always fetch user's own posts
-      await _fetchSharedByMe();
-
-      // Only fetch specific requests if user is a pastor
-      if (widget.userRole == 'pastor') {
-        await _fetchSpecificRequests();
-      }
+      await viewModel.fetchData();
     } catch (e) {
-      print('Error fetching data: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchSharedByMe() async {
-    try {
-      // Placeholder API call - replace with actual endpoint
-      // final response = await http.get(Uri.parse('/api/my-posts'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   _sharedByMe = data.map((json) => PrayerPost.fromJson(json)).toList();
-      // }
-
-      // Mock data for testing
-      await Future.delayed(const Duration(milliseconds: 500));
-      _sharedByMe = [];
-    } catch (e) {
-      print('Error fetching shared by me: $e');
-    }
-  }
-
-  Future<void> _fetchSpecificRequests() async {
-    try {
-      // Placeholder API call for pastor-specific requests
-      // final response = await http.get(Uri.parse('/api/pastor-specific-prayers'));
-      // if (response.statusCode == 200) {
-      //   final List<dynamic> data = json.decode(response.body);
-      //   _specificRequests = data.map((json) => PrayerPost.fromJson(json)).toList();
-      // }
-
-      // Mock data for testing
-      await Future.delayed(const Duration(milliseconds: 500));
-      _specificRequests = [];
-    } catch (e) {
-      print('Error fetching specific requests: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<UserPostsViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -120,7 +68,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
       ),
       body: Column(
         children: [
-          // Info text
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -133,7 +80,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
               textAlign: TextAlign.center,
             ),
           ),
-          // Tab bar (only show if pastor has multiple tabs)
           if (widget.userRole == 'pastor')
             Container(
               color: const Color(0xFF0A0E2D),
@@ -164,25 +110,22 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                 ),
               ),
             ),
-          // Content
           Expanded(
             child:
-                _isLoading
+                viewModel.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : widget.userRole == 'pastor'
                     ? TabBarView(
                       controller: _tabController,
                       children: [
-                        // Shared by Me tab
-                        _buildPrayersList(_sharedByMe, 'shared'),
-                        // Specific Requests tab
-                        _buildPrayersList(_specificRequests, 'specific'),
+                        _buildPrayersList(viewModel.sharedByMe, 'shared'),
+                        _buildPrayersList(
+                          viewModel.specificRequests,
+                          'specific',
+                        ),
                       ],
                     )
-                    : _buildPrayersList(
-                      _sharedByMe,
-                      'shared',
-                    ), // User only sees their posts
+                    : _buildPrayersList(viewModel.sharedByMe, 'shared'),
           ),
         ],
       ),
@@ -232,9 +175,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
           final cardColor = prayer.cardColor;
 
           return GestureDetector(
-            onTap: () {
-              _showPrayerDetails(context, prayer, cardColor);
-            },
+            onTap: () => _showPrayerDetails(context, prayer, cardColor),
             child: Container(
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
@@ -253,7 +194,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // User info row
                     Row(
                       children: [
                         CircleAvatar(
@@ -292,7 +232,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                       ],
                     ),
                     const SizedBox(height: 12),
-                    // Prayer content
                     Text(
                       prayer.content,
                       style: const TextStyle(
@@ -303,14 +242,13 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Stats row
                     Row(
                       children: [
                         _buildStatIcon(Icons.favorite, prayer.likes.toString()),
                         const SizedBox(width: 16),
                         _buildStatIcon(
                           Icons.front_hand_outlined,
-                          prayer.prayers.toString(),
+                          prayer.comments.toString(),
                         ),
                         const SizedBox(width: 16),
                       ],
@@ -325,7 +263,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
     );
   }
 
-  // Your original prayer details design
   void _showPrayerDetails(
     BuildContext context,
     PrayerPost prayer,
@@ -347,7 +284,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
             builder:
                 (context, scrollController) => Column(
                   children: [
-                    // Handle
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       width: 40,
@@ -357,7 +293,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
-                    // Header
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
@@ -389,7 +324,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                           ),
                           const Spacer(),
                           Text(
-                            '${prayer.likes} likes · ${prayer.prayers} prayers',
+                            '${prayer.likes} likes · ${prayer.comments} prayers',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.white.withOpacity(0.7),
@@ -398,7 +333,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                         ],
                       ),
                     ),
-                    // Prayer content
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Container(
@@ -428,55 +362,6 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    // Action buttons
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // Like functionality
-                                Navigator.pop(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.1),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                              ),
-                              icon: Icon(
-                                prayer.hasLiked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color:
-                                    prayer.hasLiked ? Colors.red : Colors.white,
-                              ),
-                              label: const Text('Like'),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                // Pray functionality
-                                Navigator.pop(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.1),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                              ),
-                              icon: const Icon(Icons.front_hand_outlined),
-                              label: const Text('Pray'),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],

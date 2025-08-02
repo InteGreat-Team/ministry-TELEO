@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "357648170984",
+    "project_id": "teleo-church-application",
+    "storage_bucket": "teleo-church-application.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357648170984:android:27875c5ac747a4ae3dae5d",
+        "android_client_info": {
+          "package_name": "com.example.teleo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh2XkBwUSzBNEaeWmnRf59ZRa_93xh5F4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357648170984:android:f32106a00fbbb2603dae5d",
+        "android_client_info": {
+          "package_name": "com.example.teleo_organized_new"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh2XkBwUSzBNEaeWmnRf59ZRa_93xh5F4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357648170984:android:246748411b0576db3dae5d",
+        "android_client_info": {
+          "package_name": "com.teleo.churchapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh2XkBwUSzBNEaeWmnRf59ZRa_93xh5F4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

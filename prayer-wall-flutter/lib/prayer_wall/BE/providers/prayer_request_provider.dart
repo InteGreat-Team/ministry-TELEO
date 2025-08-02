@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PrayerRequestProvider extends ChangeNotifier {
   final subjectController = TextEditingController();
@@ -182,11 +183,22 @@ class PrayerRequestProvider extends ChangeNotifier {
     };
 
     try {
+      // ✅ Get Firebase Auth token
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return {'success': false, 'message': 'User not authenticated'};
+      }
+
+      final idToken = await user.getIdToken();
+
       final res = await http.post(
         Uri.parse(
           'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/prayers/addPrayer',
         ),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
         body: jsonEncode(payload),
       );
 
@@ -195,7 +207,7 @@ class PrayerRequestProvider extends ChangeNotifier {
       } else {
         return {
           'success': false,
-          'message': 'Failed to post: ${res.statusCode}',
+          'message': 'Failed to post: ${res.statusCode}\n${res.body}',
         };
       }
     } catch (e) {
