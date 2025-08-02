@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // Import your home page
-import '../c1homepage/donate_screen.dart';
+
 
 void main() {
   runApp(const DonationApp());
@@ -35,6 +35,7 @@ class DonationProgram {
   final String location;
   final IconData icon;
   final String category;
+  final String imagePath; // Added image path
 
   DonationProgram({
     required this.id,
@@ -44,6 +45,7 @@ class DonationProgram {
     required this.location,
     required this.icon,
     required this.category,
+    required this.imagePath, // Added image path parameter
   });
 }
 
@@ -59,6 +61,18 @@ class _HomePageState extends State<HomePage> {
   String _searchQuery = '';
 
   final List<DonationProgram> _donationPrograms = [
+
+      DonationProgram(
+      id: 6,
+      title: 'Support the Teleo Team',
+      description: 'Support the developers of the Teleo App',
+      amount: 'P 50-500',
+      location: 'Nationwide',
+      icon: Icons.support_agent,
+      category: 'Teleo Team',
+      imagePath: 'assets/images/Team_Teleo.png', // Using Emergency Relief as fallback
+    ),
+
     DonationProgram(
       id: 1,
       title: 'Feeding Program',
@@ -67,6 +81,7 @@ class _HomePageState extends State<HomePage> {
       location: 'Metro Manila',
       icon: Icons.restaurant,
       category: 'Feeding Program',
+      imagePath: 'assets/images/Feeding_prog.png',
     ),
     DonationProgram(
       id: 2,
@@ -76,6 +91,7 @@ class _HomePageState extends State<HomePage> {
       location: 'Baguio',
       icon: Icons.medical_services,
       category: 'Medical Mission',
+      imagePath: 'assets/images/Medical_Mission.jpg',
     ),
     DonationProgram(
       id: 3,
@@ -85,6 +101,7 @@ class _HomePageState extends State<HomePage> {
       location: 'Davao City',
       icon: Icons.school,
       category: 'School Supplies',
+      imagePath: 'assets/images/School_Supplies.jpg',
     ),
     DonationProgram(
       id: 4,
@@ -94,6 +111,7 @@ class _HomePageState extends State<HomePage> {
       location: 'Metro Manila',
       icon: Icons.home,
       category: 'housing',
+      imagePath: 'assets/images/Housing_Program.jpg',
     ),
     DonationProgram(
       id: 5,
@@ -103,7 +121,9 @@ class _HomePageState extends State<HomePage> {
       location: 'Nationwide',
       icon: Icons.emergency,
       category: 'emergency',
+      imagePath: 'assets/images/Emergency_Relief.jpg',
     ),
+  
   ];
 
   List<DonationProgram> get _filteredPrograms {
@@ -144,13 +164,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Navigate back to the specific home page
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HomePage(), // Replace with your actual home page widget// fix this shit
-                            ),
-                          );
+                          Navigator.pop(context);
                         },
                         child: Container(
                           padding: const EdgeInsets.all(8.0),
@@ -281,77 +295,149 @@ class _HomePageState extends State<HomePage> {
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1A237E),
                               borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8.0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(8.0),
-                                      ),
-                                      child: Icon(
-                                        program.icon,
-                                        color: const Color(0xFF1A237E),
-                                        size: 24,
-                                      ),
-                                    ),
-                                    Text(
-                                      program.amount,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  program.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  program.description,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.location_on,
-                                      color: Colors.white54,
-                                      size: 12,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      program.location,
-                                      style: const TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12.0),
+                              child: Stack(
+                                children: [
+                                  // Background Image
+                                  Positioned.fill(
+                                    child: Image.asset(
+                                      program.imagePath,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        // Fallback to colored container if image fails to load
+                                        return Container(
+                                          color: const Color(0xFF1A237E),
+                                          child: Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(8.0),
+                                                  ),
+                                                  child: Icon(
+                                                    program.icon,
+                                                    color: const Color(0xFF1A237E),
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Image not found',
+                                                  style: const TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  // Dark overlay for better text readability
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Colors.black.withOpacity(0.7),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Content
+                                  Positioned.fill(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Amount in top right
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8.0,
+                                                  vertical: 4.0,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.9),
+                                                  borderRadius: BorderRadius.circular(12.0),
+                                                ),
+                                                child: Text(
+                                                  program.amount,
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF1A237E),
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const Spacer(),
+                                          // Title and description at bottom
+                                          Text(
+                                            program.title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            program.description,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.location_on,
+                                                color: Colors.white54,
+                                                size: 12,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                program.location,
+                                                style: const TextStyle(
+                                                  color: Colors.white54,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -630,13 +716,7 @@ class _DonatePageState extends State<DonatePage> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        // Navigate back to the specific home page
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomePage(), // Replace with your actual home page widget
-                          ),
-                        );
+                        Navigator.pop(context);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8.0),
@@ -668,48 +748,117 @@ class _DonatePageState extends State<DonatePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Charity Logo/Image
+                    // Program Image Header
                     Container(
                       width: double.infinity,
-                      height: 120,
+                      height: 200,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6A1B9A),
                         borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white24,
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                            child: Icon(
-                              widget.program.icon,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'CHARITY',
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          const Text(
-                            'MAKING A DIFFERENCE',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              letterSpacing: 1,
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
                         ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12.0),
+                        child: Stack(
+                          children: [
+                            // Background Image
+                            Positioned.fill(
+                              child: Image.asset(
+                                widget.program.imagePath,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Fallback to colored container if image fails to load
+                                  return Container(
+                                    color: const Color(0xFF6A1B9A),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white24,
+                                            borderRadius: BorderRadius.circular(16.0),
+                                          ),
+                                          child: Icon(
+                                            widget.program.icon,
+                                            color: Colors.white,
+                                            size: 32,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text(
+                                          'CHARITY',
+                                          style: TextStyle(
+                                            color: Colors.orange,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            letterSpacing: 2,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'MAKING A DIFFERENCE',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // Dark overlay for better text readability
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.5),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Charity label overlay
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              right: 16,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'CHARITY',
+                                    style: TextStyle(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'MAKING A DIFFERENCE',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
