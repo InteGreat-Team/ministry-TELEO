@@ -1,21 +1,28 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../../2/c1registration/c1s1churchwelcome_screen.dart';
-import '../../../1/user_model.dart';
+import 'user_registration_api_service.dart';
+import '../user_model.dart';
 import '../../../3/c1widgets/animated_wave_background.dart';
 import '../../../3/app_highlights/splash_screen.dart';
 
-class SignupCompleteScreen extends StatelessWidget {
+class SignupCompleteScreen extends StatefulWidget {
   final String firstName;
   final String lastName;
   final DateTime birthday;
   final String gender;
   final String username;
   final String email;
-  final String phone;
   final String password;
-  final String location;
-  final File? profilePicture;
+  final String? profilePictureUrl;
+  final String? phoneNumber;
+  final String address;
+  final double lat;
+  final double lng;
+  final bool hasAcceptedTerms;
+  final bool isEmailVerified;
 
   const SignupCompleteScreen({
     super.key,
@@ -25,29 +32,76 @@ class SignupCompleteScreen extends StatelessWidget {
     required this.gender,
     required this.username,
     required this.email,
-    required this.phone,
     required this.password,
-    required this.location,
-    this.profilePicture,
+    this.profilePictureUrl,
+    required this.address,
+    required this.lat,
+    required this.lng,
+    required this.phoneNumber,
+    required this.hasAcceptedTerms,
+    required this.isEmailVerified,
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Create a user model with the collected data
+  State<SignupCompleteScreen> createState() => _SignupCompleteScreenState();
+}
+
+class _SignupCompleteScreenState extends State<SignupCompleteScreen> {
+  bool _isRegistering = false;
+
+  Future<void> _registerUserAndNavigate() async {
+    setState(() => _isRegistering = true);
+
     final user = UserModel(
-      firstName: firstName,
-      lastName: lastName,
-      birthday: birthday,
-      gender: gender,
-      username: username,
-      email: email,
-      phone: phone,
-      profilePictureUrl: profilePicture?.path,
-    );
+  firstName: widget.firstName,
+  lastName: widget.lastName,
+  birthday: widget.birthday,
+  gender: widget.gender,
+  username: widget.username,
+  email: widget.email,
+  phoneNumber: widget.phoneNumber,
+  address: widget.address,
+  lat: widget.lat,
+  lng: widget.lng,
+  profilePictureUrl: widget.profilePictureUrl,
+  hasAcceptedTerms: widget.hasAcceptedTerms,
+  isEmailVerified: widget.isEmailVerified,
+  password: widget.password,
+  userRole: 'user', // <-- Explicitly set here
+);
 
-    // In a real app, you would send this data to your backend
-    // and create the user account
 
+    try {
+      final http.Response response = await UserRegistrationApiService.registerUser(user.toJson());
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        print("User registered: ${data['user']}");
+        print("JWT: ${data['token']}");
+
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const AppHighlightsSplashScreen()),
+          (route) => false,
+        );
+      } else {
+        final error = jsonDecode(response.body);
+        _showErrorSnack(error['errors']?[0]?['msg'] ?? 'Registration failed');
+      }
+    } catch (e) {
+      _showErrorSnack("Something went wrong. Please try again.");
+    } finally {
+      if (mounted) setState(() => _isRegistering = false);
+    }
+  }
+
+  void _showErrorSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedWaveBackground(
         child: SafeArea(
@@ -73,18 +127,14 @@ class SignupCompleteScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(flex: 1),
-                // Set Up Your Church button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to church setup flow
+                    onPressed: _isRegistering ? null : () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  ChurchWelcomeScreen(firstName: firstName),
+                          builder: (_) => ChurchWelcomeScreen(firstName: widget.firstName),
                         ),
                       );
                     },
@@ -95,34 +145,18 @@ class SignupCompleteScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.3),
                     ),
                     child: const Text(
                       'Set Up Your Church',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Go to App Highlights button
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to app highlights flow
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => const AppHighlightsSplashScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
+                    onPressed: _isRegistering ? null : _registerUserAndNavigate,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF002642),
@@ -130,16 +164,13 @@ class SignupCompleteScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.3),
                     ),
-                    child: const Text(
-                      'Continue to App',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: _isRegistering
+                        ? const CircularProgressIndicator()
+                        : const Text(
+                            'Continue to App',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
                   ),
                 ),
                 const Spacer(flex: 3),

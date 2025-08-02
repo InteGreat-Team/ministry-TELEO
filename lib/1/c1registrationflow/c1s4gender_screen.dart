@@ -65,9 +65,9 @@ class _GenderScreenState extends State<GenderScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildGenderOption('male', 'Male', Icons.male),
-                  _buildGenderOption('female', 'Female', Icons.female),
-                  _buildGenderOption('non_binary', 'Non-binary', Icons.person),
+                  _buildGenderOption('Male', 'Male', Icons.male),
+                  _buildGenderOption('Female', 'Female', Icons.female),
+                  _buildGenderOption('Non_binary', 'Non-binary', Icons.person),
                 ],
               ),
               

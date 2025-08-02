@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'c1s8terms_conditions_screen.dart';
 import '../../3/c1widgets/back_button.dart';
-import 'verification_service.dart'; // make sure path is correct
 
 class PasswordScreen extends StatefulWidget {
   final String firstName;
@@ -11,8 +9,11 @@ class PasswordScreen extends StatefulWidget {
   final String gender;
   final String username;
   final String email;
-  final String phone;
-  final LatLng location;
+  final String? phoneNumber;
+  final String address;
+  final double lat;
+  final double lng;
+  final String sentCode;
 
   const PasswordScreen({
     super.key,
@@ -22,8 +23,11 @@ class PasswordScreen extends StatefulWidget {
     required this.gender,
     required this.username,
     required this.email,
-    required this.phone,
-    required this.location,
+    required this.address,
+    required this.lat,
+    required this.lng,
+    required this.sentCode,
+    this.phoneNumber,
   });
 
   @override
@@ -33,77 +37,18 @@ class PasswordScreen extends StatefulWidget {
 class _PasswordScreenState extends State<PasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _termsAccepted = false;
-  String? _passwordError;
-  String? _passwordRequirementsError;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  String? _error;
+
+  bool get _isFormValid =>
+      _passwordController.text.isNotEmpty &&
+      _confirmPasswordController.text.isNotEmpty &&
+      _passwordController.text == _confirmPasswordController.text;
 
   @override
   void dispose() {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  bool _isValidPassword(String password) {
-    final hasUppercase = RegExp(r'[A-Z]').hasMatch(password);
-    final hasLowercase = RegExp(r'[a-z]').hasMatch(password);
-    final hasDigit = RegExp(r'[0-9]').hasMatch(password);
-    final hasMinLength = password.length >= 8;
-    return hasUppercase && hasLowercase && hasDigit && hasMinLength;
-  }
-
-  void _validatePasswords() {
-    setState(() {
-      if (_passwordController.text != _confirmPasswordController.text) {
-        _passwordError = 'Passwords do not match';
-      } else {
-        _passwordError = null;
-      }
-
-      if (_passwordController.text.isNotEmpty &&
-          !_isValidPassword(_passwordController.text)) {
-        _passwordRequirementsError =
-            'Password must be at least 8 characters with at least 1 uppercase letter, 1 lowercase letter, and 1 digit';
-      } else {
-        _passwordRequirementsError = null;
-      }
-    });
-  }
-
-  Future<void> _goToTerms() async {
-    try {
-      final sentCode = await VerificationService.sendVerificationCode(
-        widget.email,
-        '${widget.firstName} ${widget.lastName}',
-      );
-
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TermsConditionsScreen(
-            firstName: widget.firstName,
-            lastName: widget.lastName,
-            birthday: widget.birthday,
-            gender: widget.gender,
-            username: widget.username,
-            email: widget.email,
-            phone: widget.phone,
-            password: _passwordController.text,
-            location: widget.location.toString(),
-            sentCode: sentCode,
-            isViewOnly: true,
-          ),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to send code. Please try again.")),
-      );
-    }
   }
 
   @override
@@ -122,135 +67,75 @@ class _PasswordScreenState extends State<PasswordScreen> {
               ),
               const SizedBox(height: 40),
               const Text(
-                "We’re almost done!",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+                "We're almost done!",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              const Text(
-                "Secure your account with a password.",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
+              const Text("Secure your account with a password."),
               const SizedBox(height: 40),
+              const Text('Password'),
+              const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  errorText: _passwordRequirementsError,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
+                obscureText: true,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
                 ),
-                onChanged: (_) {
-                  _validatePasswords();
-                },
+                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 20),
+              const Text('Confirm Password'),
+              const SizedBox(height: 8),
               TextField(
                 controller: _confirmPasswordController,
-                obscureText: _obscureConfirmPassword,
+                obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  errorText: _passwordError,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
-                  ),
+                  border: const OutlineInputBorder(),
+                  errorText: _error,
                 ),
                 onChanged: (_) {
-                  _validatePasswords();
+                  setState(() {
+                    _error = _passwordController.text != _confirmPasswordController.text
+                        ? "Passwords do not match"
+                        : null;
+                  });
                 },
               ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Checkbox(
-                    value: _termsAccepted,
-                    onChanged: (value) {
-                      setState(() {
-                        _termsAccepted = value ?? false;
-                      });
-                    },
-                    activeColor: const Color(0xFF002642),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "I agree to the Terms and Conditions",
-                      style: TextStyle(
-                        color: Colors.black87,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 40.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: (_passwordController.text.isNotEmpty &&
-                            _confirmPasswordController.text.isNotEmpty &&
-                            _passwordError == null &&
-                            _passwordRequirementsError == null &&
-                            _termsAccepted)
-                        ? _goToTerms
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF002642),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 4,
-                      shadowColor: Colors.black.withAlpha(77),
-                    ),
-                    child: const Text(
-                      'Next',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isFormValid
+                      ? () {
+                          Navigator.push(
+                          context,
+                            MaterialPageRoute(
+                              builder: (context) => TermsConditionsScreen(
+                                firstName: widget.firstName,
+                                lastName: widget.lastName,
+                                birthday: widget.birthday,
+                                gender: widget.gender,
+                                username: widget.username,
+                                email: widget.email,
+                                phoneNumber: widget.phoneNumber,
+                                password: _passwordController.text,
+                                address: widget.address,
+                                lat: widget.lat,
+                                lng: widget.lng,
+                                sentCode: widget.sentCode,
+                                isViewOnly: false,
+                              )
+
+                            ),
+                          );
+
+                        }
+                      : null,
+                  child: const Text('Next'),
                 ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
