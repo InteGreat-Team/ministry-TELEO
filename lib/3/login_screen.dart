@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (email.toLowerCase() == 'admin@test.com') return 'admin';
 
     final uri = Uri.parse(
-      'https://asia-southeast1-teleo-church-application.cloudfunctions.net/getUserRole?email=$email',
+      'https://asia-southeast1-teleo-church-application.cloudfunctions.net/emailrole/api/emailrole?email=$email',
     );
     final response = await http.get(uri);
     if (response.statusCode == 200) {
