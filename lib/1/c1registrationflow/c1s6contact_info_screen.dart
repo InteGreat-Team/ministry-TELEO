@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'c1s7password_screen.dart';
 import 'email_service.dart'; // Import the email service
+import '../../3/c1widgets/back_button.dart'; // Import the custom back button
 
 class ContactInfoScreen extends StatefulWidget {
   final String firstName;
@@ -39,19 +40,16 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
       setState(() {
         _isLoading = true;
       });
-
       try {
         // Send verification code to email
         final sentCode = await EmailService.sendVerificationCode(
           _emailController.text.trim(),
           '${widget.firstName} ${widget.lastName}',
         );
-
         if (mounted) {
           setState(() {
             _isLoading = false;
           });
-
           // Navigate to password screen with the sent code
           Navigator.push(
             context,
@@ -66,6 +64,7 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
                 lat: widget.lat,
                 lng: widget.lng,
                 email: _emailController.text.trim(),
+                // Pass the phone number as is, or null if empty
                 phoneNumber: _phoneController.text.trim().isEmpty
                     ? null
                     : _phoneController.text.trim(),
@@ -79,7 +78,6 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
           setState(() {
             _isLoading = false;
           });
-
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -95,56 +93,159 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Contact Information')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
-                enabled: !_isLoading, // Disable when loading
-                validator: (value) {
-                  if (value == null || value.isEmpty || !value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number (Optional)',
+      body: SafeArea(
+        child: Stack(
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 16.0, left: 8.0), // Adjust padding to match the screenshot's back button position
+              child: TeleoBackButton(), // Use the custom back button
+            ),
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 80), // Top spacing for content below back button
+                    const Text(
+                      'Let\'s keep in touch!',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'You\'ll need this to login',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    const Text(
+                      'Email',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: 'example@email.com',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      ),
+                      enabled: !_isLoading,
+                      validator: (value) {
+                        if (value == null || value.isEmpty || !value.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Phone Number (Optional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        hintText: 'e.g., 09171234567', // Hint for the full number
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade500, width: 1.0),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      ),
+                      enabled: !_isLoading,
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty) {
+                          // Validate for 11 digits starting with 09
+                          final phoneRegex = RegExp(r'^09\d{9}$');
+                          if (!phoneRegex.hasMatch(value)) {
+                            return 'Enter a valid 11-digit number starting with 09';
+                          }
+                        }
+                        return null; // Phone number is optional
+                      },
+                    ),
+                    const SizedBox(height: 100), // Spacer to push button down
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 40.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _goToPasswordScreen,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF002642),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 4,
+                            shadowColor: Colors.black.withOpacity(0.3),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  'Next',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                enabled: !_isLoading, // Disable when loading
-                validator: (value) {
-                  if (value != null && value.isNotEmpty) {
-                    final phoneRegex = RegExp(r'^\+63\d{10}$');
-                    if (!phoneRegex.hasMatch(value)) {
-                      return 'Enter a valid +63XXXXXXXXXX number';
-                    }
-                  }
-                  return null;
-                },
               ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _goToPasswordScreen,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Next'),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

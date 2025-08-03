@@ -1,183 +1,249 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import '../../../2/c1registration/c1s1churchwelcome_screen.dart';
-import 'user_registration_api_service.dart';
-import '../user_model.dart';
-import '../../../3/c1widgets/animated_wave_background.dart';
-import '../../../3/app_highlights/splash_screen.dart';
+import 'dart:async';
+import 'c1s2name_screen.dart';
+import '../../3/c1widgets/animated_wave_background.dart';
+import '../../3/welcome_screen.dart' as main_welcome;
+import '../../3/c1apphighlights/splash_screen.dart'; // Add this import for the splash screen
 
-class SignupCompleteScreen extends StatefulWidget {
-  final String firstName;
-  final String lastName;
-  final DateTime birthday;
-  final String gender;
-  final String username;
-  final String email;
-  final String password;
-  final String? profilePictureUrl;
-  final String? phoneNumber;
-  final String address;
-  final double lat;
-  final double lng;
-  final bool hasAcceptedTerms;
-  final bool isEmailVerified;
-
-  const SignupCompleteScreen({
-    super.key,
-    required this.firstName,
-    required this.lastName,
-    required this.birthday,
-    required this.gender,
-    required this.username,
-    required this.email,
-    required this.password,
-    this.profilePictureUrl,
-    required this.address,
-    required this.lat,
-    required this.lng,
-    required this.phoneNumber,
-    required this.hasAcceptedTerms,
-    required this.isEmailVerified,
-  });
+class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
 
   @override
-  State<SignupCompleteScreen> createState() => _SignupCompleteScreenState();
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _SignupCompleteScreenState extends State<SignupCompleteScreen> {
-  bool _isRegistering = false;
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _textAnimationController;
+  late Animation<double> _fadeInAnimation;
+  late Animation<double> _scaleAnimation;
+  Timer? _navigationTimer;
+  bool _showSkipButton = false;
+  bool _showAccountReady = false;
 
-  Future<void> _registerUserAndNavigate() async {
-    setState(() => _isRegistering = true);
+  @override
+  void initState() {
+    super.initState();
 
-    final user = UserModel(
-  firstName: widget.firstName,
-  lastName: widget.lastName,
-  birthday: widget.birthday,
-  gender: widget.gender,
-  username: widget.username,
-  email: widget.email,
-  phoneNumber: widget.phoneNumber,
-  address: widget.address,
-  lat: widget.lat,
-  lng: widget.lng,
-  profilePictureUrl: widget.profilePictureUrl,
-  hasAcceptedTerms: widget.hasAcceptedTerms,
-  isEmailVerified: widget.isEmailVerified,
-  password: widget.password,
-  userRole: 'user', // <-- Explicitly set here
-);
+    // Initialize animation controller for text
+    _textAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
 
+    // Create fade-in animation
+    _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _textAnimationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
 
-    try {
-      final http.Response response = await UserRegistrationApiService.registerUser(user.toJson());
+    // Create scale animation
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _textAnimationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
 
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        print("User registered: ${data['user']}");
-        print("JWT: ${data['token']}");
+    // Start animation after a short delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _textAnimationController.forward();
+    });
 
-        if (!mounted) return;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const AppHighlightsSplashScreen()),
-          (route) => false,
-        );
-      } else {
-        final error = jsonDecode(response.body);
-        _showErrorSnack(error['errors']?[0]?['msg'] ?? 'Registration failed');
+    // Show skip button after 1 second
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _showSkipButton = true;
+        });
       }
-    } catch (e) {
-      _showErrorSnack("Something went wrong. Please try again.");
-    } finally {
-      if (mounted) setState(() => _isRegistering = false);
-    }
+    });
+
+    // Show "Your Account is Ready!" after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _showAccountReady = true;
+        });
+      }
+    });
+
+    // Navigate to splash screen after showing "Your Account is Ready!" for 2 seconds
+    _navigationTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        _navigateToSplashScreen();
+      }
+    });
   }
 
-  void _showErrorSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  void _navigateToSplashScreen() {
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const AppHighlightsSplashScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(position: offsetAnimation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  void _navigateToNextScreen() {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder:
+            (context, animation, secondaryAnimation) => const NameScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(position: offsetAnimation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  void _navigateBackToWelcome() {
+    _navigationTimer?.cancel();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const main_welcome.WelcomeScreen(),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _textAnimationController.dispose();
+    _navigationTimer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedWaveBackground(
-        child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
-                const Text(
-                  "Your account is ready!",
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(0, 2),
-                        blurRadius: 4,
-                        color: Color.fromRGBO(0, 0, 0, 0.25),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const Spacer(flex: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: ElevatedButton(
-                    onPressed: _isRegistering ? null : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChurchWelcomeScreen(firstName: widget.firstName),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF002642),
-                      minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      'Set Up Your Church',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: ElevatedButton(
-                    onPressed: _isRegistering ? null : _registerUserAndNavigate,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF002642),
-                      minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: _isRegistering
-                        ? const CircularProgressIndicator()
-                        : const Text(
-                            'Continue to App',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                  ),
-                ),
-                const Spacer(flex: 3),
+      body: Stack(
+        children: [
+          // Main content (tap to skip)
+          GestureDetector(
+            onTap: () {
+              _navigationTimer?.cancel();
+              if (_showAccountReady) {
+                _navigateToSplashScreen();
+              } else {
+                _navigateToNextScreen();
+              }
+            },
+            child: AnimatedWaveBackground(
+              backgroundColor: const Color(0xFF0077BE),
+              waveColors: const [
+                Color(0xFF0066A6),
+                Color(0xFF004C7F),
+                Color(0xFF003A61),
               ],
+              child: Stack(
+                children: [
+                  // Hello! text with animation
+                  Center(
+                    child: AnimatedBuilder(
+                      animation: _textAnimationController,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _fadeInAnimation.value,
+                          child: Transform.scale(
+                            scale: _scaleAnimation.value,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (!_showAccountReady) ...[
+                                  const Text(
+                                    'Hello!',
+                                    style: TextStyle(
+                                      fontSize: 64,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 10.0,
+                                          color: Colors.black26,
+                                          offset: Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ] else ...[
+                                  const Icon(
+                                    Icons.check_circle,
+                                    size: 80,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Your Account is Ready!',
+                                    style: TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 10.0,
+                                          color: Colors.black26,
+                                          offset: Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+          // Back button at top left (always on top)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: _navigateBackToWelcome,
+              tooltip: 'Back',
+            ),
+          ),
+        ],
       ),
     );
   }

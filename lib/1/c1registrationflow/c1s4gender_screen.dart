@@ -18,8 +18,41 @@ class GenderScreen extends StatefulWidget {
   State<GenderScreen> createState() => _GenderScreenState();
 }
 
-class _GenderScreenState extends State<GenderScreen> {
+class _GenderScreenState extends State<GenderScreen>
+    with TickerProviderStateMixin {
   String? _selectedGender;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    _fadeAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,43 +106,47 @@ class _GenderScreenState extends State<GenderScreen> {
               
               const Spacer(),
               
-              // Next button
-              Padding(
-                padding: const EdgeInsets.only(bottom: 40.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _selectedGender != null
-                        ? () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => UsernameScreen(
-                                  firstName: widget.firstName,
-                                  lastName: widget.lastName,
-                                  birthday: widget.birthday,
-                                  gender: _selectedGender!,
+              // Next button with fade in animation
+              AnimatedOpacity(
+                opacity: _selectedGender != null ? 1.0 : 0.5,
+                duration: const Duration(milliseconds: 300),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 40.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _selectedGender != null
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UsernameScreen(
+                                    firstName: widget.firstName,
+                                    lastName: widget.lastName,
+                                    birthday: widget.birthday,
+                                    gender: _selectedGender!,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF002642),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF002642),
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 4,
+                        shadowColor: Colors.black.withOpacity(0.3),
                       ),
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.3),
-                    ),
-                    child: const Text(
-                      'Next',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        'Next',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -130,38 +167,64 @@ class _GenderScreenState extends State<GenderScreen> {
         setState(() {
           _selectedGender = value;
         });
+        // Trigger a quick bounce animation
+        _animationController.forward().then((_) {
+          _animationController.reverse();
+        });
       },
-      child: Column(
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF002642) : Colors.grey.shade600,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          final scale = isSelected ? _scaleAnimation.value : 1.0;
+          final fade = isSelected ? _fadeAnimation.value : 1.0;
+          
+          return Transform.scale(
+            scale: scale,
+            child: Opacity(
+              opacity: fade,
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFF002642) : Colors.grey.shade600,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isSelected ? 0.3 : 0.1),
+                          blurRadius: isSelected ? 12 : 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        icon,
+                        key: ValueKey('${value}_$isSelected'),
+                        color: Colors.white,
+                        size: isSelected ? 44 : 40,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 300),
+                    style: TextStyle(
+                      color: isSelected ? const Color(0xFF002642) : Colors.grey.shade600,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontSize: isSelected ? 16 : 14,
+                    ),
+                    child: Text(label),
+                  ),
+                ],
+              ),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? const Color(0xFF002642) : Colors.grey.shade600,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

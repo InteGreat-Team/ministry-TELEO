@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'c1s11signup_complete_screen.dart';
+import 'c1s11signup_complete_screen.dart'; // This should point to your WelcomeScreen file
 import '../../3/c1widgets/back_button.dart';
 import 'profile_upload_service.dart'; // <-- NEW: Upload Service
 
@@ -116,40 +116,27 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
     );
   }
 
-  Future<void> _uploadImage() async {
-    if (_selectedImage == null) return;
+  Future<void> _proceedAfterImageSelection() async {
+    if (_selectedImage == null) return; // Should not happen if button is disabled correctly
 
-    setState(() => _isUploading = true);
+    setState(() => _isUploading = true); // Use _isUploading to show "Uploading..." or "Processing..."
 
     try {
-      final uploadedUrl = await ProfileUploadService.uploadProfilePicture(_selectedImage!);
-      if (uploadedUrl == null) throw Exception("Upload failed");
+      // Simulate an upload delay without actually calling a backend service
+      await Future.delayed(const Duration(seconds: 1)); // Simulate network latency
 
       if (mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SignupCompleteScreen(
-              firstName: widget.firstName,
-              lastName: widget.lastName,
-              birthday: widget.birthday,
-              gender: widget.gender,
-              username: widget.username,
-              email: widget.email,
-              phoneNumber: widget.phoneNumber,
-              password: widget.password,
-              address: widget.address,
-              lat: widget.lat,
-              lng: widget.lng,
-              profilePictureUrl: uploadedUrl, // <-- Pass URL
-              hasAcceptedTerms: widget.hasAcceptedTerms,
-              isEmailVerified: widget.isEmailVerified,
-            ),
+            builder: (context) => WelcomeScreen(),
           ),
         );
       }
     } catch (e) {
-      _showErrorDialog('Failed to upload image: $e');
+      // This catch block will only be hit if the simulated delay itself throws an error,
+      // or if you re-introduce actual upload logic that fails.
+      _showErrorDialog('Failed to process image: $e');
     } finally {
       setState(() => _isUploading = false);
     }
@@ -249,22 +236,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SignupCompleteScreen(
-                                      firstName: widget.firstName,
-                                      lastName: widget.lastName,
-                                      birthday: widget.birthday,
-                                      gender: widget.gender,
-                                      username: widget.username,
-                                      email: widget.email,
-                                      phoneNumber: widget.phoneNumber,
-                                      password: widget.password,
-                                      address: widget.address,
-                                      lat: widget.lat,
-                                      lng: widget.lng,
-                                      profilePictureUrl: null, // <-- Skipped
-                                      hasAcceptedTerms: widget.hasAcceptedTerms,
-                                      isEmailVerified: widget.isEmailVerified,
-                                    ),
+                                    builder: (context) => WelcomeScreen(),
                                   ),
                                 );
                               },
@@ -276,17 +248,18 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                     Expanded(
                       flex: 2,
                       child: ElevatedButton(
-                        onPressed: (_selectedImage != null && !_isUploading) ? _uploadImage : null,
+                        onPressed: (_selectedImage != null && !_isUploading) ? _proceedAfterImageSelection : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF002642),
+                          backgroundColor: (_selectedImage != null && !_isUploading)
+                              ? const Color(0xFF002642) // Dark blue when enabled
+                              : Colors.grey.shade300, // Grey when disabled
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.grey.shade300,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           elevation: 4,
                           shadowColor: Colors.black.withOpacity(0.3),
                         ),
-                        child: Text(_isUploading ? 'Uploading...' : 'Next', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        child: Text(_isUploading ? 'Processing...' : 'Next', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../userhomepage/home_page.dart';
+import '../../1/c1homepage/home_page.dart'; // Correct import path for HomePage
 
 class InterestSelectionScreen extends StatefulWidget {
   const InterestSelectionScreen({super.key});
@@ -14,7 +14,6 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
   final List<String> _selectedInterests = [];
   final int _currentPage = 0;
   final PageController _pageController = PageController();
-
   final List<Map<String, dynamic>> _interestCategories = [
     {
       'title': 'Interest check!',
@@ -60,9 +59,9 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
     });
   }
 
-  // Modified to go directly to HomePage
+  // Modified to use Navigator.push to match welcome_screen.dart's behavior
   void _goToHomePage() {
-    Navigator.pushReplacement(
+    Navigator.push( // Changed from pushReplacement to push
       context,
       MaterialPageRoute(builder: (context) => const HomePage()),
     );
@@ -100,13 +99,11 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                 },
               ),
             ),
-
             SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 40),
-
                   // Title and subtitle
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -132,9 +129,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
                   // Interests grid
                   Expanded(
                     child: Container(
@@ -161,7 +156,6 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                           final isSelected = _selectedInterests.contains(
                             interest['name'],
                           );
-
                           return GestureDetector(
                             onTap: () => _toggleInterest(interest['name']),
                             child: Container(
@@ -195,8 +189,8 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                                             color:
                                                 isSelected
                                                     ? Colors.white.withOpacity(
-                                                      0.3,
-                                                    )
+                                                        0.3,
+                                                      )
                                                     : interest['color']
                                                         .withOpacity(0.3),
                                             shape: BoxShape.circle,
@@ -228,7 +222,6 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                                       ],
                                     ),
                                   ),
-
                                   // Selection indicator
                                   Positioned(
                                     top: 8,
@@ -253,10 +246,10 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                                       child:
                                           isSelected
                                               ? const Icon(
-                                                Icons.check,
-                                                color: Colors.blue,
-                                                size: 16,
-                                              )
+                                                  Icons.check,
+                                                  color: Colors.blue,
+                                                  size: 16,
+                                                )
                                               : null,
                                     ),
                                   ),
@@ -268,9 +261,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   // Page indicator and next button
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -298,7 +289,6 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
                             ),
                           ),
                         ),
-
                         // Next button - Modified to go directly to HomePage when 3 interests are selected
                         GestureDetector(
                           onTap:
