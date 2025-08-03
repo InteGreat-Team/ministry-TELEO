@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'GEO_LOCATIONSERVICE.dart'; // Corrected import to match existing file name
-import 'GEO_SEARCHRESULTITEM.dart'; // Updated import
+import 'GEO_LOCATIONSERVICE.dart';
+import 'GEO_SEARCHRESULTITEM.dart';
 
 // States
 abstract class LocationState {}
@@ -11,7 +11,7 @@ class LocationInitial extends LocationState {}
 class LocationLoading extends LocationState {}
 
 class LocationLoaded extends LocationState {
-  final List<GEO_SearchResultItem> suggestions; // Updated type
+  final List<SearchResultItem> suggestions;
   
   LocationLoaded(this.suggestions);
 }
@@ -23,17 +23,17 @@ class LocationError extends LocationState {
 }
 
 class LocationSelected extends LocationState {
-  final GEO_SearchResultItem selectedLocation; // Updated type
+  final SearchResultItem selectedLocation;
   
   LocationSelected(this.selectedLocation);
 }
 
 // Cubit
 class LocationCubit extends Cubit<LocationState> {
-  final GeoLocationService _locationService; // Changed type to GeoLocationService
+  final LocationService _locationService; // FIXED: Use LocationService instead of GeoLocationService
   
   LocationCubit(this._locationService) : super(LocationInitial());
-  
+
   Future<void> searchLocations(String query) async {
     if (query.isEmpty) {
       await loadNearbyChurches();
@@ -48,7 +48,7 @@ class LocationCubit extends Cubit<LocationState> {
       emit(LocationError(e.toString()));
     }
   }
-  
+
   Future<void> loadNearbyChurches() async {
     emit(LocationLoading());
     try {
@@ -59,11 +59,11 @@ class LocationCubit extends Cubit<LocationState> {
       emit(LocationError(e.toString()));
     }
   }
-  
-  Future<void> selectLocation(GEO_SearchResultItem item) async { // Updated type
+
+  Future<void> selectLocation(SearchResultItem item) async {
     emit(LocationLoading());
     try {
-      GEO_SearchResultItem selectedItem = item;
+      SearchResultItem selectedItem = item;
       
       if (item.placeId != null) {
         // Get place details for places with placeId
@@ -81,7 +81,7 @@ class LocationCubit extends Cubit<LocationState> {
         
         selectedItem = item.copyWith(
           location: LatLng(position.latitude, position.longitude),
-          address: currentAddress, // ✅ Ensure we have the real address
+          address: currentAddress,
         );
       }
       
@@ -90,7 +90,7 @@ class LocationCubit extends Cubit<LocationState> {
       emit(LocationError(e.toString()));
     }
   }
-  
+
   void reset() {
     emit(LocationInitial());
   }

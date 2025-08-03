@@ -1,3 +1,6 @@
+// lib/features/SIGNUP/geolocation/frontend/GEO_SEARCHRESULTITEM.dart
+// This file is assumed to be correct and does not need modifications.
+// Placeholder content for brevity, replace with actual content if available.
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 

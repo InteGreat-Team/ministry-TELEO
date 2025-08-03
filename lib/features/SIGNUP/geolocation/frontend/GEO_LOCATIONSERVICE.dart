@@ -6,26 +6,24 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:teleo_organized_new/mapkey.dart'; // Assuming this path is correct for your API key
-import '../backend/GEO_LOCATIONMODEL.dart'; // UPDATED: Path to GEO_LOCATIONMODEL.dart
-import 'GEO_SEARCHRESULTITEM.dart'; 
-import 'GEO_LOCATIONUTILS.dart'; // UPDATED: Moved to frontend
-import '../../constants/app_constants.dart'; // NEW: Import AppConstants
+import '../backend/GEO_LOCATIONMODEL.dart';
+import 'GEO_LOCATIONUTILS.dart'; // Import AppConstants from here
+import 'GEO_SEARCHRESULTITEM.dart'; // UPDATED: Renamed
 
-
-class GeoLocationService {
-  static final GeoLocationService _instance = GeoLocationService._internal();
-  factory GeoLocationService() => _instance;
-  GeoLocationService._internal();
+class LocationService {
+  static final LocationService _instance = LocationService._internal();
+  factory LocationService() => _instance;
+  LocationService._internal();
 
   final GooglePlace _googlePlace = GooglePlace(googleApiKey);
-  final Map<String, CachedResult<List<GEO_SearchResultItem>>> _searchCache = {};
+  final Map<String, CachedResult<List<SearchResultItem>>> _searchCache = {};
   final Map<String, CachedResult<String>> _geocodeCache = {};
   
-  static const Duration _searchCacheExpiration = AppConstants.searchCacheExpiration; // UPDATED: Use AppConstants
-  static const Duration _geocodeCacheExpiration = AppConstants.geocodeCacheExpiration; // UPDATED: Use AppConstants
+  static const Duration _cacheExpiration = Duration(minutes: 30);
+  static const Duration _debounceDelay = Duration(milliseconds: 500);
 
   // Debounced search with caching
-  Future<List<GEO_SearchResultItem>> searchPlaces(String query) async {
+  Future<List<SearchResultItem>> searchPlaces(String query) async {
     if (query.isEmpty) return [];
 
     final cacheKey = query.toLowerCase().trim();
@@ -44,12 +42,11 @@ class GeoLocationService {
         components: [Component("country", "ph")],
       );
 
-      final suggestions = result?.predictions?.map((p) => GEO_SearchResultItem(
+      final suggestions = result?.predictions?.map((p) => SearchResultItem(
         name: p.description ?? '',
         address: '',
         placeId: p.placeId,
         icon: Icons.location_on,
-        location: const LatLng(0,0), // Default value, will be updated with details
       )).toList() ?? [];
 
       // Cache the result
@@ -62,7 +59,7 @@ class GeoLocationService {
   }
 
   // Get nearby Christian churches with caching
-  Future<List<GEO_SearchResultItem>> getNearbyChurches(Position position) async {
+  Future<List<SearchResultItem>> getNearbyChurches(Position position) async {
     final cacheKey = '${position.latitude.toStringAsFixed(4)},${position.longitude.toStringAsFixed(4)}_churches';
     
     if (_searchCache.containsKey(cacheKey)) {
@@ -84,12 +81,12 @@ class GeoLocationService {
 
       final response = await _googlePlace.search.getNearBySearch(
         Location(lat: position.latitude, lng: position.longitude),
-        AppConstants.nearbySearchRadius, // UPDATED: Use AppConstants
+        2000,
         keyword: "Christian Church",
       );
 
-      final suggestions = <GEO_SearchResultItem>[
-        GEO_SearchResultItem(
+      final suggestions = <SearchResultItem>[
+        SearchResultItem(
           name: "Current location",
           address: currentAddress, // ✅ Now shows actual address
           icon: Icons.my_location,
@@ -101,14 +98,16 @@ class GeoLocationService {
       if (response?.results != null) {
         suggestions.addAll(response!.results!.map((r) {
           final loc = r.geometry?.location;
-          return GEO_SearchResultItem(
+          return SearchResultItem(
             name: r.name ?? '',
             address: r.vicinity ?? '',
             icon: Icons.location_on_outlined,
             location: LatLng(loc?.lat ?? 0, loc?.lng ?? 0),
-            distance: LocationUtils.calculateDistance( // UPDATED: Use LocationUtils
-              LatLng(position.latitude, position.longitude),
-              LatLng(loc?.lat ?? 0, loc?.lng ?? 0),
+            distance: _calculateDistance(
+              position.latitude,
+              position.longitude,
+              loc?.lat ?? 0,
+              loc?.lng ?? 0,
             ),
           );
         }));
@@ -155,12 +154,12 @@ class GeoLocationService {
   }
 
   // Get place details
-  Future<GEO_SearchResultItem?> getPlaceDetails(String placeId) async {
+  Future<SearchResultItem?> getPlaceDetails(String placeId) async {
     try {
       final details = await _googlePlace.details.get(placeId);
       if (details?.result != null) {
         final location = details!.result!.geometry!.location!;
-        return GEO_SearchResultItem(
+        return SearchResultItem(
           name: details.result!.name ?? '',
           address: details.result!.formattedAddress ?? '',
           location: LatLng(location.lat!, location.lng!),
@@ -214,6 +213,11 @@ class GeoLocationService {
     }
   }
 
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    final distanceInMeters = Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
+    return distanceInMeters / 1000;
+  }
+
   // Clear cache
   void clearCache() {
     _searchCache.clear();
@@ -222,7 +226,34 @@ class GeoLocationService {
 
   // Clean expired cache entries
   void cleanExpiredCache() {
-    _searchCache.removeWhere((key, value) => !value.isExpired); // Corrected logic: remove if NOT expired
-    _geocodeCache.removeWhere((key, value) => !value.isExpired); // Corrected logic: remove if NOT expired
+    _searchCache.removeWhere((key, value) => value.isExpired);
+    _geocodeCache.removeWhere((key, value) => value.isExpired);
   }
+}
+
+// Cached result wrapper
+class CachedResult<T> {
+  final T data;
+  final DateTime timestamp;
+
+  CachedResult(this.data, this.timestamp);
+
+  bool get isExpired => 
+    DateTime.now().difference(timestamp) > LocationService._cacheExpiration;
+}
+
+// Enums and exceptions
+enum LocationPermissionResult {
+  granted,
+  denied,
+  deniedForever,
+  serviceDisabled,
+}
+
+class LocationServiceException implements Exception {
+  final String message;
+  LocationServiceException(this.message);
+
+  @override
+  String toString() => 'LocationServiceException: $message';
 }

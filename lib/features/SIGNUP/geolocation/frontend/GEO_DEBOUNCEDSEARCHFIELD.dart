@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-class GeoDebouncedSearchField extends StatefulWidget {
+class GeoDebouncedSearchField extends StatefulWidget { // FIXED: Renamed to match import
   final Function(String) onChanged;
   final Function(String) onSubmitted;
   final VoidCallback? onCurrentLocationPressed;
@@ -10,7 +10,7 @@ class GeoDebouncedSearchField extends StatefulWidget {
   final String hintText;
   final bool enabled;
 
-  const GeoDebouncedSearchField({
+  const GeoDebouncedSearchField({ // FIXED: Constructor name matches class
     super.key,
     required this.onChanged,
     required this.onSubmitted,
@@ -22,10 +22,10 @@ class GeoDebouncedSearchField extends StatefulWidget {
   });
 
   @override
-  State<GeoDebouncedSearchField> createState() => _GeoDebouncedSearchFieldState();
+  State<GeoDebouncedSearchField> createState() => _GeoDebouncedSearchFieldState(); // FIXED: State class name
 }
 
-class _GeoDebouncedSearchFieldState extends State<GeoDebouncedSearchField> {
+class _GeoDebouncedSearchFieldState extends State<GeoDebouncedSearchField> { // FIXED: State class name
   Timer? _debounceTimer;
 
   void _onSubmitted(String value) {
@@ -41,11 +41,7 @@ class _GeoDebouncedSearchFieldState extends State<GeoDebouncedSearchField> {
       textInputAction: TextInputAction.search,
       onSubmitted: _onSubmitted,
       onChanged: (value) {
-        // Debounce the onChanged callback
-        if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-        _debounceTimer = Timer(widget.delay, () {
-          widget.onChanged(value);
-        });
+        widget.onChanged(value);
       },
       decoration: InputDecoration(
         hintText: widget.hintText,
@@ -53,11 +49,13 @@ class _GeoDebouncedSearchFieldState extends State<GeoDebouncedSearchField> {
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Search button
             IconButton(
               icon: const Icon(Icons.search),
               onPressed: () => _onSubmitted(widget.controller.text),
               tooltip: 'Search',
             ),
+            // Current location button
             if (widget.onCurrentLocationPressed != null)
               IconButton(
                 icon: const Icon(Icons.my_location),

@@ -1,357 +1,692 @@
 // lib/features/SIGNUP/backend/viewmodels/USER_SIGNUPVIEWMODELS.dart
-//IMPORT PACKAGES
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:provider/provider.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; 
-
-//IMPORT MVVM UPDATED
-// Assuming these are the paths to your screens
-import '../../../../features/START/frontend/screens/SHARED_LOGINSCREEN.dart' as main_welcome;
-import '../../frontend/screens/USER_WELCOMESCREEN_1.dart'; 
-import '../../frontend/screens/USER_NAMESCREEN_2.dart'; 
-import '../../frontend/screens/USER_BIRTHDAYSCREEN_3.dart'; 
-import '../../frontend/screens/USER_GENDERSCREEN_4.dart'; 
-import '../../frontend/screens/USER_USERNAMESCREEN_5.dart'; 
-import '../../frontend/screens/USER_LOCATIONQUESTIONSCREEN_6.dart'; 
-import '../../frontend/screens/USER_GEOLOCATIONSCREEN_7.dart';
-//import '../../frontend/screens/USER_CONTACTINFOSCREEN_8.dart'; 
-import '../../geolocation/backend/GEO_LOCATIONVIEWMODEL.dart';
-import '../../geolocation/frontend/GEO_LOCATIONCUBIT.dart'; 
-import '../../../SIGNUP/backend/models/USER_SIGNUPMODELS.dart';
-
-// IMPORT NOT MVVM UPDATED
-import '../../../../1/c1registrationflow/c1s5_2geolocation_screen.dart'; 
-import '../models/USER_SIGNUPMODELS.dart';
-
+import 'package:flutter/material.dart';
+import 'package:teleo_app/features/SIGNUP/backend/models/USER_SIGNUPMODELS.dart';
+import 'package:teleo_app/features/SIGNUP/backend/services/email_service.dart';
+import 'package:teleo_app/features/SIGNUP/backend/services/user_registration_api_service.dart';
+import 'package:teleo_app/features/SIGNUP/backend/services/profile_upload_service.dart';
+import 'package:teleo_app/features/SIGNUP/geolocation/backend/GEO_LOCATIONMODEL.dart'; // Import GeoLocationModel
+import 'package:teleo_app/features/SIGNUP/geolocation/frontend/search_result_item.dart'; // For SearchResultItem
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_NAMESCREEN_2.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_BIRTHDAYSCREEN_3.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_GENDERSCREEN_4.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_USERNAMESCREEN_5.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_LOCATIONQUESTIONSCREEN_6.dart';
+import 'package:teleo_app/features/SIGNUP/geolocation/frontend/GEO_GEOLOCATIONSCREEN_7.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_CONTACTINFOSCREEN_8.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_PASSWORDSCREEN_9.dart';
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_TERMSANDCONDITIONSSCREEN_10.dart'; // Updated name
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_VERIFICATIONCODESCREEN_11.dart'; // Updated name
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_PROFILEPICTURESCREEN_12.dart'; // Updated name
+import 'package:teleo_app/features/SIGNUP/frontend/screens/USER_SIGNUPCOMPLETESCREEN_13.dart'; // Updated name
+import 'package:teleo_app/features/START/frontend/screens/SHARED_LOGINSCREEN.dart'; // For navigation after signup
+import 'package:teleo_app/features/SIGNUP/frontend/screens/CHURCH_WELCOMESCREEN_1.dart'; // For navigation to church setup
+import 'package:image_picker/image_picker.dart';
+import 'dart:io'; // For File
 
 class UserSignupViewModel extends ChangeNotifier {
-  late AnimationController _textAnimationController;
-  late Animation<double> _fadeInAnimation;
-  late Animation<double> _scaleAnimation;
-  Timer? _navigationTimer;
-  bool _showSkipButton = false;
-  BuildContext? _context; // Store context to navigate
-
-  // Data model for signup
   UserSignupData _signupData = UserSignupData();
+  final EmailService _emailService;
+  final UserRegistrationApiService _registrationApiService;
+  final ProfileUploadService _profileUploadService;
 
-  // TextEditingControllers for the name input screen
+  // Controllers for text fields
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController(); // NEW
-  final TextEditingController _passwordController = TextEditingController(); // NEW
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _verificationCodeController = TextEditingController();
 
-  // Getters for UI to consume
-  Animation<double> get fadeInAnimation => _fadeInAnimation;
-  Animation<double> get scaleAnimation => _scaleAnimation;
-  bool get showSkipButton => _showSkipButton;
-  AnimationController get textAnimationController => _textAnimationController;
+  // Error messages for validation
+  String? _firstNameError;
+  String? _lastNameError;
+  String? _birthdayError;
+  String? _genderError;
+  String? _usernameError;
+  String? _locationError;
+  String? _emailError;
+  String? _phoneError;
+  String? _passwordError;
+  String? _confirmPasswordError;
+  String? _verificationCodeError;
+  String? _termsError;
+  String? _profilePictureError;
 
-  String get firstName => _signupData.firstName;
-  String get lastName => _signupData.lastName;
-  DateTime? get birthday => _signupData.birthday;
-  String? get gender => _signupData.gender;
-  String? get username => _signupData.username;
-  String? get address => _signupData.address;
-  double? get lat => _signupData.lat;
-  double? get lng => _signupData.lng;
-  String get email => _signupData.email; // NEW
-  String get password => _signupData.password; // NEW
+  // Loading states
+  bool _isLoading = false;
+  bool _isCheckingUsername = false;
+  bool _isSendingCode = false;
+  bool _isVerifyingCode = false;
+  bool _isRegisteringUser = false;
+  bool _isUploadingProfilePicture = false;
 
-  bool get isNameFormValid => _signupData.isValid;
-  bool get isNameInputValid => _signupData.firstName.isNotEmpty && _signupData.lastName.isNotEmpty;
-  bool get isGenderSelected => _signupData.gender != null;
-  bool get isUsernameInputValid => _signupData.username != null && _signupData.username!.isNotEmpty;
-  bool get isLocationSelected => _signupData.address != null && _signupData.address!.isNotEmpty;
-  bool get isEmailPasswordValid => _signupData.email.isNotEmpty && _signupData.password.isNotEmpty; // NEW
+  // Cooldown for resending verification code
+  int _cooldownSeconds = 0;
+  Timer? _cooldownTimer;
 
-  // Expose controllers for the UI to use
+  // Profile picture
+  File? _selectedProfilePicture;
+
+  UserSignupViewModel({
+    required EmailService emailService,
+    required UserRegistrationApiService registrationApiService,
+    required ProfileUploadService profileUploadService,
+  })  : _emailService = emailService,
+        _registrationApiService = registrationApiService,
+        _profileUploadService = profileUploadService {
+    _firstNameController.addListener(() => validateFirstName(_firstNameController.text));
+    _lastNameController.addListener(() => validateLastName(_lastNameController.text));
+    _usernameController.addListener(() => validateUsername(_usernameController.text));
+    _emailController.addListener(() => validateEmail(_emailController.text));
+    _phoneController.addListener(() => validatePhoneNumber(_phoneController.text));
+    _passwordController.addListener(() => validatePassword(_passwordController.text));
+    _confirmPasswordController.addListener(() => validateConfirmPassword(_confirmPasswordController.text));
+    _verificationCodeController.addListener(() => validateVerificationCode(_verificationCodeController.text));
+  }
+
+  // Getters for signup data
+  UserSignupData get signupData => _signupData;
+
+  // Getters for controllers
   TextEditingController get firstNameController => _firstNameController;
   TextEditingController get lastNameController => _lastNameController;
   TextEditingController get usernameController => _usernameController;
-  TextEditingController get emailController => _emailController; // NEW
-  TextEditingController get passwordController => _passwordController; // NEW
+  TextEditingController get emailController => _emailController;
+  TextEditingController get phoneController => _phoneController;
+  TextEditingController get passwordController => _passwordController;
+  TextEditingController get confirmPasswordController => _confirmPasswordController;
+  TextEditingController get verificationCodeController => _verificationCodeController;
 
-  UserSignupViewModel() {
-    // Listen to changes in controllers and update model
-    _firstNameController.addListener(() {
-      if (_signupData.firstName != _firstNameController.text) {
-        _signupData.firstName = _firstNameController.text;
-        notifyListeners();
-      }
-    });
-    _lastNameController.addListener(() {
-      if (_signupData.lastName != _lastNameController.text) {
-        _signupData.lastName = _lastNameController.text;
-        notifyListeners();
-      }
-    });
-    _usernameController.addListener(() {
-      if (_signupData.username != _usernameController.text) {
-        _signupData.username = _usernameController.text;
-        notifyListeners();
-      }
-    });
-    _emailController.addListener(() { // NEW
-      if (_signupData.email != _emailController.text) {
-        _signupData.email = _emailController.text;
-        notifyListeners();
-      }
-    });
-    _passwordController.addListener(() { // NEW
-      if (_signupData.password != _passwordController.text) {
-        _signupData.password = _passwordController.text;
-        notifyListeners();
-      }
-    });
+  // Getters for errors
+  String? get firstNameError => _firstNameError;
+  String? get lastNameError => _lastNameError;
+  String? get birthdayError => _birthdayError;
+  String? get genderError => _genderError;
+  String? get usernameError => _usernameError;
+  String? get locationError => _locationError;
+  String? get emailError => _emailError;
+  String? get phoneError => _phoneError;
+  String? get passwordError => _passwordError;
+  String? get confirmPasswordError => _confirmPasswordError;
+  String? get verificationCodeError => _verificationCodeError;
+  String? get termsError => _termsError;
+  String? get profilePictureError => _profilePictureError;
+
+  // Getters for loading states
+  bool get isLoading => _isLoading;
+  bool get isSendingCode => _isSendingCode;
+  bool get isVerifyingCode => _isVerifyingCode;
+  bool get isRegisteringUser => _isRegisteringUser;
+  bool get isUploadingProfilePicture => _isUploadingProfilePicture;
+
+  // Getters for cooldown
+  bool get isResendingCode => _cooldownSeconds > 0;
+  String get formatCooldownTime {
+    final minutes = (_cooldownSeconds / 60).floor();
+    final seconds = _cooldownSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  void initAnimations(TickerProvider vsync) {
-    _textAnimationController = AnimationController(
-      vsync: vsync,
-      duration: const Duration(milliseconds: 1500),
-    );
+  // Getters for profile picture
+  File? get selectedProfilePicture => _selectedProfilePicture;
 
-    _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textAnimationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
+  // --- Validation Getters ---
+  bool get isNameValid =>
+      _firstNameError == null &&
+      _lastNameError == null &&
+      _firstNameController.text.isNotEmpty &&
+      _lastNameController.text.isNotEmpty;
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textAnimationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
+  bool get isBirthdayValid => _birthdayError == null && _signupData.birthday != null;
 
-    // Start animation after a short delay
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _textAnimationController.forward();
-    });
+  bool get isGenderValid => _genderError == null && _signupData.gender != null;
 
-    // Show skip button after 1 second
-    Future.delayed(const Duration(seconds: 1), () {
-      _showSkipButton = true;
-      notifyListeners();
-    });
+  bool get isUsernameValid => _usernameError == null && _usernameController.text.isNotEmpty;
 
-    // Set timer to navigate to next screen after 3 seconds
-    _navigationTimer = Timer(const Duration(milliseconds: 3000), () {
-      if (_context != null) {
-        navigateToNameScreen(_context!);
-      }
-    });
-  }
+  bool get isLocationValid => _locationError == null && _signupData.location != null;
 
-  void setContext(BuildContext context) {
-    _context = context;
-  }
+  bool get isContactInfoValid =>
+      _emailError == null &&
+      _phoneError == null &&
+      _emailController.text.isNotEmpty;
 
-  // Navigation methods
-  void navigateToNameScreen(BuildContext context) {
-    _navigationTimer?.cancel(); // Cancel any pending timers
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider.value(
-          value: this, // Provide the same ViewModel instance
-          child: const UserNamescreen2(), // Navigate to the name screen
-        ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-          return SlideTransition(position: offsetAnimation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 500),
-      ),
-    );
-  }
+  bool get isPasswordFormValid =>
+      _passwordError == null &&
+      _confirmPasswordError == null &&
+      _passwordController.text.isNotEmpty &&
+      _confirmPasswordController.text.isNotEmpty &&
+      _passwordController.text == _confirmPasswordController.text;
 
-  void navigateToBirthdayScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: this, // Provide the same ViewModel instance
-          child: const UserBirthdayScreen3(), // Navigate to the birthday screen
-        ),
-      ),
-    );
-  }
+  bool get isVerificationCodeValid => _verificationCodeError == null && _verificationCodeController.text.isNotEmpty;
 
-  void navigateToGenderScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: this, // Provide the same ViewModel instance
-          child: const UserGenderScreen4(), // Navigate to the gender screen
-        ),
-      ),
-    );
-  }
+  bool get areTermsAccepted => _signupData.termsAccepted;
 
-  void navigateToUsernameScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: this, // Provide the same ViewModel instance
-          child: const UserUsernameScreen5(), // Navigate to the username screen
-        ),
-      ),
-    );
-  }
+  // --- Setters and Validation Logic ---
 
-  void navigateToLocationQuestionScreen(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MultiProvider( // Provide both ViewModels
-          providers: [
-            ChangeNotifierProvider.value(value: this), // UserSignupViewModel
-            ChangeNotifierProvider(create: (_) => LocationViewModel()), // UPDATED: Reverted to LocationViewModel
-          ],
-          child: const UserLocationQuestionScreen6(), // Navigate to the location question screen
-        ),
-      ),
-    );
-  }
-
-  void navigateToGeolocationScreen(BuildContext context) { // UPDATED: Navigation to GeolocationScreen
-    // Ensure location data is set before navigating
-    if (_signupData.address == null || _signupData.lat == null || _signupData.lng == null) {
-      // This should ideally not happen if previous screen validation is correct
-      print('Error: Location data missing for GeolocationScreen navigation.');
-      // Optionally, navigate back or show an error
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MultiProvider(
-          providers: [
-            ChangeNotifierProvider.value(value: this), // UserSignupViewModel
-            BlocProvider(create: (_) => LocationCubit( // UPDATED: Still using Cubit for map screen
-              LatLng(_signupData.lat!, _signupData.lng!),
-              _signupData.address!,
-            )),
-          ],
-          child: const UserGeolocationScreen7(), // Navigate to the new geolocation map screen
-        ),
-      ),
-    );
-  }
-
-  void navigateToContactInfoScreen(BuildContext context) { // NEW: Navigation to ContactInfoScreen
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChangeNotifierProvider.value(
-          value: this, // Provide the same ViewModel instance
-          child: const UserContactInfoScreen8(), // Navigate to the contact info screen
-        ),
-      ),
-    );
-  }
-
-  void navigateBackToWelcome(BuildContext context) {
-    _navigationTimer?.cancel();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const main_welcome.LoginScreen(),
-      ),
-    );
-  }
-
-  void skipWelcome(BuildContext context) {
-    _navigationTimer?.cancel();
-    navigateToNameScreen(context);
-  }
-
-  // Name input handlers (for USER_NAMESCREEN_2.dart)
   void setFirstName(String value) {
-    _signupData.firstName = value;
+    _signupData = _signupData.copyWith(firstName: value);
+    validateFirstName(value);
+  }
+
+  bool validateFirstName(String? value) {
+    if (value == null || value.isEmpty) {
+      _firstNameError = 'First name is required';
+    } else {
+      _firstNameError = null;
+    }
     notifyListeners();
+    return _firstNameError == null;
   }
 
   void setLastName(String value) {
-    _signupData.lastName = value;
-    notifyListeners();
+    _signupData = _signupData.copyWith(lastName: value);
+    validateLastName(value);
   }
 
-  // Birthday input handler (for USER_BIRTHDAYSCREEN_3.dart)
-  void setBirthday(DateTime date) {
-    _signupData.birthday = date;
+  bool validateLastName(String? value) {
+    if (value == null || value.isEmpty) {
+      _lastNameError = 'Last name is required';
+    } else {
+      _lastNameError = null;
+    }
     notifyListeners();
+    return _lastNameError == null;
   }
 
-  // Gender input handler (for USER_GENDERSCREEN_4.dart)
+  Future<void> selectBirthday(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _signupData.birthday ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _signupData.birthday) {
+      _signupData = _signupData.copyWith(birthday: picked);
+      validateBirthday(picked);
+    }
+  }
+
+  bool validateBirthday(DateTime? value) {
+    if (value == null) {
+      _birthdayError = 'Birthday is required';
+    } else {
+      _birthdayError = null;
+    }
+    notifyListeners();
+    return _birthdayError == null;
+  }
+
   void setGender(String value) {
-    _signupData.gender = value;
-    notifyListeners();
+    _signupData = _signupData.copyWith(gender: value);
+    validateGender(value);
   }
 
-  // Username input handler (for USER_USERNAMESCREEN_5.dart)
+  bool validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      _genderError = 'Gender is required';
+    } else {
+      _genderError = null;
+    }
+    notifyListeners();
+    return _genderError == null;
+  }
+
   void setUsername(String value) {
-    _signupData.username = value;
+    _signupData = _signupData.copyWith(username: value);
+    validateUsername(value);
+  }
+
+  bool validateUsername(String? value) {
+    if (value == null || value.isEmpty) {
+      _usernameError = 'Username is required';
+    } else if (value.length < 3) {
+      _usernameError = 'Username must be at least 3 characters';
+    } else {
+      _usernameError = null;
+    }
+    notifyListeners();
+    return _usernameError == null;
+  }
+
+  void setLocation(GeoLocationModel selectedLocation) {
+    _signupData = _signupData.copyWith(location: selectedLocation);
+    validateLocation();
+  }
+
+  bool validateLocation() {
+    if (_signupData.location == null || _signupData.location!.address.isEmpty) {
+      _locationError = 'Location is required';
+    } else {
+      _locationError = null;
+    }
+    notifyListeners();
+    return _locationError == null;
+  }
+
+  bool validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      _emailError = 'Email is required';
+    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+      _emailError = 'Enter a valid email address';
+    } else {
+      _emailError = null;
+    }
+    notifyListeners();
+    return _emailError == null;
+  }
+
+  bool validatePhoneNumber(String? value) {
+    if (value != null && value.isNotEmpty) {
+      final phoneRegex = RegExp(r'^\+63\d{10}$');
+      if (!phoneRegex.hasMatch(value)) {
+        _phoneError = 'Enter a valid +63XXXXXXXXXX number';
+      } else {
+        _phoneError = null;
+      }
+    } else {
+      _phoneError = null; // Optional field, no error if empty
+    }
+    notifyListeners();
+    return _phoneError == null;
+  }
+
+  bool validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      _passwordError = 'Password is required';
+    } else if (value.length < 6) {
+      _passwordError = 'Password must be at least 6 characters';
+    } else {
+      _passwordError = null;
+    }
+    notifyListeners();
+    return _passwordError == null;
+  }
+
+  bool validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      _confirmPasswordError = 'Confirm password is required';
+    } else if (value != _passwordController.text) {
+      _confirmPasswordError = 'Passwords do not match';
+    } else {
+      _confirmPasswordError = null;
+    }
+    notifyListeners();
+    return _confirmPasswordError == null;
+  }
+
+  bool validateVerificationCode(String? value) {
+    if (value == null || value.isEmpty) {
+      _verificationCodeError = 'Verification code is required';
+    } else if (value.length != 6) { // Assuming a 6-digit code
+      _verificationCodeError = 'Code must be 6 digits';
+    } else {
+      _verificationCodeError = null;
+    }
+    notifyListeners();
+    return _verificationCodeError == null;
+  }
+
+  void toggleTermsAccepted(bool? value) {
+    _signupData = _signupData.copyWith(termsAccepted: value ?? false);
+    validateTermsAccepted();
+  }
+
+  bool validateTermsAccepted() {
+    if (!_signupData.termsAccepted) {
+      _termsError = 'You must accept the terms and conditions';
+    } else {
+      _termsError = null;
+    }
+    notifyListeners();
+    return _termsError == null;
+  }
+
+  void setSelectedProfilePicture(File? file) {
+    _selectedProfilePicture = file;
+    _profilePictureError = null; // Clear error when a picture is selected
     notifyListeners();
   }
 
-  // Location input handlers (for USER_LOCATIONQUESTIONSCREEN_6.dart and USER_GEOLOCATIONSCREEN_7.dart)
-  void setAddress(String value) {
-    _signupData.address = value;
+  bool validateProfilePicture() {
+    if (_selectedProfilePicture == null) {
+      _profilePictureError = 'Profile picture is required';
+    } else {
+      _profilePictureError = null;
+    }
     notifyListeners();
+    return _profilePictureError == null;
   }
 
-  void setLat(double value) {
-    _signupData.lat = value;
-    notifyListeners();
+  // --- Business Logic & Navigation ---
+
+  void navigateToNameScreen(BuildContext context) {
+    Navigator.pushNamed(context, UserNamescreen2.routeName);
   }
 
-  void setLng(double value) {
-    _signupData.lng = value;
-    notifyListeners();
+  void navigateToBirthdayScreen(BuildContext context) {
+    if (validateFirstName(_firstNameController.text) && validateLastName(_lastNameController.text)) {
+      _signupData = _signupData.copyWith(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+      );
+      Navigator.pushNamed(context, UserBirthdayScreen3.routeName);
+    }
   }
 
-  // Email and Password handlers (NEW)
-  void setEmail(String value) {
-    _signupData.email = value;
-    notifyListeners();
+  void navigateToGenderScreen(BuildContext context) {
+    if (validateBirthday(_signupData.birthday)) {
+      Navigator.pushNamed(context, UserGenderScreen4.routeName);
+    }
   }
 
-  void setPassword(String value) {
-    _signupData.password = value;
-    notifyListeners();
+  void navigateToUsernameScreen(BuildContext context) {
+    if (validateGender(_signupData.gender)) {
+      Navigator.pushNamed(context, UserUsernameScreen5.routeName);
+    }
   }
 
-  // Finalize location from map and navigate
-  void finalizeLocationFromMap(String address, double lat, double lng, BuildContext context) {
-    setAddress(address);
-    setLat(lat);
-    setLng(lng);
-    navigateToContactInfoScreen(context);
+  void navigateToLocationQuestionScreen(BuildContext context) {
+    if (validateUsername(_usernameController.text)) {
+      _signupData = _signupData.copyWith(username: _usernameController.text);
+      Navigator.pushNamed(context, UserLocationQuestionScreen6.routeName);
+    }
+  }
+
+  void navigateToGeolocationScreen(BuildContext context) {
+    Navigator.pushNamed(context, UserGeolocationScreen7.routeName);
+  }
+
+  void handleLocationConfirmed(BuildContext context, GeoLocationModel location) {
+    setLocation(location);
+    // After confirming location on map, navigate to contact info screen
+    Navigator.pushNamed(context, UserContactInfoScreen8.routeName);
+  }
+
+  Future<void> handleContactInfoNext(BuildContext context) async {
+    if (!validateEmail(_emailController.text) || !validatePhoneNumber(_phoneController.text)) {
+      return;
+    }
+
+    _isSendingCode = true;
+    notifyListeners();
+
+    try {
+      _signupData = _signupData.copyWith(
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+      );
+
+      final sentCode = await _emailService.sendVerificationCode(
+        _signupData.email!,
+        '${_signupData.firstName} ${_signupData.lastName}',
+      );
+      _signupData = _signupData.copyWith(sentCode: sentCode); // Store the sent code for verification
+      _startCooldownTimer(); // Start cooldown after sending code
+
+      if (context.mounted) {
+        Navigator.pushNamed(context, UserPasswordScreen9.routeName);
+      }
+    } catch (e) {
+      _emailError = 'Failed to send verification code: ${e.toString()}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_emailError!), backgroundColor: Colors.red),
+      );
+    } finally {
+      _isSendingCode = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> resendVerificationCode(BuildContext context) async {
+    if (_cooldownSeconds > 0) return; // Prevent resending during cooldown
+
+    _isSendingCode = true;
+    notifyListeners();
+    _startCooldownTimer(); // Start cooldown immediately
+
+    try {
+      final sentCode = await _emailService.sendVerificationCode(
+        _signupData.email!,
+        '${_signupData.firstName} ${_signupData.lastName}',
+      );
+      _signupData = _signupData.copyWith(sentCode: sentCode);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Verification code re-sent!')),
+        );
+      }
+    } catch (e) {
+      _emailError = 'Failed to resend verification code: ${e.toString()}';
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_emailError!), backgroundColor: Colors.red),
+        );
+      }
+      _cooldownTimer?.cancel(); // Cancel timer if resend fails
+      _cooldownSeconds = 0; // Reset cooldown
+      _isSendingCode = false; // Reset loading state
+      notifyListeners();
+    } finally {
+      _isSendingCode = false; // This will be set to false after the try/catch
+      notifyListeners();
+    }
+  }
+
+  void _startCooldownTimer() {
+    _cooldownSeconds = 60; // Set initial cooldown
+    _cooldownTimer?.cancel(); // Cancel any existing timer
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_cooldownSeconds > 0) {
+        _cooldownSeconds--;
+        notifyListeners();
+      } else {
+        timer.cancel();
+        notifyListeners();
+      }
+    });
+  }
+
+  void handlePasswordNext(BuildContext context) {
+    if (!validatePassword(_passwordController.text) || !validateConfirmPassword(_confirmPasswordController.text)) {
+      return;
+    }
+    _signupData = _signupData.copyWith(password: _passwordController.text);
+    Navigator.pushNamed(context, UserTermsAndConditionsScreen10.routeName);
+  }
+
+  void handleTermsConditionsNext(BuildContext context) {
+    if (!validateTermsAccepted()) {
+      return;
+    }
+    Navigator.pushNamed(context, UserVerificationCodescreen11.routeName);
+  }
+
+  Future<void> verifyCodeAndProceed(BuildContext context) async {
+    if (!validateVerificationCode(_verificationCodeController.text)) {
+      return;
+    }
+
+    _isVerifyingCode = true;
+    notifyListeners();
+
+    try {
+      final isVerified = await _emailService.verifyCode(
+        _signupData.email!,
+        _verificationCodeController.text.trim(),
+      );
+
+      if (isVerified) {
+        if (context.mounted) {
+          Navigator.pushNamed(context, UserProfilePictureScreen12.routeName);
+        }
+      } else {
+        _verificationCodeError = 'Invalid verification code';
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid verification code'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      _verificationCodeError = 'Verification failed: ${e.toString()}';
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_verificationCodeError!), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      _isVerifyingCode = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> pickAndUploadProfilePicture(BuildContext context, ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: source);
+
+    if (image != null) {
+      setSelectedProfilePicture(File(image.path));
+      if (!validateProfilePicture()) {
+        return; // Should not happen if image is picked
+      }
+
+      _isUploadingProfilePicture = true;
+      notifyListeners();
+      try {
+        final imageUrl = await _profileUploadService.uploadProfilePicture(_selectedProfilePicture!);
+        if (imageUrl != null) {
+          _signupData = _signupData.copyWith(profilePictureUrl: imageUrl);
+          // Proceed to final registration after successful upload
+          await registerUser(context);
+        } else {
+          throw Exception('Failed to get image URL after upload.');
+        }
+      } catch (e) {
+        _profilePictureError = 'Error uploading picture: ${e.toString()}';
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_profilePictureError!), backgroundColor: Colors.red),
+          );
+        }
+      } finally {
+        _isUploadingProfilePicture = false;
+        notifyListeners();
+      }
+    } else {
+      _profilePictureError = 'No image selected.';
+      notifyListeners();
+    }
+  }
+
+  Future<void> registerUser(BuildContext context) async {
+    _isRegisteringUser = true;
+    notifyListeners();
+
+    try {
+      // Ensure all required data is present before registering
+      if (_signupData.firstName == null ||
+          _signupData.lastName == null ||
+          _signupData.birthday == null ||
+          _signupData.gender == null ||
+          _signupData.username == null ||
+          _signupData.email == null ||
+          _signupData.password == null ||
+          _signupData.location == null ||
+          !_signupData.termsAccepted) {
+        throw Exception('Missing required signup data for registration.');
+      }
+
+      // Set a default user role before sending to backend
+      _signupData = _signupData.copyWith(userRole: 'user');
+
+      final response = await _registrationApiService.registerUser(_signupData.toJson());
+
+      if (response.statusCode == 200) {
+        if (context.mounted) {
+          Navigator.pushNamed(context, UserSignupCompleteScreen13.routeName);
+        }
+      } else {
+        throw Exception('Registration failed: ${response.body}');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      _isRegisteringUser = false;
+      notifyListeners();
+    }
+  }
+
+  void navigateToChurchWelcomeScreen(BuildContext context) {
+    // This method handles navigation to the church setup screen
+    Navigator.pushNamed(context, ChurchWelcomeScreen1.routeName);
+  }
+
+  void navigateToAppAfterSignup(BuildContext context) {
+    // This method handles navigation to the main app (e.g., login screen)
+    resetSignupFlow(); // Clear signup data
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      SharedLoginScreen.routeName,
+      (route) => false, // Remove all previous routes
+    );
+  }
+
+  void resetSignupFlow() {
+    _signupData.reset();
+    _firstNameController.clear();
+    _lastNameController.clear();
+    _usernameController.clear();
+    _emailController.clear();
+    _phoneController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+    _verificationCodeController.clear();
+    _selectedProfilePicture = null;
+
+    _firstNameError = null;
+    _lastNameError = null;
+    _birthdayError = null;
+    _genderError = null;
+    _usernameError = null;
+    _locationError = null;
+    _emailError = null;
+    _phoneError = null;
+    _passwordError = null;
+    _confirmPasswordError = null;
+    _verificationCodeError = null;
+    _termsError = null;
+    _profilePictureError = null;
+
+    _isLoading = false;
+    _isCheckingUsername = false;
+    _isSendingCode = false;
+    _isVerifyingCode = false;
+    _isRegisteringUser = false;
+    _isUploadingProfilePicture = false;
+    _cooldownSeconds = 0;
+    _cooldownTimer?.cancel();
+
+    notifyListeners();
   }
 
   @override
   void dispose() {
-    _textAnimationController.dispose();
-    _navigationTimer?.cancel();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _usernameController.dispose();
-    _emailController.dispose(); // NEW
-    _passwordController.dispose(); // NEW
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _verificationCodeController.dispose();
+    _cooldownTimer?.cancel(); // Cancel the cooldown timer
     super.dispose();
   }
 }
-

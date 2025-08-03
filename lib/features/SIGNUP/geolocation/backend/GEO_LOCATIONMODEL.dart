@@ -2,6 +2,7 @@
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart'; // For IconData
+import '../frontend/GEO_LOCATIONUTILS.dart'; // For AppConstants
 
 // This file contains data models related to geolocation.
 
@@ -12,7 +13,15 @@ class CachedResult<T> {
 
   CachedResult(this.data, this.timestamp);
 
-  bool get isExpired => DateTime.now().difference(timestamp) > const Duration(minutes: 30); // Default cache expiration
+  // This getter will be overridden by specific cache expiration durations in LocationService
+  bool get isExpired {
+    if (T.toString().contains('SearchResultItem')) { // Check for SearchResultItem type
+      return DateTime.now().difference(timestamp) > AppConstants.searchCacheExpiration;
+    } else if (T == String) {
+      return DateTime.now().difference(timestamp) > AppConstants.geocodeCacheExpiration;
+    }
+    return DateTime.now().difference(timestamp) > const Duration(minutes: 30); // Default
+  }
 }
 
 // Enum for location permission results.

@@ -1,4 +1,4 @@
-// lib/features/SIGNUP/frontend/screens/USER_USERNAMESCREEN_5.dart
+// lib/features/SIGNUP/frontend/screens/USER_PASSWORDSCREEN_9.dart
 // This file is assumed to be correct and does not need modifications.
 // Placeholder content for brevity, replace with actual content if available.
 import 'package:flutter/material.dart';
@@ -6,10 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:teleo_app/features/SIGNUP/backend/viewmodels/USER_SIGNUPVIEWMODELS.dart';
 import 'package:teleo_app/features/3/c1widgets/back_button.dart';
 
-class UserUsernameScreen5 extends StatelessWidget {
-  static const routeName = '/user-username';
+class UserPasswordScreen9 extends StatelessWidget {
+  static const routeName = '/user-password';
 
-  const UserUsernameScreen5({super.key});
+  const UserPasswordScreen9({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,32 +29,44 @@ class UserUsernameScreen5 extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               const Text(
-                "Choose a username",
+                "Create your password",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               const Text(
-                "This will be your unique identifier on Teleo.",
+                "Make it strong and memorable.",
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 40),
               TextField(
-                controller: viewModel.usernameController,
+                controller: viewModel.passwordController,
+                obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Username',
-                  hintText: 'e.g., teleouser123',
+                  labelText: 'Password',
+                  hintText: 'Minimum 6 characters',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  errorText: viewModel.usernameError,
+                  errorText: viewModel.passwordError,
                 ),
-                onChanged: viewModel.setUsername,
+                onChanged: viewModel.validatePassword,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: viewModel.confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  errorText: viewModel.confirmPasswordError,
+                ),
+                onChanged: viewModel.validateConfirmPassword,
               ),
               const Spacer(),
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: viewModel.isUsernameValid
-                      ? () => viewModel.navigateToLocationQuestionScreen(context)
+                  onPressed: viewModel.isPasswordFormValid
+                      ? () => viewModel.handlePasswordNext(context)
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,

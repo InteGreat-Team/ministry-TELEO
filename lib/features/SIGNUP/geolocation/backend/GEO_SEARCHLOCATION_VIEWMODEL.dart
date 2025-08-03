@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'GEO_LOCATIONMODEL.dart';
 import '../frontend/GEO_LOCATIONSERVICE.dart';
 import '../frontend/GEO_SEARCHRESULTITEM.dart';
+import '../frontend/GEO_LOCATIONUTILS.dart';
 
 enum LocationState {
   initial,
@@ -11,17 +12,17 @@ enum LocationState {
   selected,
 }
 
-class LocationViewModel extends ChangeNotifier {
+class SearchLocationViewModel extends ChangeNotifier {
   final LocationService _locationService; // FIXED: Changed from GeoLocationService to LocationService
 
   LocationState _state = LocationState.initial;
   List<SearchResultItem> _suggestions = [];
   String? _errorMessage;
   SearchResultItem? _selectedLocation;
-  bool _hasSearched = false; // Tracks if a search has been performed or nearby churches loaded
+  bool _hasSearched = false;
 
-  LocationViewModel({LocationService? locationService}) // FIXED: Changed parameter type
-      : _locationService = locationService ?? LocationService(); // FIXED: Use LocationService
+  SearchLocationViewModel({LocationService? locationService}) // FIXED: Changed parameter type
+      : _locationService = locationService ?? LocationService();
 
   // Getters for UI consumption
   LocationState get state => _state;
@@ -36,11 +37,11 @@ class LocationViewModel extends ChangeNotifier {
   Future<void> loadNearbyChurches() async {
     _state = LocationState.loading;
     _errorMessage = null;
-    _hasSearched = true; // Mark as searched/loaded
+    _hasSearched = true;
     notifyListeners();
 
     try {
-      _suggestions = await _locationService.getNearbyChurches(await _locationService.getCurrentPosition()); // FIXED: Use _locationService
+      _suggestions = await _locationService.getNearbyChurches(await _locationService.getCurrentPosition());
       _state = LocationState.loaded;
     } catch (e) {
       _errorMessage = 'Failed to load nearby churches: ${e.toString()}';
@@ -54,11 +55,11 @@ class LocationViewModel extends ChangeNotifier {
   Future<void> searchLocations(String query) async {
     _state = LocationState.loading;
     _errorMessage = null;
-    _hasSearched = true; // Mark as searched
+    _hasSearched = true;
     notifyListeners();
 
     try {
-      _suggestions = await _locationService.searchPlaces(query); // FIXED: Use _locationService
+      _suggestions = await _locationService.searchPlaces(query);
       _state = LocationState.loaded;
       if (_suggestions.isEmpty) {
         _errorMessage = 'No locations found for "$query". Try a different search term.';
@@ -100,7 +101,7 @@ class LocationViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final detailedItem = await _locationService.getPlaceDetails(item.placeId!); // FIXED: Use _locationService
+      final detailedItem = await _locationService.getPlaceDetails(item.placeId!);
       if (detailedItem != null) {
         selectLocation(detailedItem);
       } else {
