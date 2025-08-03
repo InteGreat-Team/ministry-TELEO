@@ -3,7 +3,7 @@ import 'dart:async';
 import 'c1s2name_screen.dart';
 import '../../3/c1widgets/animated_wave_background.dart';
 import '../../3/welcome_screen.dart' as main_welcome;
-import '../../3/c1apphighlights/splash_screen.dart'; // Add this import for the splash screen
+import '../../3/login_screen.dart'; // Updated import to use login screen
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -70,19 +70,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       }
     });
 
-    // Navigate to splash screen after showing "Your Account is Ready!" for 2 seconds
+    // Navigate to login screen after showing "Your Account is Ready!" for 2 seconds
     _navigationTimer = Timer(const Duration(seconds: 4), () {
       if (mounted) {
-        _navigateToSplashScreen();
+        _navigateToLoginScreen();
       }
     });
   }
 
-  void _navigateToSplashScreen() {
+  void _navigateToLoginScreen() {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const AppHighlightsSplashScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
@@ -152,7 +152,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             onTap: () {
               _navigationTimer?.cancel();
               if (_showAccountReady) {
-                _navigateToSplashScreen();
+                _navigateToLoginScreen();
               } else {
                 _navigateToNextScreen();
               }
@@ -180,7 +180,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               children: [
                                 if (!_showAccountReady) ...[
                                   const Text(
-                                    'Hello!',
+                                    'Thank you for Registering!',
                                     style: TextStyle(
                                       fontSize: 64,
                                       fontWeight: FontWeight.bold,

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'faqs_screen.dart';
 import '../../3/contact_us_screen.dart';
-import '../../3/nav_bar.dart';
+// import '../../3/nav_bar.dart'; // Removed unused import
 import 'donate_screen.dart';
 import '../../2/c1homepage/authenticator_flow.dart';
 import '../../3/report/mainreport.dart';
@@ -38,7 +38,6 @@ class UserData {
   String phoneNumber;
   String username;
   String password;
-
   UserData({
     required this.firstName,
     required this.lastName,
@@ -107,11 +106,9 @@ class _HomePageState extends State<HomePage> {
   void _navigateTo(AppView view, {AuthenticatorFlow? flow, String? newValue}) {
     setState(() {
       _currentView = view;
-
       if (flow != null) {
         _currentAuthFlow = flow;
       }
-
       // Store temporary data based on the flow
       if (newValue != null) {
         switch (_currentAuthFlow) {
@@ -126,7 +123,6 @@ class _HomePageState extends State<HomePage> {
             break;
         }
       }
-
       //Purpe of this code is to set titles for the sidebar and also mixed of settings
       switch (view) {
         case AppView.home:
@@ -169,7 +165,6 @@ class _HomePageState extends State<HomePage> {
   void _handleAuthenticationSuccess() {
     // Update user data based on the current flow
     UserData updatedUserData;
-
     switch (_currentAuthFlow) {
       case AuthenticatorFlow.email:
         updatedUserData = UserData(
@@ -208,26 +203,24 @@ class _HomePageState extends State<HomePage> {
         );
         break;
     }
-
     _updateUserData(updatedUserData);
 
     // Show success dialog
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(_getSuccessTitle()),
-            content: Text(_getSuccessMessage()),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _navigateTo(AppView.securitySettings);
-                },
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(_getSuccessTitle()),
+        content: Text(_getSuccessMessage()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _navigateTo(AppView.securitySettings);
+            },
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -259,7 +252,6 @@ class _HomePageState extends State<HomePage> {
       _isSearching = true;
       _searchResults = [];
     });
-
     // Focus on the search field after a short delay to allow the UI to build
     Future.delayed(const Duration(milliseconds: 100), () {
       _searchFocusNode.requestFocus();
@@ -279,52 +271,48 @@ class _HomePageState extends State<HomePage> {
   void _performSearch(String query) {
     setState(() {
       _searchQuery = query;
-
       if (query.isEmpty) {
         _searchResults = [];
         return;
       }
-
       // Mock search results - in a real app, this would query a database
-      _searchResults =
-          [
-                {
-                  'name': 'Sunny Detroit Church',
-                  'type': 'church',
-                  'location': 'Detroit, MI',
-                  'members': '1,245',
-                  'established': '1985',
-                  'joined': '04/12/23',
-                },
-                {
-                  'name': 'Sunny Los Angeles Church',
-                  'type': 'church',
-                  'location': 'Los Angeles, CA',
-                  'members': '2,567',
-                  'established': '1992',
-                },
-                {
-                  'name': 'Sunny Hill California Church',
-                  'type': 'church',
-                  'location': 'San Francisco, CA',
-                  'members': '987',
-                  'established': '2001',
-                },
-                {
-                  'name': 'Grace Community Church',
-                  'type': 'church',
-                  'location': 'Chicago, IL',
-                  'members': '3,421',
-                  'established': '1978',
-                },
-                {'name': 'Holy Trinity Service', 'type': 'service'},
-                {'name': 'Sunday Morning Prayer', 'type': 'event'},
-              ]
-              .where(
-                (result) =>
-                    result['name']!.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
+      _searchResults = [
+        {
+          'name': 'Sunny Detroit Church',
+          'type': 'church',
+          'location': 'Detroit, MI',
+          'members': '1,245',
+          'established': '1985',
+          'joined': '04/12/23',
+        },
+        {
+          'name': 'Sunny Los Angeles Church',
+          'type': 'church',
+          'location': 'Los Angeles, CA',
+          'members': '2,567',
+          'established': '1992',
+        },
+        {
+          'name': 'Sunny Hill California Church',
+          'type': 'church',
+          'location': 'San Francisco, CA',
+          'members': '987',
+          'established': '2001',
+        },
+        {
+          'name': 'Grace Community Church',
+          'type': 'church',
+          'location': 'Chicago, IL',
+          'members': '3,421',
+          'established': '1978',
+        },
+        {'name': 'Holy Trinity Service', 'type': 'service'},
+        {'name': 'Sunday Morning Prayer', 'type': 'event'},
+      ]
+          .where(
+            (result) => result['name']!.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
     });
   }
 
@@ -341,64 +329,60 @@ class _HomePageState extends State<HomePage> {
     return Stack(
       children: [
         Scaffold(
-          backgroundColor:
-              _currentView == AppView.home ||
-                      _currentView == AppView.profile ||
-                      _currentView == AppView.faqs
-                  ? const Color(0xFF001A33)
-                  : Colors.white,
+          backgroundColor: _currentView == AppView.home ||
+                  _currentView == AppView.profile ||
+                  _currentView == AppView.faqs
+              ? const Color(0xFF001A33)
+              : Colors.white,
           appBar: AppBar(
             title: Text(_currentTitle),
-            backgroundColor:
-                _currentView == AppView.home ||
-                        _currentView == AppView.profile ||
-                        _currentView == AppView.faqs
-                    ? const Color(0xFF001A33)
-                    : Colors.white,
-            foregroundColor:
-                _currentView == AppView.home ||
-                        _currentView == AppView.profile ||
-                        _currentView == AppView.faqs
-                    ? Colors.white
-                    : Colors.black,
+            backgroundColor: _currentView == AppView.home ||
+                    _currentView == AppView.profile ||
+                    _currentView == AppView.faqs
+                ? const Color(0xFF001A33)
+                : Colors.white,
+            foregroundColor: _currentView == AppView.home ||
+                    _currentView == AppView.profile ||
+                    _currentView == AppView.faqs
+                ? Colors.white
+                : Colors.black,
             elevation: 0,
-            leading:
-                _currentView != AppView.home
-                    ? IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () {
-                        if (_currentView == AppView.authenticator) {
-                          switch (_currentAuthFlow) {
-                            case AuthenticatorFlow.email:
-                              _navigateTo(AppView.changeEmail);
-                              break;
-                            case AuthenticatorFlow.password:
-                              _navigateTo(AppView.changePassword);
-                              break;
-                            case AuthenticatorFlow.phone:
-                              _navigateTo(AppView.changePhone);
-                              break;
-                          }
-                        } else if (_currentView == AppView.changeEmail ||
-                            _currentView == AppView.changePassword ||
-                            _currentView == AppView.changePhone) {
-                          _navigateTo(AppView.securitySettings);
-                        } else if (_currentView == AppView.securitySettings ||
-                            _currentView == AppView.accountSettings) {
-                          _navigateTo(AppView.settings);
-                        } else if (_currentView == AppView.faqs) {
-                          _navigateTo(AppView.home);
-                        } else if (_currentView == AppView.profile) {
-                          _navigateTo(AppView.home);
-                        } else if (_currentView == AppView.report) {
-                          // ADD THIS LINE
-                          _navigateTo(AppView.settings);
-                        } else {
-                          _navigateTo(AppView.home);
+            leading: _currentView != AppView.home
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      if (_currentView == AppView.authenticator) {
+                        switch (_currentAuthFlow) {
+                          case AuthenticatorFlow.email:
+                            _navigateTo(AppView.changeEmail);
+                            break;
+                          case AuthenticatorFlow.password:
+                            _navigateTo(AppView.changePassword);
+                            break;
+                          case AuthenticatorFlow.phone:
+                            _navigateTo(AppView.changePhone);
+                            break;
                         }
-                      },
-                    )
-                    : null,
+                      } else if (_currentView == AppView.changeEmail ||
+                          _currentView == AppView.changePassword ||
+                          _currentView == AppView.changePhone) {
+                        _navigateTo(AppView.securitySettings);
+                      } else if (_currentView == AppView.securitySettings ||
+                          _currentView == AppView.accountSettings) {
+                        _navigateTo(AppView.settings);
+                      } else if (_currentView == AppView.faqs) {
+                        _navigateTo(AppView.home);
+                      } else if (_currentView == AppView.profile) {
+                        _navigateTo(AppView.home);
+                      } else if (_currentView == AppView.report) {
+                        // ADD THIS LINE
+                        _navigateTo(AppView.settings);
+                      } else {
+                        _navigateTo(AppView.home);
+                      }
+                    },
+                  )
+                : null,
             actions: [
               if (_currentView == AppView.home)
                 IconButton(
@@ -409,14 +393,12 @@ class _HomePageState extends State<HomePage> {
                 ),
             ],
           ),
-          drawer:
-              _currentView == AppView.home
-                  ? AppDrawer(onNavigate: _navigateTo, userData: _userData)
-                  : null,
+          drawer: _currentView == AppView.home
+              ? AppDrawer(onNavigate: _navigateTo, userData: _userData)
+              : null,
           body: _buildBody(),
           bottomNavigationBar: _buildBottomNav(),
         ),
-
         // Search overlay
         if (_isSearching) _buildSearchOverlay(),
       ],
@@ -455,16 +437,15 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             // Back button or hamburger menu
                             IconButton(
-                              icon:
-                                  _searchQuery.isEmpty
-                                      ? const Icon(
-                                        Icons.menu,
-                                        color: Colors.white,
-                                      )
-                                      : const Icon(
-                                        Icons.arrow_back,
-                                        color: Colors.white,
-                                      ),
+                              icon: _searchQuery.isEmpty
+                                  ? const Icon(
+                                      Icons.menu,
+                                      color: Colors.white,
+                                    )
+                                  : const Icon(
+                                      Icons.arrow_back,
+                                      color: Colors.white,
+                                    ),
                               onPressed: () {
                                 if (_searchQuery.isEmpty) {
                                   // Open drawer
@@ -479,7 +460,6 @@ class _HomePageState extends State<HomePage> {
                                 }
                               },
                             ),
-
                             // Search text field
                             Expanded(
                               child: TextField(
@@ -494,19 +474,17 @@ class _HomePageState extends State<HomePage> {
                                 onChanged: _performSearch,
                               ),
                             ),
-
                             // Search or clear button
                             IconButton(
-                              icon:
-                                  _searchQuery.isEmpty
-                                      ? const Icon(
-                                        Icons.search,
-                                        color: Colors.white,
-                                      )
-                                      : const Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                      ),
+                              icon: _searchQuery.isEmpty
+                                  ? const Icon(
+                                      Icons.search,
+                                      color: Colors.white,
+                                    )
+                                  : const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                    ),
                               onPressed: () {
                                 if (_searchQuery.isEmpty) {
                                   // Focus on search field
@@ -524,7 +502,6 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
-
                       // Search results
                       if (_searchResults.isNotEmpty)
                         Container(
@@ -540,158 +517,111 @@ class _HomePageState extends State<HomePage> {
                             color: Colors.transparent,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children:
-                                  _searchResults.map((result) {
-                                    return InkWell(
-                                      onTap: () {
-                                        // Handle result selection
-                                        _hideSearchBar();
-
-                                        // Navigate to the church profile if it's a church
-                                        if (result['type'] == 'church') {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AdminProfileView(
-                                                    adminData: AdminData(
-                                                      churchName:
-                                                          result['name'] ?? '',
-                                                      posts:
-                                                          result['posts']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      following:
-                                                          result['following']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      followers:
-                                                          result['followers']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      loginActivity:
-                                                          result['loginActivity']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      loginActivityPercentage:
-                                                          result['loginActivityPercentage']
-                                                              ?.toString() ??
-                                                          '+0%',
-                                                      dailyFollows:
-                                                          result['dailyFollows']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      dailyFollowsPercentage:
-                                                          result['dailyFollowsPercentage']
-                                                              ?.toString() ??
-                                                          '+0%',
-                                                      dailyVisits:
-                                                          result['dailyVisits']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      dailyVisitsPercentage:
-                                                          result['dailyVisitsPercentage']
-                                                              ?.toString() ??
-                                                          '+0%',
-                                                      bookings:
-                                                          result['bookings']
-                                                              ?.toString() ??
-                                                          '0',
-                                                      bookingsPercentage:
-                                                          result['bookingsPercentage']
-                                                              ?.toString() ??
-                                                          '+0%',
-                                                      email:
-                                                          result['email'] ?? '',
-                                                      phoneNumber:
-                                                          result['phoneNumber'] ??
-                                                          '',
-                                                      password:
-                                                          result['password'] ??
-                                                          '',
-                                                    ),
-                                                    onUpdateAdminData:
-                                                        (data) {},
-                                                  ),
+                              children: _searchResults.map((result) {
+                                return InkWell(
+                                  onTap: () {
+                                    // Handle result selection
+                                    _hideSearchBar();
+                                    // Navigate to the church profile if it's a church
+                                    if (result['type'] == 'church') {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AdminProfileView(
+                                            adminData: AdminData(
+                                              churchName: result['name'] ?? '',
+                                              posts: result['posts']?.toString() ?? '0',
+                                              following: result['following']?.toString() ?? '0',
+                                              followers: result['followers']?.toString() ?? '0',
+                                              loginActivity: result['loginActivity']?.toString() ?? '0',
+                                              loginActivityPercentage: result['loginActivityPercentage']?.toString() ?? '+0%',
+                                              dailyFollows: result['dailyFollows']?.toString() ?? '0',
+                                              dailyFollowsPercentage: result['dailyFollowsPercentage']?.toString() ?? '+0%',
+                                              dailyVisits: result['dailyVisits']?.toString() ?? '0',
+                                              dailyVisitsPercentage: result['dailyVisitsPercentage']?.toString() ?? '+0%',
+                                              bookings: result['bookings']?.toString() ?? '0',
+                                              bookingsPercentage: result['bookingsPercentage']?.toString() ?? '+0%',
+                                              email: result['email'] ?? '',
+                                              phoneNumber: result['phoneNumber'] ?? '',
+                                              password: result['password'] ?? '',
                                             ),
-                                          );
-                                        } else {
-                                          // For other types, just show a snackbar
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Selected: ${result['name']}',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16.0,
-                                          horizontal: 24.0,
+                                            onUpdateAdminData: (data) {},
+                                          ),
                                         ),
-                                        child: Row(
-                                          children: [
-                                            // Icon based on type
-                                            Icon(
-                                              result['type'] == 'church'
-                                                  ? Icons.church
-                                                  : (result['type'] == 'event'
-                                                      ? Icons.event
-                                                      : Icons
-                                                          .miscellaneous_services),
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            // Result name
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    result['name']!,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  if (result['location'] !=
-                                                      null)
-                                                    Text(
-                                                      result['location']!,
-                                                      style: const TextStyle(
-                                                        color: Colors.white70,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                            // Arrow icon for navigation
-                                            const Icon(
-                                              Icons.arrow_forward_ios,
-                                              color: Colors.white70,
-                                              size: 14,
-                                            ),
-                                          ],
+                                      );
+                                    } else {
+                                      // For other types, just show a snackbar
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Selected: ${result['name']}',
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                      );
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16.0,
+                                      horizontal: 24.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Icon based on type
+                                        Icon(
+                                          result['type'] == 'church'
+                                              ? Icons.church
+                                              : (result['type'] == 'event'
+                                                  ? Icons.event
+                                                  : Icons.miscellaneous_services),
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        // Result name
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                result['name']!,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              if (result['location'] != null)
+                                                Text(
+                                                  result['location']!,
+                                                  style: const TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Arrow icon for navigation
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.white70,
+                                          size: 14,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
                         ),
                     ],
                   ),
                 ),
-
                 // Clickable area to dismiss search
                 Expanded(
                   child: GestureDetector(
@@ -707,32 +637,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      width: double.infinity,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Center(
-        child: TextField(
-          controller: _searchController,
-          focusNode: _searchFocusNode,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.clear, color: Colors.grey),
-              onPressed: _hideSearchBar,
-            ),
-            hintText: 'Search...',
-            border: InputBorder.none,
-          ),
-          onChanged: _performSearch,
-        ),
-      ),
-    );
-  }
+  // Removed unused method: _buildSearchBar()
+  // Widget _buildSearchBar() { ... }
 
   Widget _buildBody() {
     switch (_currentView) {
@@ -776,7 +682,6 @@ class _HomePageState extends State<HomePage> {
 
   // Update the _buildHomeView method to match the new design
   // Replace the existing _buildHomeView method with this implementation
-
   Widget _buildHomeView() {
     return Container(
       color: const Color(0xFF001A33),
@@ -990,6 +895,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildWelcomeHeader() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final titleFontSize = screenWidth * 0.08; // Responsive font size
+    final subtitleFontSize = screenWidth * 0.05; // Responsive font size
+    final searchButtonSize = screenWidth * 0.16; // Responsive button size
+    final searchIconSize = screenWidth * 0.08; // Responsive icon size
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -998,11 +909,11 @@ class _HomePageState extends State<HomePage> {
           children: [
             RichText(
               text: TextSpan(
-                style: const TextStyle(
-                  fontSize: 32, // Increased from 28
+                style: TextStyle(
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
-                  height: 1.3, // Increased from 1.2
+                  height: 1.3,
                 ),
                 children: [
                   const TextSpan(text: 'Welcome, '),
@@ -1014,13 +925,13 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            const SizedBox(height: 12), // Increased from 8
-            const Text(
+            const SizedBox(height: 12),
+            Text(
               "What's the agenda for today?",
               style: TextStyle(
-                fontSize: 20, // Increased from 18
+                fontSize: subtitleFontSize,
                 color: Colors.white70,
-                height: 1.3, // Increased from 1.2
+                height: 1.3,
               ),
             ),
           ],
@@ -1028,37 +939,42 @@ class _HomePageState extends State<HomePage> {
         GestureDetector(
           onTap: _showSearchBar,
           child: Container(
-            width: 64, // Increased from 56
-            height: 64, // Increased from 56
+            width: searchButtonSize,
+            height: searchButtonSize,
             decoration: BoxDecoration(
               color: const Color(0xFF3E9BFF),
-              borderRadius: BorderRadius.circular(32), // Increased from 28
+              borderRadius: BorderRadius.circular(searchButtonSize / 2),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF3E9BFF).withOpacity(0.3),
-                  blurRadius: 12, // Increased from 8
-                  offset: const Offset(0, 6), // Increased from 4
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.search,
               color: Colors.white,
-              size: 32,
-            ), // Increased from 28
+              size: searchIconSize,
+            ),
           ),
         ),
       ],
     );
   }
 
-  //STOPPED HERE
   Widget _buildStatsCards() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardPadding = screenWidth * 0.04; // Responsive padding
+    final titleFontSize = screenWidth * 0.038; // Responsive font size
+    final valueFontSize = screenWidth * 0.055; // Responsive font size
+    final percentageFontSize = screenWidth * 0.03; // Responsive font size
+
     return Row(
       children: [
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16), // Reduced padding
+            padding: EdgeInsets.all(cardPadding),
             decoration: BoxDecoration(
               color: const Color(0xFF002642),
               borderRadius: BorderRadius.circular(16),
@@ -1073,11 +989,11 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Daily Streak',
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 15,
+                    fontSize: titleFontSize,
                     height: 1.2,
                   ),
                 ),
@@ -1085,29 +1001,29 @@ class _HomePageState extends State<HomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       '7 days',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: valueFontSize,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.02,
+                        vertical: screenWidth * 0.01,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
+                      child: Text(
                         '+100%',
                         style: TextStyle(
                           color: Colors.green,
-                          fontSize: 13,
+                          fontSize: percentageFontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1121,7 +1037,7 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(width: 16),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(cardPadding),
             decoration: BoxDecoration(
               color: const Color(0xFF002642),
               borderRadius: BorderRadius.circular(16),
@@ -1136,11 +1052,11 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Lives Reached',
                   style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 15,
+                    fontSize: titleFontSize,
                     height: 1.2,
                   ),
                 ),
@@ -1148,29 +1064,29 @@ class _HomePageState extends State<HomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       '3,671',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: valueFontSize,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.02,
+                        vertical: screenWidth * 0.01,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.red.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
+                      child: Text(
                         '-0.03%',
                         style: TextStyle(
                           color: Colors.red,
-                          fontSize: 13,
+                          fontSize: percentageFontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1200,10 +1116,9 @@ class _HomePageState extends State<HomePage> {
               width: 56, // Increased from 48
               height: 56, // Increased from 48
               decoration: BoxDecoration(
-                color:
-                    _currentFilter == HomeFilter.all
-                        ? const Color(0xFF3E9BFF)
-                        : const Color(0xFF002642),
+                color: _currentFilter == HomeFilter.all
+                    ? const Color(0xFF3E9BFF)
+                    : const Color(0xFF002642),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -1341,9 +1256,7 @@ class _HomePageState extends State<HomePage> {
                 'assets/images/baptism_service.jpg',
                 'Book Now',
                 () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Baptism booking requested')),
-                  );
+                  _showAppointmentBookingDialog('Baptism'); // Call the booking dialog
                 },
               ),
               _buildServiceCardItem(
@@ -1352,11 +1265,7 @@ class _HomePageState extends State<HomePage> {
                 'assets/images/funeral_service.jpg',
                 'Book Now',
                 () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Funeral service booking requested'),
-                    ),
-                  );
+                  _showAppointmentBookingDialog('Funeral'); // Call the booking dialog
                 },
               ),
               _buildServiceCardItem(
@@ -1391,8 +1300,9 @@ class _HomePageState extends State<HomePage> {
                 'assets/images/partner_service.jpg',
                 'Donate',
                 () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Donation process initiated')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DonateScreen()),
                   );
                 },
               ),
@@ -1404,7 +1314,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Add these methods to the _HomePageState class
-
   // Find the _buildAppointmentsSection method and replace it with this implementation
   Widget _buildAppointmentsSection() {
     return Column(
@@ -1418,9 +1327,7 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         const SizedBox(height: 16),
-
         // Service cards
         _buildServiceCard(
           'Wedding',
@@ -1428,26 +1335,25 @@ class _HomePageState extends State<HomePage> {
           'Wed March 5 - 10:00 AM',
           'assets/images/wedding_service.jpg',
           Icons.favorite,
+          onTap: () => _showAppointmentBookingDialog('Wedding'), // Added onTap
         ),
-
         const SizedBox(height: 12),
-
         _buildServiceCard(
           'Funeral',
           'Service',
           'Fri March 21 - 10:00 AM',
           'assets/images/funeral_service.jpg',
           Icons.church,
+          onTap: () => _showAppointmentBookingDialog('Funeral'), // Added onTap
         ),
-
         const SizedBox(height: 12),
-
         _buildServiceCard(
           'Baptism',
           'Service',
           'Sun April 6 - 10:00 AM',
           'assets/images/baptism_service.jpg',
           Icons.water_drop,
+          onTap: () => _showAppointmentBookingDialog('Baptism'), // Added onTap
         ),
       ],
     );
@@ -1482,7 +1388,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-
               // Date picker
               GestureDetector(
                 onTap: () {
@@ -1518,9 +1423,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               // Time picker
               GestureDetector(
                 onTap: () {
@@ -1554,9 +1457,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               // Notes
               TextField(
                 style: const TextStyle(color: Colors.white),
@@ -1573,9 +1474,7 @@ class _HomePageState extends State<HomePage> {
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
-
               const SizedBox(height: 24),
-
               // Book button
               SizedBox(
                 width: double.infinity,
@@ -1602,7 +1501,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
             ],
           ),
@@ -1736,7 +1634,6 @@ class _HomePageState extends State<HomePage> {
       children: [
         Text('Daily Readings', style: sectionHeaderStyle),
         const SizedBox(height: 24),
-
         // Reading cards
         _buildReadingCard(
           'Daily Devotional',
@@ -1745,9 +1642,7 @@ class _HomePageState extends State<HomePage> {
           'The LORD is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul...',
           'assets/images/devotional.jpg',
         ),
-
         const SizedBox(height: 24),
-
         _buildReadingCard(
           'Weekly Scripture',
           'Week of May 12-18',
@@ -1755,12 +1650,9 @@ class _HomePageState extends State<HomePage> {
           'For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life...',
           'assets/images/scripture.jpg',
         ),
-
         const SizedBox(height: 36),
-
         Text('Church Publications', style: sectionHeaderStyle),
         const SizedBox(height: 24),
-
         // Publication cards
         _buildPublicationCard(
           'Monthly Newsletter',
@@ -1768,9 +1660,7 @@ class _HomePageState extends State<HomePage> {
           'Updates on church activities, upcoming events, and community outreach programs.',
           'assets/images/newsletter.jpg',
         ),
-
         const SizedBox(height: 24),
-
         _buildPublicationCard(
           'Sermon Notes',
           'Last Sunday\'s Message',
@@ -1830,7 +1720,6 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-
           // Reading details
           Padding(
             padding: const EdgeInsets.all(12.0),
@@ -1955,7 +1844,6 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-
           // Publication details
           Expanded(
             child: Padding(
@@ -2037,7 +1925,6 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
-
                   // Reading details
                   Padding(
                     padding: const EdgeInsets.all(20),
@@ -2079,9 +1966,7 @@ class _HomePageState extends State<HomePage> {
                             height: 1.5,
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
                         // Action buttons
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2120,18 +2005,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Add these helper methods for the new UI components
-  Widget _buildDotIndicator(bool isActive) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isActive ? const Color(0xFF3E9BFF) : Colors.grey[300],
-      ),
-    );
-  }
+  // Removed unused method: _buildDotIndicator()
+  // Widget _buildDotIndicator(bool isActive) { ... }
 
   Widget _buildBulletinBoard(String title, IconData icon) {
     return Container(
@@ -2180,169 +2055,85 @@ class _HomePageState extends State<HomePage> {
     String subtitle,
     String dateTime,
     String imagePath,
-    IconData fallbackIcon,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16), // Added margin
-      decoration: BoxDecoration(
-        color: const Color(0xFF002642),
-        borderRadius: BorderRadius.circular(16), // Increased radius
-        boxShadow: [
-          // Added subtle shadow
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Green indicator bar
-          Container(
-            width: 6, // Slightly wider
-            height: 100, // Increased height
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(3),
+    IconData fallbackIcon, {
+    VoidCallback? onTap, // Added onTap parameter
+  }) {
+    return GestureDetector(
+      onTap: onTap, // Use the onTap callback
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16), // Added margin
+        decoration: BoxDecoration(
+          color: const Color(0xFF002642),
+          borderRadius: BorderRadius.circular(16), // Increased radius
+          boxShadow: [
+            // Added subtle shadow
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-          ),
-
-          // Service image
-          Padding(
-            padding: const EdgeInsets.all(16.0), // Increased padding
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12), // Increased radius
-              child: Image.asset(
-                imagePath,
-                width: 64, // Increased size
-                height: 64, // Increased size
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 64,
-                    height: 64,
-                    color: Colors.grey[800],
-                    child: Icon(
-                      fallbackIcon,
-                      color: Colors.white54,
-                      size: 32, // Increased size
-                    ),
-                  );
-                },
+          ],
+        ),
+        child: Row(
+          children: [
+            // Green indicator bar
+            Container(
+              width: 6, // Slightly wider
+              height: 100, // Increased height
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-          ),
-
-          // Service details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18, // Increased font size
-                    fontWeight: FontWeight.bold,
-                    height: 1.2, // Added line height
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16, // Increased font size
-                    height: 1.2, // Added line height
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.access_time,
-                      color: Colors.white54,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dateTime,
-                      style: const TextStyle(
+            // Service image
+            Padding(
+              padding: const EdgeInsets.all(16.0), // Increased padding
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12), // Increased radius
+                child: Image.asset(
+                  imagePath,
+                  width: 64, // Increased size
+                  height: 64, // Increased size
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 64,
+                      height: 64,
+                      color: Colors.grey[800],
+                      child: Icon(
+                        fallbackIcon,
                         color: Colors.white54,
-                        fontSize: 14,
-                        height: 1.2, // Added line height
+                        size: 32, // Increased size
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ],
+              ),
             ),
-          ),
-
-          // More options button
-          IconButton(
-            icon: const Icon(
-              Icons.more_vert,
-              color: Colors.white54,
-              size: 24, // Increased size
-            ),
-            onPressed: () {
-              // Show options menu
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Add this method to build the event card for the second design
-  Widget _buildEventCard(
-    String title,
-    String subtitle,
-    String description,
-    String dateTime,
-    String imagePath,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF002642),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          // Green indicator bar
-          Container(
-            width: 4,
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-
-          // Event details
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+            // Service details
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Color(0xFF3E9BFF),
-                      fontSize: 20,
+                      color: Colors.white,
+                      fontSize: 18, // Increased font size
                       fontWeight: FontWeight.bold,
+                      height: 1.2, // Added line height
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     subtitle,
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16, // Increased font size
+                      height: 1.2, // Added line height
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       const Icon(
@@ -2350,140 +2141,42 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.white54,
                         size: 16,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Text(
                         dateTime,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.white54,
                           fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          height: 1.2, // Added line height
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    description,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
                 ],
               ),
             ),
-          ),
-
-          // Event image
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(12),
-              bottomRight: Radius.circular(12),
-            ),
-            child: Image.asset(
-              imagePath,
-              width: 150,
-              height: 200,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 150,
-                  height: 200,
-                  color: Colors.grey[800],
-                  child: const Icon(
-                    Icons.image_not_supported,
-                    color: Colors.white54,
-                    size: 40,
-                  ),
-                );
+            // More options button
+            IconButton(
+              icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white54,
+                size: 24, // Increased size
+              ),
+              onPressed: () {
+                // Show options menu
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // Add this method to build the service card for the third design
-  Widget _buildUpcomingServiceCard(
-    String title,
-    String time,
-    String imagePath,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF002642),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            child: Image.asset(
-              imagePath,
-              width: double.infinity,
-              height: 150,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  height: 150,
-                  color: Colors.grey[800],
-                  child: const Icon(
-                    Icons.church,
-                    color: Colors.white54,
-                    size: 50,
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(
-                    Icons.calendar_today,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Removed unused method: _buildEventCard()
+  // Widget _buildEventCard(String title, String subtitle, String description, String dateTime, String imagePath) { ... }
+
+  // Removed unused method: _buildUpcomingServiceCard()
+  // Widget _buildUpcomingServiceCard(String title, String time, String imagePath) { ... }
 
   // Update the _buildActionButton method to handle filter selection
   Widget _buildActionButton(
@@ -2493,7 +2186,6 @@ class _HomePageState extends State<HomePage> {
     HomeFilter? filter,
   }) {
     final bool isSelected = filter != null && _currentFilter == filter;
-
     return GestureDetector(
       onTap: () {
         if (filter != null) {
@@ -2755,7 +2447,6 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-
           // Content section
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -2780,7 +2471,6 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-
           // Dots at bottom
           Expanded(
             child: Align(
@@ -2796,10 +2486,9 @@ class _HomePageState extends State<HomePage> {
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            index == cardIndex % 5
-                                ? Colors.white
-                                : Colors.white.withOpacity(0.3),
+                        color: index == cardIndex % 5
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.3),
                       ),
                     );
                   }),
@@ -2814,7 +2503,6 @@ class _HomePageState extends State<HomePage> {
 
   // Add this helper method to the _HomePageState class
   // Add it near the other helper methods like _buildTeleoCard
-
   Widget _buildServiceCardItem(
     String title,
     String description,
@@ -2853,12 +2541,12 @@ class _HomePageState extends State<HomePage> {
                     title == 'Baptism'
                         ? Icons.water_drop
                         : title == 'Funerals'
-                        ? Icons.church
-                        : title == 'Youth'
-                        ? Icons.people
-                        : title == 'Outreach'
-                        ? Icons.volunteer_activism
-                        : Icons.favorite,
+                            ? Icons.church
+                            : title == 'Youth'
+                                ? Icons.people
+                                : title == 'Outreach'
+                                    ? Icons.volunteer_activism
+                                    : Icons.favorite,
                     color: Colors.white54,
                     size: 40,
                   ),
@@ -2866,7 +2554,6 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-
           // Content section
           Padding(
             padding: const EdgeInsets.all(12.0),
@@ -2917,22 +2604,17 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  // Remove the conflicting _buildServiceCard method that has the same parameter signature
-  // as the one we're using for the services section
 }
 
 // Authenticator View
 class AuthenticatorView extends StatefulWidget {
   final AuthenticatorFlow flow;
   final VoidCallback onSuccess;
-
   const AuthenticatorView({
     super.key,
     required this.flow,
     required this.onSuccess,
   });
-
   @override
   State<AuthenticatorView> createState() => _AuthenticatorViewState();
 }
@@ -2943,7 +2625,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
     (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
-
   bool _isVerifying = false;
   String? _errorMessage;
   int _resendSeconds = 299;
@@ -2984,17 +2665,13 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
       _resendSeconds = 299;
       _errorMessage = null;
     });
-
     _startResendTimer();
-
     // Clear all fields
     for (var controller in _codeControllers) {
       controller.clear();
     }
-
     // Focus on first field
     _focusNodes[0].requestFocus();
-
     // Show snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -3007,7 +2684,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
   void _verifyCode() {
     // Get the full code
     final code = _codeControllers.map((c) => c.text).join();
-
     // Check if code is complete
     if (code.length != 6) {
       setState(() {
@@ -3015,18 +2691,15 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
       });
       return;
     }
-
     setState(() {
       _isVerifying = true;
       _errorMessage = null;
     });
-
     // Simulate verification
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
         _isVerifying = false;
       });
-
       // For demo purposes, any code is valid
       widget.onSuccess();
     });
@@ -3051,7 +2724,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
-
           // Header
           const Text(
             'Security',
@@ -3062,7 +2734,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 30),
-
           // Prompt text
           Text(
             _getPromptText(),
@@ -3070,7 +2741,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
             style: const TextStyle(fontSize: 16),
           ),
           const SizedBox(height: 30),
-
           // Code input fields
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -3102,8 +2772,9 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
                   onChanged: (value) {
                     if (value.isNotEmpty && index < 5) {
                       _focusNodes[index + 1].requestFocus();
+                    } else if (value.isEmpty && index > 0) {
+                      _focusNodes[index - 1].requestFocus();
                     }
-
                     // Check if all fields are filled
                     if (_codeControllers.every(
                       (controller) => controller.text.isNotEmpty,
@@ -3115,7 +2786,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
               );
             }),
           ),
-
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
@@ -3124,9 +2794,7 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
                 style: const TextStyle(color: Colors.red, fontSize: 14),
               ),
             ),
-
           const SizedBox(height: 30),
-
           // Confirm button
           SizedBox(
             width: double.infinity,
@@ -3139,28 +2807,25 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child:
-                  _isVerifying
-                      ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                      : const Text(
-                        'Confirm',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+              child: _isVerifying
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
                       ),
+                    )
+                  : const Text(
+                      'Confirm',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           // Resend code
           TextButton(
             onPressed: _resendSeconds == 0 ? _resendCode : null,
@@ -3182,7 +2847,6 @@ class _AuthenticatorViewState extends State<AuthenticatorView> {
 class AppDrawer extends StatelessWidget {
   final Function(AppView) onNavigate;
   final UserData userData;
-
   const AppDrawer({
     super.key,
     required this.onNavigate,
@@ -3396,7 +3060,6 @@ class AppDrawer extends StatelessWidget {
 // Settings View - Updated to include Report an Issue
 class SettingsView extends StatelessWidget {
   final Function(AppView) onNavigate;
-
   const SettingsView({super.key, required this.onNavigate});
 
   @override
@@ -3418,7 +3081,6 @@ class SettingsView extends StatelessWidget {
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 30),
-
             // Settings menu items
             _buildSettingsItem(
               context,
@@ -3505,7 +3167,6 @@ class SettingsView extends StatelessWidget {
 class ProfileView extends StatefulWidget {
   final UserData userData;
   final Function(UserData) onUpdateUserData;
-
   const ProfileView({
     super.key,
     required this.userData,
@@ -3517,7 +3178,7 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  bool _isEditing = false;
+  bool _isEditing = false; // Re-enabled _isEditing
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   late TextEditingController _pronounsController;
@@ -3555,6 +3216,7 @@ class _ProfileViewState extends State<ProfileView> {
     super.dispose();
   }
 
+  // Re-added _toggleEditMode
   void _toggleEditMode() {
     setState(() {
       if (_isEditing) {
@@ -3564,10 +3226,10 @@ class _ProfileViewState extends State<ProfileView> {
           lastName: _lastNameController.text,
           pronouns: _pronounsController.text,
           birthdate: _birthdateController.text,
-          email: _emailController.text,
-          phoneNumber: _phoneController.text,
-          username: widget.userData.username,
-          password: widget.userData.password,
+          email: widget.userData.email,
+          phoneNumber: widget.userData.phoneNumber,
+          username: widget.userData.username, // Username is not editable here
+          password: widget.userData.password, // Password is not editable here
         );
         widget.onUpdateUserData(updatedUserData);
       } else {
@@ -3605,7 +3267,6 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                 ),
-
                 // Profile info
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -3677,7 +3338,6 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 20), // Increased spacing
                       // Name
                       Text(
@@ -3689,7 +3349,6 @@ class _ProfileViewState extends State<ProfileView> {
                           height: 1.2, // Added line height
                         ),
                       ),
-
                       const SizedBox(height: 12), // Increased spacing
                       // Pronouns and birthdate
                       Row(
@@ -3769,7 +3428,6 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
               ],
             ),
-
             const SizedBox(height: 32), // Increased spacing
             // Services & Events section
             const Padding(
@@ -3784,9 +3442,7 @@ class _ProfileViewState extends State<ProfileView> {
                 textAlign: TextAlign.center,
               ),
             ),
-
             const SizedBox(height: 16),
-
             // Stats row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -3813,10 +3469,8 @@ class _ProfileViewState extends State<ProfileView> {
                       ],
                     ),
                   ),
-
                   // Divider
                   Container(height: 40, width: 1, color: Colors.white24),
-
                   // Events Attended
                   const Expanded(
                     child: Column(
@@ -3841,9 +3495,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
             // Tabs
             Row(
               children: [
@@ -3877,9 +3529,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
             // Booking history list
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -3913,10 +3563,49 @@ class _ProfileViewState extends State<ProfileView> {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
-            const SizedBox(height: 80), // Extra space for bottom nav bar
+            // Edit/Save Profile button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _toggleEditMode,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3E9BFF),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  _isEditing ? 'Save Profile' : 'Edit Profile',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            // Cancel button (only in edit mode)
+            if (_isEditing)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _isEditing = false;
+                        _initControllers(); // Revert changes
+                      });
+                    },
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 60), // Extra space for bottom nav bar
           ],
         ),
       ),
@@ -3976,13 +3665,94 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
+
+  // Helper for editable fields in ProfileView
+  Widget _buildEditableField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 15,
+              ),
+              filled: true,
+              fillColor: const Color(0xFF002642),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(
+                  color: Color(0xFF3E9BFF),
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper for non-editable fields in ProfileView
+  Widget _buildSettingsField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+            decoration: BoxDecoration(
+              color: const Color(0xFF002642),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.transparent),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // Account Settings View
 class AccountSettingsView extends StatefulWidget {
   final UserData userData;
   final Function(UserData) onUpdateUserData;
-
   const AccountSettingsView({
     super.key,
     required this.userData,
@@ -4071,30 +3841,23 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 30),
-
             // Form fields
             _isEditing
                 ? _buildEditableField('Username', _usernameController)
                 : _buildSettingsField('Username', widget.userData.username),
-
             _isEditing
                 ? _buildEditableField('First Name', _firstNameController)
                 : _buildSettingsField('First Name', widget.userData.firstName),
-
             _isEditing
                 ? _buildEditableField('Last Name', _lastNameController)
                 : _buildSettingsField('Last Name', widget.userData.lastName),
-
             _isEditing
                 ? _buildEditableField('Pronouns', _pronounsController)
                 : _buildSettingsField('Pronouns', widget.userData.pronouns),
-
             _isEditing
                 ? _buildEditableField('Birthdate', _birthdateController)
                 : _buildSettingsField('Birthdate', widget.userData.birthdate),
-
             const SizedBox(height: 30),
-
             // Security settings button
             TextButton(
               onPressed: () {
@@ -4119,9 +3882,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
             // Edit/Save Profile button
             SizedBox(
               width: double.infinity,
@@ -4143,7 +3904,6 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                 ),
               ),
             ),
-
             // Cancel button (only in edit mode)
             if (_isEditing)
               Padding(
@@ -4240,7 +4000,6 @@ class SecuritySettingsView extends StatefulWidget {
   final UserData userData;
   final Function(UserData) onUpdateUserData;
   final Function(AppView) onNavigate;
-
   const SecuritySettingsView({
     super.key,
     required this.userData,
@@ -4272,7 +4031,6 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 30),
-
             // Security options
             _buildSecurityOption(
               context,
@@ -4281,7 +4039,6 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
               'Update your email address',
               onTap: () => widget.onNavigate(AppView.changeEmail),
             ),
-
             _buildSecurityOption(
               context,
               Icons.lock,
@@ -4289,7 +4046,6 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
               'Update your password',
               onTap: () => widget.onNavigate(AppView.changePassword),
             ),
-
             _buildSecurityOption(
               context,
               Icons.phone,
@@ -4297,9 +4053,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
               'Update your phone number',
               onTap: () => widget.onNavigate(AppView.changePhone),
             ),
-
             const SizedBox(height: 20),
-
             // Current information display
             Container(
               width: double.infinity,
@@ -4324,9 +4078,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
                 ],
               ),
             ),
-
             const SizedBox(height: 30),
-
             // Account settings button
             TextButton(
               onPressed: () {
@@ -4423,8 +4175,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
 class ChangeEmailView extends StatefulWidget {
   final UserData userData;
   final Function(AppView, {AuthenticatorFlow? flow, String? newValue})
-  onNavigate;
-
+      onNavigate;
   const ChangeEmailView({
     super.key,
     required this.userData,
@@ -4470,7 +4221,6 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
       _isVerifying = true;
       _errorMessage = null;
     });
-
     // Simulate password verification
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
@@ -4510,8 +4260,7 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
             readOnly: readOnly,
             obscureText: isPassword,
             validator: validator,
-            keyboardType:
-                keyboardType ??
+            keyboardType: keyboardType ??
                 (isPassword
                     ? TextInputType.text
                     : (label.toLowerCase().contains('email')
@@ -4539,11 +4288,11 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color:
-                      errorText != null ? Colors.red : const Color(0xFF002642),
+                  color: errorText != null ? Colors.red : const Color(0xFF002642),
                   width: 2,
                 ),
               ),
+              errorText: errorText, // Removed trailing comma
             ),
           ),
         ],
@@ -4554,35 +4303,28 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
   void _proceedToVerification() {
     // Validate email format
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-
     setState(() {
       if (_newEmailController.text.isEmpty) {
         _errorMessage = 'Please enter a new email';
         return;
       }
-
       if (!emailRegex.hasMatch(_newEmailController.text)) {
         _errorMessage = 'Please enter a valid email address';
         return;
       }
-
       if (_newEmailController.text == widget.userData.email) {
         _errorMessage = 'New email must be different from current email';
         return;
       }
-
       if (_newEmailController.text != _confirmEmailController.text) {
         _errorMessage = 'Emails do not match';
         return;
       }
-
       _errorMessage = null;
     });
-
     if (_errorMessage != null) {
       return;
     }
-
     // Navigate to authenticator view with email flow
     widget.onNavigate(
       AppView.authenticator,
@@ -4613,14 +4355,12 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 30),
-
               // Current email (read-only)
               _buildField(
                 'Current Email',
                 _currentEmailController,
                 readOnly: true,
               ),
-
               // Password verification section
               if (!_isVerified) ...[
                 _buildField(
@@ -4634,7 +4374,6 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
                     return null;
                   },
                 ),
-
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
@@ -4643,9 +4382,7 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
                       style: const TextStyle(color: Colors.red, fontSize: 14),
                     ),
                   ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -4657,54 +4394,46 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child:
-                        _isVerifying
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text(
-                              'Verify Password',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    child: _isVerifying
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
                             ),
+                          )
+                        : const Text(
+                            'Verify Password',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
-
               // New email fields (only shown after password verification)
               if (_isVerified) ...[
                 _buildField(
                   'New Email',
                   _newEmailController,
-                  errorText:
-                      _newEmailController.text.isNotEmpty &&
-                              !RegExp(
-                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                              ).hasMatch(_newEmailController.text)
-                          ? 'Please enter a valid email address'
-                          : null,
+                  errorText: _newEmailController.text.isNotEmpty &&
+                          !RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(_newEmailController.text)
+                      ? 'Please enter a valid email address'
+                      : null,
                 ),
-
                 _buildField(
                   'Confirm New Email',
                   _confirmEmailController,
-                  errorText:
-                      _confirmEmailController.text.isNotEmpty &&
-                              _newEmailController.text !=
-                                  _confirmEmailController.text
-                          ? 'Emails do not match'
-                          : null,
+                  errorText: _confirmEmailController.text.isNotEmpty &&
+                          _newEmailController.text != _confirmEmailController.text
+                      ? 'Emails do not match'
+                      : null,
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -4725,7 +4454,6 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
                   child: SizedBox(
@@ -4754,8 +4482,7 @@ class _ChangeEmailViewState extends State<ChangeEmailView> {
 class ChangePasswordView extends StatefulWidget {
   final UserData userData;
   final Function(AppView, {AuthenticatorFlow? flow, String? newValue})
-  onNavigate;
-
+      onNavigate;
   const ChangePasswordView({
     super.key,
     required this.userData,
@@ -4799,7 +4526,6 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
       _isVerifying = true;
       _errorMessage = null;
     });
-
     // Simulate email verification
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
@@ -4815,23 +4541,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     });
   }
 
-  void _validatePassword(String password) {
-    setState(() {
-      if (password.isEmpty) {
-        _errorMessage = 'Password cannot be empty';
-      } else if (password.length < 8) {
-        _errorMessage = 'Password must be at least 8 characters';
-      } else if (!password.contains(RegExp(r'[A-Z]'))) {
-        _errorMessage = 'Password must contain at least one uppercase letter';
-      } else if (!password.contains(RegExp(r'[a-z]'))) {
-        _errorMessage = 'Password must contain at least one lowercase letter';
-      } else if (!password.contains(RegExp(r'[0-9]'))) {
-        _errorMessage = 'Password must contain at least one number';
-      } else {
-        _errorMessage = null;
-      }
-    });
-  }
+  // Removed unused method: _validatePassword()
+  // void _validatePassword(String password) { ... }
 
   Widget _buildField(
     String label,
@@ -4857,8 +4568,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
             readOnly: readOnly,
             obscureText: isPassword,
             validator: validator,
-            keyboardType:
-                keyboardType ??
+            keyboardType: keyboardType ??
                 (isPassword
                     ? TextInputType.text
                     : (label.toLowerCase().contains('email')
@@ -4868,8 +4578,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                             : TextInputType.text))),
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 8.0,
+                horizontal: 12, // Changed from 8.0 to 12 for consistency
+                vertical: 15, // Changed from 8.0 to 15 for consistency
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -4886,14 +4596,13 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color:
-                      errorText != null ? Colors.red : const Color(0xFF002642),
+                  color: errorText != null ? Colors.red : const Color(0xFF002642),
                   width: 2,
                 ),
               ),
               filled: readOnly,
               fillColor: readOnly ? Colors.grey[100] : null,
-              errorText: errorText,
+              errorText: errorText, // Removed trailing comma
             ),
           ),
         ],
@@ -4902,37 +4611,40 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   }
 
   void _proceedToVerification() {
-    // Validate phone number format
-    final phoneRegex = RegExp(r'^[0-9]{11}$');
-
     setState(() {
       if (_newPasswordController.text.isEmpty) {
         _errorMessage = 'Please enter a new password';
         return;
       }
-
       if (_newPasswordController.text.length < 8) {
         _errorMessage = 'Password must be at least 8 characters';
         return;
       }
-
+      if (!RegExp(r'[A-Z]').hasMatch(_newPasswordController.text)) {
+        _errorMessage = 'Password must contain at least one uppercase letter';
+        return;
+      }
+      if (!RegExp(r'[a-z]').hasMatch(_newPasswordController.text)) {
+        _errorMessage = 'Password must contain at least one lowercase letter';
+        return;
+      }
+      if (!RegExp(r'[0-9]').hasMatch(_newPasswordController.text)) {
+        _errorMessage = 'Password must contain at least one number';
+        return;
+      }
       if (_newPasswordController.text == widget.userData.password) {
         _errorMessage = 'New password must be different from current password';
         return;
       }
-
       if (_newPasswordController.text != _confirmPasswordController.text) {
         _errorMessage = 'Passwords do not match';
         return;
       }
-
       _errorMessage = null;
     });
-
     if (_errorMessage != null) {
       return;
     }
-
     // Navigate to authenticator view with password flow
     widget.onNavigate(
       AppView.authenticator,
@@ -4963,10 +4675,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 30),
-
               // Current email (read-only)
               _buildField('Current Email', _emailController, readOnly: true),
-
               // Password verification section
               if (!_isVerified) ...[
                 _buildField(
@@ -4980,7 +4690,6 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                     return null;
                   },
                 ),
-
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
@@ -4989,9 +4698,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                       style: const TextStyle(color: Colors.red, fontSize: 14),
                     ),
                   ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -5003,56 +4710,48 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child:
-                        _isVerifying
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text(
-                              'Verify Email',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    child: _isVerifying
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
                             ),
+                          )
+                        : const Text(
+                            'Verify Email',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
-
               // New email fields (only shown after password verification)
               if (_isVerified) ...[
                 _buildField(
                   'New Password',
                   _newPasswordController,
                   isPassword: true,
-                  errorText:
-                      _newPasswordController.text.isNotEmpty &&
-                              !RegExp(
-                                r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$',
-                              ).hasMatch(_newPasswordController.text)
-                          ? 'Please enter a valid password'
-                          : null,
+                  errorText: _newPasswordController.text.isNotEmpty &&
+                          !RegExp(
+                            r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$',
+                          ).hasMatch(_newPasswordController.text)
+                      ? 'Password must be at least 8 characters, contain an uppercase letter, a lowercase letter, and a number.'
+                      : null,
                 ),
-
                 _buildField(
                   'Confirm New Password',
                   _confirmPasswordController,
                   isPassword: true,
-                  errorText:
-                      _confirmPasswordController.text.isNotEmpty &&
-                              _newPasswordController.text !=
-                                  _confirmPasswordController.text
-                          ? 'Passwords do not match'
-                          : null,
+                  errorText: _confirmPasswordController.text.isNotEmpty &&
+                          _newPasswordController.text != _confirmPasswordController.text
+                      ? 'Passwords do not match'
+                      : null,
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -5073,7 +4772,6 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
                   child: SizedBox(
@@ -5102,8 +4800,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 class ChangePhoneView extends StatefulWidget {
   final UserData userData;
   final Function(AppView, {AuthenticatorFlow? flow, String? newValue})
-  onNavigate;
-
+      onNavigate;
   const ChangePhoneView({
     super.key,
     required this.userData,
@@ -5115,7 +4812,6 @@ class ChangePhoneView extends StatefulWidget {
 }
 
 // Add this class implementation to fix the ChangePhoneViewState error
-
 class ChangePhoneViewState extends State<ChangePhoneView> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _currentPhoneController;
@@ -5148,7 +4844,6 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
       _isVerifying = true;
       _errorMessage = null;
     });
-
     // Simulate email verification
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
@@ -5188,8 +4883,7 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
             readOnly: readOnly,
             obscureText: isPassword,
             validator: validator,
-            keyboardType:
-                keyboardType ??
+            keyboardType: keyboardType ??
                 (isPassword
                     ? TextInputType.text
                     : (label.toLowerCase().contains('email')
@@ -5217,14 +4911,13 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color:
-                      errorText != null ? Colors.red : const Color(0xFF002642),
+                  color: errorText != null ? Colors.red : const Color(0xFF002642),
                   width: 2,
                 ),
               ),
               filled: readOnly,
               fillColor: readOnly ? Colors.grey[100] : null,
-              errorText: errorText,
+              errorText: errorText, // Removed trailing comma
             ),
           ),
         ],
@@ -5233,34 +4926,27 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
   }
 
   void _proceedToVerification() {
-    // Validate phone number format
-    final phoneRegex = RegExp(r'^\d{10,15}$');
+    // Removed unused local variable: final phoneRegex = RegExp(r'^\d{10,15}$');
     final phone = _newPhoneController.text.replaceAll(RegExp(r'\D'), '');
-
     setState(() {
       if (_newPhoneController.text.isEmpty) {
         _errorMessage = 'Please enter a new phone number';
         return;
       }
-
       if (_newPhoneController.text == widget.userData.phoneNumber) {
         _errorMessage =
             'New phone number must be different from current phone number';
         return;
       }
-
-      if (!phoneRegex.hasMatch(phone)) {
+      if (!RegExp(r'^\d{10,15}$').hasMatch(phone)) {
         _errorMessage = 'Please enter a valid phone number';
         return;
       }
-
       _errorMessage = null;
     });
-
     if (_errorMessage != null) {
       return;
     }
-
     // Navigate to authenticator view with phone flow
     widget.onNavigate(
       AppView.authenticator,
@@ -5291,14 +4977,12 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 30),
-
               // Current phone (read-only)
               _buildField(
                 'Current Phone Number',
                 _currentPhoneController,
                 readOnly: true,
               ),
-
               // Email verification section
               if (!_isVerified) ...[
                 _buildField(
@@ -5312,7 +4996,6 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
                     return null;
                   },
                 ),
-
                 if (_errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
@@ -5321,9 +5004,7 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
                       style: const TextStyle(color: Colors.red, fontSize: 14),
                     ),
                   ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -5335,47 +5016,42 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child:
-                        _isVerifying
-                            ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text(
-                              'Verify Email',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    child: _isVerifying
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
                             ),
+                          )
+                        : const Text(
+                            'Verify Email',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
-
               // New phone field (only shown after email verification)
               if (_isVerified) ...[
                 _buildField(
                   'New Phone Number',
                   _newPhoneController,
                   keyboardType: TextInputType.phone,
-                  errorText:
-                      _newPhoneController.text.isNotEmpty &&
-                              !RegExp(r'^\d{10,15}$').hasMatch(
-                                _newPhoneController.text.replaceAll(
-                                  RegExp(r'\D'),
-                                  '',
-                                ),
-                              )
-                          ? 'Please enter a valid phone number'
-                          : null,
+                  errorText: _newPhoneController.text.isNotEmpty &&
+                          !RegExp(r'^\d{10,15}$').hasMatch(
+                            _newPhoneController.text.replaceAll(
+                              RegExp(r'\D'),
+                              '',
+                            ),
+                          )
+                      ? 'Please enter a valid phone number'
+                      : null,
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -5396,7 +5072,6 @@ class ChangePhoneViewState extends State<ChangePhoneView> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
                   child: SizedBox(

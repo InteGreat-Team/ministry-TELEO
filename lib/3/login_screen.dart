@@ -6,7 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../3/widget_login/login_widget.dart'; // Updated import
 import 'navigation_service.dart';
-import '../2/c1homepage/home_page.dart';
+import 'c1apphighlights/splash_screen.dart'; // Import the splash screen
+import 'c1apphighlights/interest_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -88,10 +89,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      if (role == 'admin') {
-        NavigationService.navigateToAdminHome(context);
-      } else if (role == 'user') {
-        NavigationService.navigateToUserHome(context);
+      // Navigate to splash screen first, then it will handle the flow to interest selection and homepage
+      if (role == 'admin' || role == 'user') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AppHighlightsSplashScreen()),
+        );
       } else {
         setState(
             () => _firebaseError = 'User role not found or not authorized.');
@@ -119,9 +122,10 @@ class _LoginScreenState extends State<LoginScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              // Navigate to splash screen for guests as well
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const AdminHomePage()),
+                MaterialPageRoute(builder: (context) => const AppHighlightsSplashScreen()),
               );
             },
             child: const Text('Continue'),
