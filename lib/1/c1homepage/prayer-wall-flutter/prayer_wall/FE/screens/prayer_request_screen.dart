@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../BE/models/prayer_post.dart';
-import '../../BE/providers/prayer_request_provider.dart';
-import '../widgets/prayer_request/prayer_request.dart';
+import '../../BE/models/prayer_post.dart'; // Changed to relative import
+import '../../BE/providers/prayer_request_provider.dart'; // Changed to relative import
+import '../widgets/prayer_request/prayer_request.dart'; // Changed to relative import
 
 class PrayerRequestScreen extends StatefulWidget {
   final Function(PrayerPost) onPrayerAdded;
@@ -103,7 +103,7 @@ class _PrayerRequestScreenState extends State<PrayerRequestScreen> {
     return PrayerPost(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userName: userName,
-      userAvatar: '',
+      userAvatar: 'assets/images/profile.jpg',
       createdAt: DateTime.now().toLocal(),
       content: provider.subjectController.text,
       details: provider.requestController.text,

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import '../../../BE/models/prayer_post.dart';
+import '../../../BE/models/prayer_post.dart'; // Corrected to go up 3 levels
 import 'package:intl/intl.dart';
 
-// Define SwipeDirection enum to fix the undefined class error
 enum SwipeDirection { right, left }
 
 class PrayerCard extends StatefulWidget {
@@ -11,7 +10,7 @@ class PrayerCard extends StatefulWidget {
   final Color cardColor;
   final Color nextCardColor;
   final VoidCallback onLike;
-  final Function(String?) onPray; // Updated to accept a prayer message
+  final Function(String?) onPray;
   final VoidCallback onComment;
   final Function(SwipeDirection) onSwipe;
 
@@ -102,14 +101,10 @@ class _PrayerCardState extends State<PrayerCard>
       },
     ];
 
-    // Get the render box of the button
-
-    // Create a backdrop that will dismiss the menu when tapped
     _overlayEntry = OverlayEntry(
       builder:
           (context) => Stack(
             children: [
-              // Transparent backdrop for detecting taps outside the menu
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -117,7 +112,6 @@ class _PrayerCardState extends State<PrayerCard>
                   child: Container(color: Colors.transparent),
                 ),
               ),
-              // Dropdown menu positioned directly above the button
               Positioned(
                 child: CompositedTransformFollower(
                   link: _layerLink,
@@ -125,7 +119,7 @@ class _PrayerCardState extends State<PrayerCard>
                   offset: const Offset(
                     0,
                     -210,
-                  ), // Position directly above the button
+                  ),
                   child: Material(
                     elevation: 8.0,
                     borderRadius: BorderRadius.circular(12),
@@ -134,14 +128,12 @@ class _PrayerCardState extends State<PrayerCard>
                       constraints: BoxConstraints(
                         maxWidth: 280,
                         maxHeight:
-                            MediaQuery.of(context).size.height *
-                            0.4, // Limit height to 40% of screen
+                            MediaQuery.of(context).size.height * 0.4,
                       ),
                       child: SingleChildScrollView(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Prayer options
                             ...prayerOptions
                                 .map(
                                   (option) => InkWell(
@@ -150,6 +142,7 @@ class _PrayerCardState extends State<PrayerCard>
                                       widget.onPray(option["text"]);
                                     },
                                     child: Container(
+                                      width: double.infinity,
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 16,
                                         vertical: 12,
@@ -157,7 +150,7 @@ class _PrayerCardState extends State<PrayerCard>
                                       decoration: BoxDecoration(
                                         border: Border(
                                           bottom: BorderSide(
-                                            color: Colors.grey.withOpacity(0.2),
+                                            color: Colors.grey.withAlpha((255 * 0.2).round()),
                                             width: 0.5,
                                           ),
                                         ),
@@ -179,7 +172,6 @@ class _PrayerCardState extends State<PrayerCard>
                                   ),
                                 )
                                 .toList(),
-                            // Dropdown arrow at the bottom
                             Container(
                               alignment: Alignment.center,
                               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -224,13 +216,10 @@ class _PrayerCardState extends State<PrayerCard>
       onHorizontalDragEnd: (details) {
         final threshold = MediaQuery.of(context).size.width * 0.3;
         if (_dragUpdateX.abs() > threshold) {
-          // Fix: Account for card flip state when determining swipe direction
           bool isSwipeRight;
           if (_showBackSide) {
-            // When card is flipped, invert the swipe direction logic
-            isSwipeRight = _dragUpdateX < 0; // Inverted for back side
+            isSwipeRight = _dragUpdateX < 0;
           } else {
-            // Normal logic for front side
             isSwipeRight = _dragUpdateX > 0;
           }
 
@@ -249,23 +238,20 @@ class _PrayerCardState extends State<PrayerCard>
         builder: (context, child) {
           final angle = _animation.value * math.pi;
 
-          // Fix: Apply drag offset correctly based on card state
           double dragOffset = 0;
           if (_isDragging) {
             if (_showBackSide) {
-              // When card is flipped, invert the drag offset
               dragOffset = -_dragUpdateX * 0.5;
             } else {
-              // Normal drag offset for front side
               dragOffset = _dragUpdateX * 0.5;
             }
           }
 
           final transform =
               Matrix4.identity()
-                ..setEntry(3, 2, 0.001) // Perspective
+                ..setEntry(3, 2, 0.001)
                 ..rotateY(angle)
-                ..translate(dragOffset, 0, 0); // Apply only X translation
+                ..translate(dragOffset, 0, 0);
 
           return Transform(
             transform: transform,
@@ -294,7 +280,7 @@ class _PrayerCardState extends State<PrayerCard>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withAlpha((255 * 0.2).round()),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -303,7 +289,6 @@ class _PrayerCardState extends State<PrayerCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User info
           Row(
             children: [
               CircleAvatar(
@@ -329,7 +314,7 @@ class _PrayerCardState extends State<PrayerCard>
                     ).format(widget.post.createdAt),
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withAlpha((255 * 0.7).round()),
                     ),
                   ),
                 ],
@@ -337,7 +322,6 @@ class _PrayerCardState extends State<PrayerCard>
             ],
           ),
           const SizedBox(height: 24),
-          // Prayer content
           Expanded(
             child: Center(
               child: SingleChildScrollView(
@@ -355,18 +339,16 @@ class _PrayerCardState extends State<PrayerCard>
               ),
             ),
           ),
-          // Action buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Like button
               InkWell(
                 onTap: widget.onLike,
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withAlpha((255 * 0.15).round()),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -378,7 +360,6 @@ class _PrayerCardState extends State<PrayerCard>
                   ),
                 ),
               ),
-              // Pray button
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -389,7 +370,7 @@ class _PrayerCardState extends State<PrayerCard>
                         _showPrayerOptions(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.15),
+                        backgroundColor: Colors.white.withAlpha((255 * 0.15).round()),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(
@@ -410,14 +391,13 @@ class _PrayerCardState extends State<PrayerCard>
                   ),
                 ),
               ),
-              // Comment button
               InkWell(
                 onTap: widget.onComment,
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withAlpha((255 * 0.15).round()),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -436,9 +416,7 @@ class _PrayerCardState extends State<PrayerCard>
 
   Widget _buildBackSide() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        16,
-      ), // Fixed: Add clipping to ensure consistent corners
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
         height: 400,
@@ -447,16 +425,15 @@ class _PrayerCardState extends State<PrayerCard>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withAlpha((255 * 0.2).round()),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
           ],
         ),
         child: Stack(
-          clipBehavior: Clip.antiAlias, // Fixed: Ensure proper clipping
+          clipBehavior: Clip.antiAlias,
           children: [
-            // Subtle next card color hint (optional - can be removed if causing issues)
             Positioned(
               right: -10,
               top: 0,
@@ -464,7 +441,7 @@ class _PrayerCardState extends State<PrayerCard>
               child: Container(
                 width: 8,
                 decoration: BoxDecoration(
-                  color: widget.nextCardColor.withOpacity(0.3),
+                  color: widget.nextCardColor.withAlpha((255 * 0.3).round()),
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(16),
                     bottomRight: Radius.circular(16),
@@ -472,13 +449,11 @@ class _PrayerCardState extends State<PrayerCard>
                 ),
               ),
             ),
-            // Main content
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // User info
                   Row(
                     children: [
                       CircleAvatar(
@@ -505,7 +480,7 @@ class _PrayerCardState extends State<PrayerCard>
                             ).format(widget.post.createdAt.toLocal()),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withAlpha((255 * 0.7).round()),
                               fontFamily: 'Poppins',
                             ),
                           ),
@@ -514,7 +489,6 @@ class _PrayerCardState extends State<PrayerCard>
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Prayer details - main content of the back side
                   Expanded(
                     child: SingleChildScrollView(
                       child: Text(
@@ -528,18 +502,16 @@ class _PrayerCardState extends State<PrayerCard>
                       ),
                     ),
                   ),
-                  // Action buttons - now with Like, Pray, and Comment
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Like button
                       InkWell(
                         onTap: widget.onLike,
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: Colors.white.withAlpha((255 * 0.15).round()),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -554,7 +526,6 @@ class _PrayerCardState extends State<PrayerCard>
                           ),
                         ),
                       ),
-                      // Pray button
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -565,7 +536,7 @@ class _PrayerCardState extends State<PrayerCard>
                                 _showPrayerOptions(context);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.15),
+                                backgroundColor: Colors.white.withAlpha((255 * 0.15).round()),
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 12,
@@ -591,14 +562,13 @@ class _PrayerCardState extends State<PrayerCard>
                           ),
                         ),
                       ),
-                      // Comment button
                       InkWell(
                         onTap: widget.onComment,
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: Colors.white.withAlpha((255 * 0.15).round()),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

@@ -5,12 +5,14 @@ class Comment {
   final String text;
   final String userName;
   final DateTime createdAt;
+  final String userAvatar;
 
   Comment({
     required this.id,
     required this.text,
     required this.userName,
     required this.createdAt,
+    required this.userAvatar,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,7 @@ class Comment {
       text: json['text']?.toString() ?? '',
       userName: json['first_name']?.toString() ?? 'Anonymous',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      userAvatar: json['userAvatar'] ?? 'assets/images/profile.jpg',
     );
   }
 }

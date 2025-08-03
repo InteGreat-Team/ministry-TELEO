@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/prayer_post.dart'; // Changed to relative import
 
 class PrayerRequestProvider extends ChangeNotifier {
   final subjectController = TextEditingController();
@@ -59,13 +60,6 @@ class PrayerRequestProvider extends ChangeNotifier {
     } else {
       selectedHashtags.add(tag);
     }
-    notifyListeners();
-  }
-
-  void toggleHashtag(String tag) {
-    selectedHashtags.contains(tag)
-        ? selectedHashtags.remove(tag)
-        : selectedHashtags.add(tag);
     notifyListeners();
   }
 
@@ -183,7 +177,6 @@ class PrayerRequestProvider extends ChangeNotifier {
     };
 
     try {
-      // ✅ Get Firebase Auth token
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         return {'success': false, 'message': 'User not authenticated'};
@@ -211,6 +204,7 @@ class PrayerRequestProvider extends ChangeNotifier {
         };
       }
     } catch (e) {
+      debugPrint('Error submitting prayer: $e');
       return {'success': false, 'message': 'Error: $e'};
     } finally {
       isLoading = false;

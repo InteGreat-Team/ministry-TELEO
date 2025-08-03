@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/prayer_post.dart';
+import '../models/prayer_post.dart'; // Changed to relative import
 
 class UserPostsViewModel extends ChangeNotifier {
   String? _userRole;
@@ -44,6 +44,7 @@ class UserPostsViewModel extends ChangeNotifier {
         throw Exception('Failed to load user profile');
       }
     } catch (e) {
+      debugPrint('Error in fetchData: $e');
       rethrow;
     } finally {
       isLoading = false;
@@ -77,7 +78,7 @@ class UserPostsViewModel extends ChangeNotifier {
         throw Exception('Failed to load my posts (${response.statusCode})');
       }
     } catch (e) {
-      print('Error fetching shared by me: $e');
+      debugPrint('Error fetching shared by me: $e');
       rethrow;
     }
   }

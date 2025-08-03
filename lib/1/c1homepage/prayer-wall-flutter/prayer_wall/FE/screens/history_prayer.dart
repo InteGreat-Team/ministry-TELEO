@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../BE/models/prayer_post.dart';
+import '../../BE/models/prayer_post.dart'; // Changed to relative import
 import 'package:timeago/timeago.dart' as timeago;
-import '../../BE/providers/history_prayer_provider.dart';
+import '../../BE/providers/history_prayer_provider.dart'; // Changed to relative import
 import 'package:intl/intl.dart';
 
 class UserPostsScreen extends StatefulWidget {
@@ -91,7 +91,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: TabBar(
@@ -102,7 +102,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                       border: Border.all(color: Colors.white, width: 1),
                     ),
                     labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withOpacity(0.7),
+                    unselectedLabelColor: Colors.white.withAlpha((255 * 0.7).round()),
                     tabs: const [
                       Tab(text: 'Shared by Me'),
                       Tab(text: 'Specific Requests'),
@@ -184,7 +184,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withAlpha((255 * 0.1).round()),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -220,7 +220,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ).format(prayer.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withAlpha((255 * 0.7).round()),
                                 ),
                               ),
                             ],
@@ -292,7 +292,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                       width: 40,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.white.withAlpha((255 * 0.3).round()),
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
@@ -322,18 +322,10 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ).format(prayer.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withAlpha((255 * 0.7).round()),
                                 ),
                               ),
                             ],
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${prayer.likes} likes · ${prayer.comments} prayers',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.7),
-                            ),
                           ),
                         ],
                       ),
@@ -343,7 +335,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withAlpha((255 * 0.1).round()),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
@@ -362,7 +354,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                               prayer.details,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withAlpha((255 * 0.9).round()),
                               ),
                             ),
                           ],
@@ -382,7 +374,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
         const SizedBox(width: 4),
         Text(
           count,
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+          style: TextStyle(color: Colors.white.withAlpha((255 * 0.8).round()), fontSize: 12),
         ),
       ],
     );

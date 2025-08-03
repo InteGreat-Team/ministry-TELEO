@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:teleo_organized_new/prayer_wall/BE/models/prayer_post.dart';
-import 'package:teleo_organized_new/prayer_wall/FE/widgets/prayer_homescreen/prayer_card.dart';
+import 'prayer_card.dart'; // This imports SwipeDirection
 import 'dart:math' as math;
+import '../../../BE/models/prayer_post.dart'; // Corrected to go up 3 levels
 
 class HomeScreenWidgets {
   static Widget buildScaffold({
@@ -20,7 +20,7 @@ class HomeScreenWidgets {
     required VoidCallback onLike,
     required Function(String?) onPray,
     required VoidCallback onComment,
-    required Function(dynamic) onSwipe,
+    required Function(SwipeDirection) onSwipe, // Correctly typed
     VoidCallback? onHistoryTapped,
   }) {
     return Scaffold(
@@ -69,7 +69,6 @@ class HomeScreenWidgets {
         ],
       ),
       actions: [
-        // History button available for all users
         if (onHistoryTapped != null)
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -80,9 +79,9 @@ class HomeScreenWidgets {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha((255 * 0.2).round()),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withAlpha((255 * 0.3).round()),
                     width: 1,
                   ),
                 ),
@@ -122,12 +121,11 @@ class HomeScreenWidgets {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          border:
-              isSelected
-                  ? const Border(
-                    bottom: BorderSide(color: Colors.blue, width: 3.0),
-                  )
-                  : null,
+          border: isSelected
+              ? const Border(
+                  bottom: BorderSide(color: Colors.blue, width: 3.0),
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -158,7 +156,7 @@ class HomeScreenWidgets {
     required VoidCallback onLike,
     required Function(String?) onPray,
     required VoidCallback onComment,
-    required Function(dynamic) onSwipe,
+    required Function(SwipeDirection) onSwipe, // Correctly typed
   }) {
     return RefreshIndicator(
       onRefresh: () async {
@@ -174,23 +172,22 @@ class HomeScreenWidgets {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: IntrinsicHeight(
                 child: Center(
-                  child:
-                      isLoading
-                          ? const CircularProgressIndicator()
-                          : prayerPosts.isEmpty
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : prayerPosts.isEmpty
                           ? _buildEmptyScreen(refreshPrayerWall)
                           : allCardsSwiped
-                          ? _buildRefreshScreen(refreshPrayerWall)
-                          : _buildPrayerCards(
-                            context: context,
-                            prayerPosts: prayerPosts,
-                            currentCardIndex: currentCardIndex,
-                            cardColors: cardColors,
-                            onLike: onLike,
-                            onPray: onPray,
-                            onComment: onComment,
-                            onSwipe: onSwipe,
-                          ),
+                              ? _buildRefreshScreen(refreshPrayerWall)
+                              : _buildPrayerCards(
+                                  context: context,
+                                  prayerPosts: prayerPosts,
+                                  currentCardIndex: currentCardIndex,
+                                  cardColors: cardColors,
+                                  onLike: onLike,
+                                  onPray: onPray,
+                                  onComment: onComment,
+                                  onSwipe: onSwipe,
+                                ),
                 ),
               ),
             ),
@@ -211,7 +208,7 @@ class HomeScreenWidgets {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withAlpha((255 * 0.1).round()),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -235,7 +232,7 @@ class HomeScreenWidgets {
               'There are no prayer requests at the moment. Check back later or refresh.',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withAlpha((255 * 0.7).round()),
               ),
               textAlign: TextAlign.center,
             ),
@@ -276,7 +273,7 @@ class HomeScreenWidgets {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withAlpha((255 * 0.1).round()),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -300,7 +297,7 @@ class HomeScreenWidgets {
               'Check back later or refresh to see if there are new prayer requests.',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withAlpha((255 * 0.7).round()),
               ),
               textAlign: TextAlign.center,
             ),
@@ -338,12 +335,12 @@ class HomeScreenWidgets {
     required VoidCallback onLike,
     required Function(String?) onPray,
     required VoidCallback onComment,
-    required Function(dynamic) onSwipe,
+    required Function(SwipeDirection) onSwipe, // Correctly typed
   }) {
     return Stack(
       alignment: Alignment.center,
       children: [
-        for (int i = 0; i < math.min(3, prayerPosts.length - 1); i++)
+        for (int i = 0; i < math.min(3, prayerPosts.length - currentCardIndex - 1); i++)
           Positioned(
             child: Transform.scale(
               scale: 0.85 - (0.05 * i),
@@ -354,9 +351,7 @@ class HomeScreenWidgets {
                   height: 500,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color:
-                        cardColors[(currentCardIndex + i + 1) %
-                            cardColors.length],
+                    color: cardColors[(currentCardIndex + i + 1) % cardColors.length],
                   ),
                 ),
               ),
@@ -364,13 +359,19 @@ class HomeScreenWidgets {
           ),
         GestureDetector(
           onHorizontalDragEnd: (details) {
-            onSwipe(details);
+            final threshold = MediaQuery.of(context).size.width * 0.3;
+            if (details.primaryVelocity != null && 
+                details.primaryVelocity!.abs() > threshold) {
+              final direction = details.primaryVelocity! > 0 
+                  ? SwipeDirection.right 
+                  : SwipeDirection.left;
+              onSwipe(direction);
+            }
           },
           child: PrayerCard(
             post: prayerPosts[currentCardIndex],
             cardColor: cardColors[currentCardIndex % cardColors.length],
-            nextCardColor:
-                cardColors[(currentCardIndex + 1) % cardColors.length],
+            nextCardColor: cardColors[(currentCardIndex + 1) % cardColors.length],
             onLike: onLike,
             onPray: onPray,
             onComment: onComment,

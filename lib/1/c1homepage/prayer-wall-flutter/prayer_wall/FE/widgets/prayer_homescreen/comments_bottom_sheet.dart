@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:teleo_organized_new/prayer_wall/BE/models/prayer_post.dart';
+import '../../../BE/models/prayer_post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CommentsBottomSheet extends StatefulWidget {
   final PrayerPost post;
   final Color cardColor;
-  final List<Map<String, String>> comments;
+  final List<Comment> comments;
   final Function(String) onAddComment;
 
   const CommentsBottomSheet({
@@ -22,7 +22,7 @@ class CommentsBottomSheet extends StatefulWidget {
 
 class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
   final TextEditingController _commentController = TextEditingController();
-  late List<Map<String, String>> _localComments;
+  late List<Comment> _localComments;
 
   @override
   void initState() {
@@ -46,7 +46,6 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
       builder:
           (context, scrollController) => Column(
             children: [
-              // Handle bar
               Container(
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 width: 40,
@@ -56,13 +55,9 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                   borderRadius: BorderRadius.circular(2.5),
                 ),
               ),
-              // Header with user info
               _buildHeader(),
-              // Prayer content
               _buildPrayerContent(),
-              // Comments header
               _buildCommentsHeader(),
-              // Comments list
               Expanded(child: _buildCommentsList(scrollController)),
             ],
           ),
@@ -204,7 +199,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundImage: AssetImage(comment['avatar']!),
+                backgroundImage: AssetImage(comment.userAvatar),
                 radius: 16,
               ),
               const SizedBox(width: 12),
@@ -216,7 +211,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          comment['name']!,
+                          comment.userName,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -224,7 +219,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                           ),
                         ),
                         Text(
-                          comment['time']!,
+                          timeago.format(comment.createdAt),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.white.withOpacity(0.5),
@@ -235,7 +230,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      comment['comment']!,
+                      comment.text,
                       style: const TextStyle(
                         color: Colors.white,
                         fontFamily: 'Poppins',

@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../models/prayer_post.dart';
+import '../models/prayer_post.dart'; // Changed to relative import
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PrayerProvider with ChangeNotifier {
   final List<PrayerPost> _prayers = [];
-  final Map<String, List<Map<String, String>>> _allComments = {};
+  final Map<String, List<Comment>> _allComments = {};
   bool _isLoading = false;
 
   List<PrayerPost> get prayers => _prayers;
   bool get isLoading => _isLoading;
-  Map<String, List<Map<String, String>>> get allComments => _allComments;
+  Map<String, List<Comment>> get allComments => _allComments;
 
   Future<void> fetchPrayers() async {
     _isLoading = true;
@@ -44,25 +44,14 @@ class PrayerProvider with ChangeNotifier {
 
           if (comments != null) {
             _allComments[prayerId] =
-                comments.map<Map<String, String>>((c) {
-                  final String createdAt = c['created_at'];
-                  final DateTime createdAtDate =
-                      DateTime.parse(createdAt).toLocal();
-
-                  return {
-                    'name': c['first_name'] ?? 'Anonymous',
-                    'comment': c['text'],
-                    'avatar': "assets/images/profile.jpg",
-                    'time': timeago.format(createdAtDate),
-                  };
-                }).toList();
+                comments.map((c) => Comment.fromJson(c)).toList();
           }
         }
       } else {
         throw Exception('Failed to load prayers: ${res.statusCode}');
       }
     } catch (e) {
-      print('FetchPrayers error: $e');
+      debugPrint('FetchPrayers error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -73,7 +62,7 @@ class PrayerProvider with ChangeNotifier {
   Future<void> toggleLike(String id, bool isLiked) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      print("User not logged in");
+      debugPrint("User not logged in");
       return;
     }
 
@@ -96,11 +85,11 @@ class PrayerProvider with ChangeNotifier {
         throw Exception('Failed to like/unlike prayer');
       }
     } catch (e) {
-      print('Error toggling like: $e');
+      debugPrint('Error toggling like: $e');
     }
   }
 
-  Future<bool> addComment(String prayerId, String comment) async {
+  Future<bool> addComment(String prayerId, String commentText) async {
     const url =
         'https://asia-southeast1-teleo-church-application.cloudfunctions.net/prayerwall/api/comments';
 
@@ -108,33 +97,30 @@ class PrayerProvider with ChangeNotifier {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not logged in");
 
-      final idToken = await user.getIdToken(); // 🔐 Get Firebase ID token
+      final idToken = await user.getIdToken();
 
-      // 👇 Post the comment with token only
       final res = await http.post(
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $idToken',
         },
-        body: jsonEncode({'prayerId': int.parse(prayerId), 'text': comment}),
+        body: jsonEncode({'prayerId': int.parse(prayerId), 'text': commentText}),
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body);
 
-        final String createdAt = data['created_at'];
-        final DateTime createdAtDate = DateTime.parse(createdAt).toLocal();
-
-        final username = data['first_name'] ?? 'You';
+        final newComment = Comment(
+          id: data['id']?.toString() ?? '',
+          text: data['text'] ?? commentText,
+          userName: data['first_name'] ?? 'You',
+          createdAt: DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
+          userAvatar: 'assets/images/profile.jpg',
+        );
 
         _allComments[prayerId] ??= [];
-        _allComments[prayerId]!.add({
-          'name': username,
-          'comment': comment,
-          'avatar': 'assets/images/profile.jpg',
-          'time': timeago.format(createdAtDate),
-        });
+        _allComments[prayerId]!.add(newComment);
 
         notifyListeners();
         return true;
@@ -142,7 +128,7 @@ class PrayerProvider with ChangeNotifier {
         throw Exception("Failed to post comment: ${res.statusCode}");
       }
     } catch (e) {
-      print('Comment error: $e');
+      debugPrint('Comment error: $e');
       return false;
     }
   }
