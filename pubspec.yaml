@@ -40,7 +40,8 @@ dependencies:
   webview_flutter_android: ^4.8.2
   webview_flutter_wkwebview: ^3.22.1
   flutter_bloc: ^9.1.1
-
+  timeago: ^3.6.0
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -71,4 +72,17 @@ flutter:
     - assets/images/Emergency_Relief.jpg
     - assets/images/Team_Teleo.png
     
-
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/Team_Teleo.png"  # Use forward slashes
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/images/Team_Teleo.png"
+  windows:
+    generate: true
+    image_path: "assets/images/Team_Teleo.png"
+  macos:
+    generate: true
+    image_path: "assets/images/Team_Teleo.png"

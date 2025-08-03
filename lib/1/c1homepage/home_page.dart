@@ -9,6 +9,7 @@ import '../../2/c1homepage/authenticator_flow.dart';
 import '../../3/report/mainreport.dart';
 import '../../2/c1homepage/admin_views/admin_profile_view.dart';
 import '../../2/c1homepage/admin_types.dart';
+import '../../1/c1homepage/prayer-wall-flutter/prayer_wall/FE/prayerwall/home_screen.dart';
 
 // Add this enum to track the current filter
 enum HomeFilter { all, appointments, events, reading }
@@ -2260,11 +2261,16 @@ class _HomePageState extends State<HomePage> {
                   // Community functionality will be added later
                 },
               ),
-              _buildPrayButton(
-                onTap: () {
-                  // Pray functionality will be added later
-                },
-              ),
+_buildPrayButton(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HomeScreen(),
+      ),
+    );
+  },
+),
               _buildNavItem(
                 'assets/images/bible_icon.png',
                 isSelected: false,
