@@ -255,21 +255,20 @@ class _AdminHomePageState extends State<AdminHomePage>
     // Show success dialog
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(_getSuccessTitle()),
-            content: Text(_getSuccessMessage()),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Navigate back to the security settings view
-                  _navigateTo(AdminView.securitySettings);
-                },
-                child: const Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(_getSuccessTitle()),
+        content: Text(_getSuccessMessage()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Navigate back to the security settings view
+              _navigateTo(AdminView.securitySettings);
+            },
+            child: const Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -305,106 +304,105 @@ class _AdminHomePageState extends State<AdminHomePage>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar:
-          _currentView == AdminView.faqs
-              ? null
-              : AppBar(
-                title: Text(
-                  _currentTitle,
-                  style: const TextStyle(color: Colors.black),
-                ),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 0,
-                leading:
-                    _currentView != AdminView.home
-                        ? IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          color: Colors.black,
-                          onPressed: () {
-                            if (_currentView == AdminView.authenticator) {
-                              switch (_currentAuthFlow) {
-                                case AuthenticatorFlow.email:
-                                  _navigateTo(AdminView.changeEmail);
-                                  break;
-                                case AuthenticatorFlow.password:
-                                  _navigateTo(AdminView.changePassword);
-                                  break;
-                                case AuthenticatorFlow.phone:
-                                  _navigateTo(AdminView.changePhone);
-                                  break;
-                              }
-                            } else if (_currentView == AdminView.changeEmail ||
-                                _currentView == AdminView.changePassword ||
-                                _currentView == AdminView.changePhone) {
-                              _navigateTo(AdminView.securitySettings);
-                            } else if (_currentView ==
-                                    AdminView.securitySettings ||
-                                _currentView == AdminView.accountSettings ||
-                                _currentView == AdminView.massSchedule ||
-                                _currentView ==
-                                    AdminView.notificationSettings) {
-                              _navigateTo(AdminView.settings);
-                            } else if (_currentView == AdminView.faqs) {
-                              _navigateTo(AdminView.home);
-                            } else if (_currentView == AdminView.profile) {
-                              _navigateTo(AdminView.home);
-                            } else if (_currentView == AdminView.reportIssue ||
-                                _currentView == AdminView.termsAndConditions) {
-                              _navigateTo(AdminView.settings);
-                            } else {
-                              _navigateTo(AdminView.home);
-                            }
-                          },
-                        )
-                        : null,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    color: Colors.black,
-                    onPressed: () {
-                      // Notification functionality will be added later
-                    },
-                  ),
-                ],
+      appBar: _currentView == AdminView.faqs
+          ? null
+          : AppBar(
+              title: Text(
+                _currentTitle,
+                style: const TextStyle(color: Colors.black),
               ),
-      drawer:
-          _currentView == AdminView.home
-              ? AdminDrawer(onNavigate: _navigateTo, adminData: _adminData)
-              : null,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: 0,
+              leading: _currentView != AdminView.home
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      color: Colors.black,
+                      onPressed: () {
+                        if (_currentView == AdminView.authenticator) {
+                          switch (_currentAuthFlow) {
+                            case AuthenticatorFlow.email:
+                              _navigateTo(AdminView.changeEmail);
+                              break;
+                            case AuthenticatorFlow.password:
+                              _navigateTo(AdminView.changePassword);
+                              break;
+                            case AuthenticatorFlow.phone:
+                              _navigateTo(AdminView.changePhone);
+                              break;
+                          }
+                        } else if (_currentView == AdminView.changeEmail ||
+                            _currentView == AdminView.changePassword ||
+                            _currentView == AdminView.changePhone) {
+                          _navigateTo(AdminView.securitySettings);
+                        } else if (_currentView == AdminView.securitySettings ||
+                            _currentView == AdminView.accountSettings ||
+                            _currentView == AdminView.massSchedule ||
+                            _currentView == AdminView.notificationSettings) {
+                          _navigateTo(AdminView.settings);
+                        } else if (_currentView == AdminView.faqs) {
+                          _navigateTo(AdminView.home);
+                        } else if (_currentView == AdminView.profile) {
+                          _navigateTo(AdminView.home);
+                        } else if (_currentView == AdminView.reportIssue ||
+                            _currentView == AdminView.termsAndConditions) {
+                          _navigateTo(AdminView.settings);
+                        } else {
+                          _navigateTo(AdminView.home);
+                        }
+                      },
+                    )
+                  : null,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  color: Colors.black,
+                  onPressed: () {
+                    // Notification functionality will be added later
+                  },
+                ),
+              ],
+            ),
+      drawer: _currentView == AdminView.home
+          ? AdminDrawer(onNavigate: _navigateTo, adminData: _adminData)
+          : null,
       body: _buildBody(),
       bottomNavigationBar: NavBar(
         currentIndex: _navBarIndexForView(_currentView),
         onTap: (index) {
+          Widget nextPage;
           if (index == 0) {
-            // Home
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const AdminHomePage()),
-            );
+            nextPage = const AdminHomePage();
           } else if (index == 1) {
-            // Service
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder:
-                    (context) => admin_home.ScheduleTab(
-                      adminData: _adminData,
-                      onUpdateAdminData: _updateAdminData,
-                    ),
-              ),
+            nextPage = admin_home.ScheduleTab(
+              adminData: _adminData,
+              onUpdateAdminData: _updateAdminData,
             );
           } else if (index == 4) {
-            // You (Profile)
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder:
-                    (context) => AdminProfileScreen(
-                      adminData: _adminData,
-                      onUpdateAdminData: _updateAdminData,
-                    ),
-              ),
+            nextPage = AdminProfileScreen(
+              adminData: _adminData,
+              onUpdateAdminData: _updateAdminData,
             );
+          } else {
+            return;
           }
-          // Do nothing for other indices (Connect, Read)
+          Navigator.of(context).pushReplacement(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => nextPage,
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                final tween = Tween(begin: begin, end: end)
+                    .chain(CurveTween(curve: Curves.ease));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+          );
         },
       ),
     );
@@ -417,46 +415,40 @@ class _AdminHomePageState extends State<AdminHomePage>
       AdminView.events: () => const EventsScreen(),
       AdminView.community: () => const CommunityScreen(),
       AdminView.posts: () => const PostsScreen(),
-      AdminView.profile:
-          () => AdminProfileView(
+      AdminView.profile: () => AdminProfileView(
             adminData: _adminData,
             onUpdateAdminData: _updateAdminData,
           ),
       AdminView.settings: () => AdminSettingsView(onNavigate: _navigateTo),
-      AdminView.accountSettings:
-          () => AdminAccountSettingsView(
+      AdminView.accountSettings: () => AdminAccountSettingsView(
             adminData: _adminData,
             onUpdateAdminData: _updateAdminData,
           ),
-      AdminView.securitySettings:
-          () => AdminSecuritySettingsView(
+      AdminView.securitySettings: () => AdminSecuritySettingsView(
             adminData: _adminData,
             onUpdateAdminData: _updateAdminData,
             onNavigate: _navigateTo,
           ),
-      AdminView.changeEmail:
-          () => AdminChangeEmailView(
+      AdminView.changeEmail: () => AdminChangeEmailView(
             currentEmail: _adminData.email,
             onNavigate: _navigateTo,
           ),
-      AdminView.changePassword:
-          () => AdminChangePasswordView(onNavigate: _navigateTo),
-      AdminView.changePhone:
-          () => AdminChangePhoneView(
+      AdminView.changePassword: () =>
+          AdminChangePasswordView(onNavigate: _navigateTo),
+      AdminView.changePhone: () => AdminChangePhoneView(
             currentPhoneNumber: _adminData.phoneNumber,
             onNavigate: _navigateTo,
           ),
-      AdminView.authenticator:
-          () => AuthenticatorScreen(
+      AdminView.authenticator: () => AuthenticatorScreen(
             onSuccess: _handleAuthenticationSuccess,
             onCancel: () => _navigateTo(AdminView.securitySettings),
           ),
-      AdminView.notificationSettings:
-          () => NotificationSettingsView(onNavigate: _navigateTo),
+      AdminView.notificationSettings: () =>
+          NotificationSettingsView(onNavigate: _navigateTo),
       AdminView.massSchedule: () => const MassScheduleScreen(),
       AdminView.reportIssue: () => ReportApp(onNavigate: _navigateTo),
-      AdminView.termsAndConditions:
-          () => AdminTermsConditionsView(onNavigate: _navigateTo),
+      AdminView.termsAndConditions: () =>
+          AdminTermsConditionsView(onNavigate: _navigateTo),
       AdminView.contactUs: () => const ContactUsScreen(),
       AdminView.donate: () => const DonateScreen(),
       AdminView.home: _buildHomeView,
@@ -828,15 +820,14 @@ class _AdminHomePageState extends State<AdminHomePage>
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children:
-              _months
-                  .map(
-                    (month) => Text(
-                      month,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 10),
-                    ),
-                  )
-                  .toList(),
+          children: _months
+              .map(
+                (month) => Text(
+                  month,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 10),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -855,15 +846,14 @@ class _AdminHomePageState extends State<AdminHomePage>
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children:
-              _months
-                  .map(
-                    (month) => Text(
-                      month,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 10),
-                    ),
-                  )
-                  .toList(),
+          children: _months
+              .map(
+                (month) => Text(
+                  month,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 10),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -992,52 +982,51 @@ class _AdminHomePageState extends State<AdminHomePage>
     ];
 
     return Column(
-      children:
-          items.map((item) {
-            return Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.grey[200]!, width: 1),
-                ),
+      children: items.map((item) {
+        return Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Colors.grey[200]!, width: 1),
+            ),
+          ),
+          child: ListTile(
+            leading: Icon(
+              item['icon'] as IconData,
+              color: item['color'] as Color,
+              size: 20,
+            ),
+            title: Text(
+              item['title'] as String,
+              style: const TextStyle(
+                color: Color(0xFF2B3576),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
-              child: ListTile(
-                leading: Icon(
-                  item['icon'] as IconData,
-                  color: item['color'] as Color,
-                  size: 20,
-                ),
-                title: Text(
-                  item['title'] as String,
-                  style: const TextStyle(
-                    color: Color(0xFF2B3576),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-                onTap: () {
-                  switch (item['title']) {
-                    case 'Events':
-                      _navigateTo(AdminView.events);
-                      break;
-                    case 'Community':
-                      _navigateTo(AdminView.community);
-                      break;
-                    case 'Posts':
-                      _navigateTo(AdminView.posts);
-                      break;
-                    case 'Set Roles':
-                      _navigateTo(AdminView.setRoles);
-                      break;
-                  }
-                },
-              ),
-            );
-          }).toList(),
+            ),
+            trailing: const Icon(
+              Icons.chevron_right,
+              color: Colors.grey,
+              size: 20,
+            ),
+            onTap: () {
+              switch (item['title']) {
+                case 'Events':
+                  _navigateTo(AdminView.events);
+                  break;
+                case 'Community':
+                  _navigateTo(AdminView.community);
+                  break;
+                case 'Posts':
+                  _navigateTo(AdminView.posts);
+                  break;
+                case 'Set Roles':
+                  _navigateTo(AdminView.setRoles);
+                  break;
+              }
+            },
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -1083,15 +1072,13 @@ class LineChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Draw horizontal grid lines
-    final gridPaint =
-        Paint()
-          ..color = Colors.grey.withOpacity(0.15)
-          ..strokeWidth = 1;
+    final gridPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.15)
+      ..strokeWidth = 1;
     // Draw vertical grid lines
-    final vGridPaint =
-        Paint()
-          ..color = Colors.grey.withOpacity(0.10)
-          ..strokeWidth = 1;
+    final vGridPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.10)
+      ..strokeWidth = 1;
     // Horizontal grid lines (3 lines)
     for (int i = 0; i < 3; i++) {
       final y = size.height * (1 - (i / 2));
@@ -1105,11 +1092,10 @@ class LineChartPainter extends CustomPainter {
       }
     }
     // Draw chart line and points
-    final paint =
-        Paint()
-          ..color = Colors.orange
-          ..strokeWidth = 1.5
-          ..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..color = Colors.orange
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
     final path = Path();
     if (data.isNotEmpty) {
       final maxVal = data.reduce((a, b) => a > b ? a : b);
@@ -1129,15 +1115,13 @@ class LineChartPainter extends CustomPainter {
         path.lineTo(points[i].dx, points[i].dy);
       }
       canvas.drawPath(path, paint);
-      final pointPaint =
-          Paint()
-            ..color = Colors.white
-            ..style = PaintingStyle.fill;
-      final borderPaint =
-          Paint()
-            ..color = Colors.orange
-            ..strokeWidth = 1.5
-            ..style = PaintingStyle.stroke;
+      final pointPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill;
+      final borderPaint = Paint()
+        ..color = Colors.orange
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
       for (final point in points) {
         canvas.drawCircle(point, 4, pointPaint); // White fill
         canvas.drawCircle(point, 4, borderPaint); // Orange border
@@ -1159,10 +1143,9 @@ class BarChartPainter extends CustomPainter {
     final drawableWidth = size.width - leftOffset;
 
     // Draw grid lines and y-axis labels
-    final gridPaint =
-        Paint()
-          ..color = Colors.grey.withOpacity(0.2)
-          ..strokeWidth = 1;
+    final gridPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.2)
+      ..strokeWidth = 1;
     final yAxisLabelPaint = TextPainter(
       textAlign: TextAlign.right,
       textDirection: TextDirection.ltr,
@@ -1187,10 +1170,9 @@ class BarChartPainter extends CustomPainter {
       );
     }
     // Draw baseline axis
-    final axisPaint =
-        Paint()
-          ..color = Colors.grey[400]!
-          ..strokeWidth = 1.5;
+    final axisPaint = Paint()
+      ..color = Colors.grey[400]!
+      ..strokeWidth = 1.5;
     canvas.drawLine(
       Offset(leftOffset, size.height),
       Offset(size.width, size.height),

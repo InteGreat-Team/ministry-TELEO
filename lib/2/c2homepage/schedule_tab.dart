@@ -30,17 +30,31 @@ class _ScheduleTabState extends State<ScheduleTab> {
     Icons.favorite,
     Icons.event,
   ];
-  final List<String> _weekdays = [
-    'Fri',
-    'Sat',
-    'Sun',
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-  ];
-  final List<int> _dates = [14, 15, 16, 17, 18, 19, 20];
+  // Weekdays and dates will be generated dynamically
+
   final List<String> _filters = ['All', 'Services', 'Events'];
+
+  // Helper for weekday short name
+  String _weekdayShort(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return 'Mon';
+      case DateTime.tuesday:
+        return 'Tue';
+      case DateTime.wednesday:
+        return 'Wed';
+      case DateTime.thursday:
+        return 'Thu';
+      case DateTime.friday:
+        return 'Fri';
+      case DateTime.saturday:
+        return 'Sat';
+      case DateTime.sunday:
+        return 'Sun';
+      default:
+        return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +73,68 @@ class _ScheduleTabState extends State<ScheduleTab> {
       'Nov',
       'Dec',
     ];
+    // Generate the current week starting from today (7 days)
+    List<DateTime> weekDates =
+        List.generate(7, (i) => now.add(Duration(days: i)));
+    List<String> weekdays =
+        weekDates.map((d) => _weekdayShort(d.weekday)).toList();
+    List<int> dates = weekDates.map((d) => d.day).toList();
     final todayLabel =
-        '${months[now.month - 1]} ${now.day}, ${_weekdays[now.weekday - 1]}';
+        '${months[now.month - 1]} ${now.day}, ${_weekdayShort(now.weekday)}';
     final screenWidth = MediaQuery.of(context).size.width;
+
+    // List of schedules with type
+    final List<Map<String, dynamic>> schedules = [
+      {
+        'type': 'Service',
+        'card': AppointmentCard(
+          title: 'Baptism',
+          assignedTo: '@Pastor John',
+          location: 'P. Sherman, 42 Wallaby Way',
+          time: 'February 14, 2025 – 3:00 PM – 6:00 PM',
+          borderColor: const Color(0xFFFF6B35),
+          backgroundColor: const Color(0xFFFFF8F5),
+        ),
+      },
+      {
+        'type': 'Event',
+        'card': AppointmentCard(
+          title: 'Love! Live! Couples for Christ Community Night',
+          assignedTo: '@Jake Sim',
+          location: 'Paxton Hall, Yoshida Center',
+          time: 'February 14, 2025 – 6:00 PM – 8:00 PM',
+          borderColor: const Color(0xFF4CAF50),
+          backgroundColor: const Color(0xFFF5FFF8),
+        ),
+      },
+      {
+        'type': 'Service',
+        'card': AppointmentCard(
+          title: 'Baptism',
+          assignedTo: '@Pastor John',
+          location: 'P. Sherman, 42 Wallaby Way',
+          time: 'February 14, 2025 – 3:00 PM – 6:00 PM',
+          borderColor: const Color(0xFFFF6B35),
+          backgroundColor: const Color(0xFFFFF8F5),
+        ),
+      },
+    ];
+
+    // Filter schedules based on _selectedFilter
+    List<Widget> filteredCards;
+    if (_selectedFilter == 'All') {
+      filteredCards = schedules.map((s) => s['card'] as Widget).toList();
+    } else if (_selectedFilter == 'Events') {
+      filteredCards = schedules
+          .where((s) => s['type'] == 'Event')
+          .map((s) => s['card'] as Widget)
+          .toList();
+    } else {
+      filteredCards = schedules
+          .where((s) => s['type'] == 'Service')
+          .map((s) => s['card'] as Widget)
+          .toList();
+    }
 
     Widget content;
     if (_selectedTab == 0) {
@@ -93,26 +166,70 @@ class _ScheduleTabState extends State<ScheduleTab> {
               ],
             ),
           ),
-          // Horizontal date selector
+          // Optimized horizontal date selector
           Container(
-            height: 80,
-            margin: const EdgeInsets.only(top: 12),
-            child: ListView.builder(
+            height: 100,
+            margin: const EdgeInsets.only(top: 16),
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _weekdays.length,
-              itemBuilder:
-                  (context, i) => GestureDetector(
-                    onTap: () => setState(() => _selectedDay = i),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: DayItem(
-                        weekday: _weekdays[i],
-                        date: _dates[i],
-                        isSelected: _selectedDay == i,
-                      ),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: weekdays.length,
+              separatorBuilder: (context, i) => const SizedBox(width: 16),
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () => setState(() => _selectedDay = i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 64,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: _selectedDay == i
+                        ? const Color(0xFF1E3A8A)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: _selectedDay == i
+                          ? const Color(0xFF1E3A8A)
+                          : Colors.grey[300]!,
+                      width: 1.5,
                     ),
+                    boxShadow: _selectedDay == i
+                        ? [
+                            BoxShadow(
+                              color: Colors.blue.withOpacity(0.10),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [],
                   ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        weekdays[i],
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: _selectedDay == i
+                              ? Colors.white
+                              : const Color(0xFF1E3A8A),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        dates[i].toString(),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: _selectedDay == i
+                              ? Colors.white
+                              : const Color(0xFF333333),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
           // Filter buttons
@@ -133,30 +250,27 @@ class _ScheduleTabState extends State<ScheduleTab> {
                             isSelected ? const Color(0xFF1E3A8A) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color:
-                              isSelected
-                                  ? const Color(0xFF1E3A8A)
-                                  : Colors.grey[200]!,
+                          color: isSelected
+                              ? const Color(0xFF1E3A8A)
+                              : Colors.grey[200]!,
                           width: 1.2,
                         ),
-                        boxShadow:
-                            isSelected
-                                ? [
-                                  BoxShadow(
-                                    color: Colors.blue.withOpacity(0.08),
-                                    blurRadius: 8,
-                                  ),
-                                ]
-                                : [],
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.08),
+                                  blurRadius: 8,
+                                ),
+                              ]
+                            : [],
                       ),
                       child: Center(
                         child: Text(
                           _filters[i],
                           style: TextStyle(
-                            color:
-                                isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF1E3A8A),
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF1E3A8A),
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
                           ),
@@ -172,32 +286,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              children: [
-                AppointmentCard(
-                  title: 'Baptism',
-                  assignedTo: '@Pastor John',
-                  location: 'P. Sherman, 42 Wallaby Way',
-                  time: 'February 14, 2025 – 3:00 PM – 6:00 PM',
-                  borderColor: const Color(0xFFFF6B35),
-                  backgroundColor: const Color(0xFFFFF8F5),
-                ),
-                AppointmentCard(
-                  title: 'Love! Live! Couples for Christ Community Night',
-                  assignedTo: '@Jake Sim',
-                  location: 'Paxton Hall, Yoshida Center',
-                  time: 'February 14, 2025 – 6:00 PM – 8:00 PM',
-                  borderColor: const Color(0xFF4CAF50),
-                  backgroundColor: const Color(0xFFF5FFF8),
-                ),
-                AppointmentCard(
-                  title: 'Baptism',
-                  assignedTo: '@Pastor John',
-                  location: 'P. Sherman, 42 Wallaby Way',
-                  time: 'February 14, 2025 – 3:00 PM – 6:00 PM',
-                  borderColor: const Color(0xFFFF6B35),
-                  backgroundColor: const Color(0xFFFFF8F5),
-                ),
-              ],
+              children: filteredCards,
             ),
           ),
         ],
@@ -212,7 +301,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
       backgroundColor: const Color(0xFFF5F6FA),
       body: Column(
         children: [
-          // AppBar with gradient
+          // AppBar with solid dark blue
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(
@@ -222,11 +311,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
               bottom: 12,
             ),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF000233), Color(0xFF1E3A8A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Color(0xFF1E3A8A),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -277,20 +362,18 @@ class _ScheduleTabState extends State<ScheduleTab> {
                         color:
                             isSelected ? const Color(0xFF1E3A8A) : Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow:
-                            isSelected
-                                ? [
-                                  BoxShadow(
-                                    color: Colors.blue.withOpacity(0.08),
-                                    blurRadius: 8,
-                                  ),
-                                ]
-                                : [],
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.08),
+                                  blurRadius: 8,
+                                ),
+                              ]
+                            : [],
                         border: Border.all(
-                          color:
-                              isSelected
-                                  ? const Color(0xFF1E3A8A)
-                                  : Colors.grey[200]!,
+                          color: isSelected
+                              ? const Color(0xFF1E3A8A)
+                              : Colors.grey[200]!,
                           width: 1.2,
                         ),
                       ),
@@ -299,20 +382,18 @@ class _ScheduleTabState extends State<ScheduleTab> {
                         children: [
                           Icon(
                             _tabIcons[i],
-                            color:
-                                isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF1E3A8A),
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF1E3A8A),
                             size: 18,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             _tabs[i],
                             style: TextStyle(
-                              color:
-                                  isSelected
-                                      ? Colors.white
-                                      : const Color(0xFF1E3A8A),
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF1E3A8A),
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -333,10 +414,19 @@ class _ScheduleTabState extends State<ScheduleTab> {
         currentIndex: 1, // Service page should highlight the Service icon
         onTap: (index) {
           if (index == 0) {
-            // Navigate to admin homepage
+            // Navigate to admin homepage with fade transition
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const admin_home.AdminHomePage(),
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const admin_home.AdminHomePage(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 400),
               ),
             );
           } else if (index == 1) {
@@ -345,12 +435,20 @@ class _ScheduleTabState extends State<ScheduleTab> {
             // You (Profile) - go directly to profile if data is available
             if (widget.adminData != null && widget.onUpdateAdminData != null) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder:
-                      (context) => AdminProfileScreen(
-                        adminData: widget.adminData!,
-                        onUpdateAdminData: widget.onUpdateAdminData!,
-                      ),
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      AdminProfileScreen(
+                    adminData: widget.adminData!,
+                    onUpdateAdminData: widget.onUpdateAdminData!,
+                  ),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  transitionDuration: const Duration(milliseconds: 400),
                 ),
               );
             }
