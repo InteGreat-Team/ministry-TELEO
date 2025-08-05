@@ -9,7 +9,7 @@ class PasswordScreen extends StatefulWidget {
   final String gender;
   final String username;
   final String email;
-  final String? phoneNumber;
+  final String? phoneNumber; // Changed from 'phone' to 'phoneNumber'
   final String address;
   final double lat;
   final double lng;
@@ -27,7 +27,7 @@ class PasswordScreen extends StatefulWidget {
     required this.lat,
     required this.lng,
     required this.sentCode,
-    this.phoneNumber,
+    this.phoneNumber, // Changed from 'phone' to 'phoneNumber'
   });
 
   @override
@@ -118,7 +118,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
                                 gender: widget.gender,
                                 username: widget.username,
                                 email: widget.email,
-                                phoneNumber: widget.phoneNumber,
+                                phoneNumber: widget.phoneNumber, // Now using the correct parameter name
                                 password: _passwordController.text,
                                 address: widget.address,
                                 lat: widget.lat,
@@ -126,10 +126,8 @@ class _PasswordScreenState extends State<PasswordScreen> {
                                 sentCode: widget.sentCode,
                                 isViewOnly: false,
                               )
-
                             ),
                           );
-
                         }
                       : null,
                   child: const Text('Next'),
