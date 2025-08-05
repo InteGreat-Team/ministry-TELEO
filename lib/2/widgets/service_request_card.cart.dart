@@ -49,7 +49,6 @@ class ServiceRequestCard extends StatelessWidget {
                 ),
               ),
             ),
-
             // Main content
             Expanded(
               child: Padding(
@@ -68,10 +67,14 @@ class ServiceRequestCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.grey.shade300,
                             shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                  '/placeholder.svg?height=48&width=48'),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
-
                         // Name and location - Wrap in Expanded to prevent overflow
                         Expanded(
                           child: Column(
@@ -100,9 +103,7 @@ class ServiceRequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 16),
-
                     // Service with icon
                     Row(
                       children: [
@@ -122,7 +123,7 @@ class ServiceRequestCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             'Baptism and Dedication',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF333333),
@@ -132,9 +133,7 @@ class ServiceRequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 12),
-
                     // Time with icon and blue background
                     Row(
                       children: [
@@ -168,9 +167,7 @@ class ServiceRequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 12),
-
                     // To your location
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,9 +190,7 @@ class ServiceRequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 16),
-
                     // Action buttons
                     Row(
                       children: [
@@ -207,7 +202,7 @@ class ServiceRequestCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: const Color(
-                                    0xFFFFAF00), // Keep border color as dark navy
+                                    0xFF000233), // Keep border color as dark navy
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(8),
@@ -231,7 +226,6 @@ class ServiceRequestCard extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         // Accept button - changed to golden color
                         Expanded(
                           child: Container(

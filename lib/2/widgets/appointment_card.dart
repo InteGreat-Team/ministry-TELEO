@@ -26,6 +26,14 @@ class AppointmentCard extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         border: Border(left: BorderSide(color: borderColor, width: 4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -46,8 +54,9 @@ class AppointmentCard extends StatelessWidget {
                 const Icon(Icons.person_outline, size: 16, color: Colors.grey),
                 const SizedBox(width: 8),
                 Text(
-                  assignedTo,
+                  'Assigned to: $assignedTo',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -63,6 +72,7 @@ class AppointmentCard extends StatelessWidget {
                 Text(
                   location,
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -74,6 +84,7 @@ class AppointmentCard extends StatelessWidget {
                 Text(
                   time,
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
