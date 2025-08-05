@@ -3,13 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class NavBar extends StatelessWidget {
   final int currentIndex;
-  final ValueChanged<int>? onTap; // now nullable, since we might not use it
+  final ValueChanged<int>? onTap;
   final bool useCircularHighlight;
 
   const NavBar({
-    super.key, // Use super.key
+    super.key,
     this.currentIndex = 0,
-    this.onTap, // make optional
+    this.onTap,
     this.useCircularHighlight = true,
   });
 
@@ -52,7 +52,7 @@ class NavBar extends StatelessWidget {
     final bool selected = currentIndex == index;
     final Widget iconW =
         selected && useCircularHighlight
-            ? Container(
+            ? Container( // Changed from AnimatedContainer to Container
                 width: 40.w, // Increased responsive width
                 height: 40.h, // Increased responsive height
                 decoration: BoxDecoration(

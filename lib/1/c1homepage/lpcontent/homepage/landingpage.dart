@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'nav_bar.dart';
-import 'lpcontent/homepage/upcoming_services.dart';
-import 'lpcontent/homepage/exploreteleo.dart';
-import 'lpcontent/homepage/services.dart';
-import 'lpcontent/homepage/events.dart';
-import 'sidebar.dart'; // Import the new Sidebar
+import '../../nav_bar.dart';
+import './upcoming_services.dart';
+import './exploreteleo.dart';
+import './services.dart';
+import './events.dart';
+import '../../sidebar.dart'; // Import the new Sidebar
 // Import new pages
-import 'lpcontent/service/service.dart';
-import 'lpcontent/connect/connect.dart';
-import 'lpcontent/read/read.dart';
-import 'lpcontent/you/you.dart';
-import '../../utils/app_navigator.dart'; // Import the new navigation helper
+import '../service/service.dart';
+import '../connect/connect.dart';
+import '../read/read.dart';
+import '../you/you.dart';
+import '../../../../utils/app_navigator.dart'; // Import the new navigation helper
 
 // Data Models
 class UserData {
@@ -254,15 +254,12 @@ class _LandingPageState extends State<LandingPage>
   late ScrollController _scrollController;
   late AnimationController _headerAnimationController;
   late Animation<double> _headerAnimation;
-  // Data variables
-  UserData? _userData;
+  // Data variables - initialized with default/empty values
+  UserData? _userData = const UserData(name: 'User', greeting: 'What\'s the agenda for today?');
   List<StatCard> _statCards = [];
   List<CategoryItem> _categories = [];
   List<ActionButton> _actionButtons = [];
-  // Loading states
-  bool _isLoading = true;
-  bool _hasError = false;
-  String _errorMessage = '';
+  // Removed loading and error states
   // Initialize responsive dimensions with default values
   double _screenWidth = 375.0;
   double _screenHeight = 812.0;
@@ -280,7 +277,7 @@ class _LandingPageState extends State<LandingPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeControllers();
-    _loadData();
+    _loadData(); // Data will load in the background
   }
 
   void _initializeControllers() {
@@ -300,10 +297,6 @@ class _LandingPageState extends State<LandingPage>
   Future<void> _loadData() async {
     if (!mounted) return;
     try {
-      setState(() {
-        _isLoading = true;
-        _hasError = false;
-      });
       // Load all data concurrently
       final results = await Future.wait([
         ApiService.fetchUserData(),
@@ -317,17 +310,18 @@ class _LandingPageState extends State<LandingPage>
           _statCards = results[1] as List<StatCard>;
           _categories = results[2] as List<CategoryItem>;
           _actionButtons = results[3] as List<ActionButton>;
-          _isLoading = false;
+          // No _isLoading = false; needed as there's no loading screen
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = true;
-          _errorMessage = 'Failed to load data: ${e.toString()}';
-        });
-      }
+      // Handle error, e.g., log it or show a non-blocking message
+      debugPrint('Failed to load data: ${e.toString()}');
+      // Optionally, update state to show an error message on the page
+      // if (mounted) {
+      //   setState(() {
+      //     _errorMessage = 'Failed to load data: ${e.toString()}';
+      //   });
+      // }
     }
   }
 
@@ -442,12 +436,7 @@ class _LandingPageState extends State<LandingPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (_isLoading) {
-      return _buildLoadingScreen();
-    }
-    if (_hasError) {
-      return _buildErrorScreen();
-    }
+    // Removed loading and error screen checks.
     return PopScope(
       // Prevents the system back gesture (e.g., swipe from left edge on iOS)
       // This addresses the request "when i swipe to the right, it does not go back to the previous slide i went to"
@@ -470,60 +459,7 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _buildLoadingScreen() {
-    return const Scaffold(
-      backgroundColor: AppConfig.primaryColor,
-      body: Center(
-        child: CircularProgressIndicator(color: AppConfig.accentColor),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen() {
-    return Scaffold(
-      backgroundColor: AppConfig.primaryColor,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: _getResponsiveValue(60, 64, 70), // Made responsive
-              color: Colors.white.withOpacity(0.7),
-            ),
-            SizedBox(height: _getResponsiveValue(16, 18, 20)), // Made responsive
-            const Text(
-              'Something went wrong',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: _getResponsiveValue(8, 10, 12)), // Made responsive
-            Text(
-              _errorMessage,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: _getResponsiveValue(24, 28, 32)), // Made responsive
-            ElevatedButton(
-              onPressed: _loadData,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppConfig.accentColor,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Removed _buildLoadingScreen() and _buildErrorScreen()
 
   Widget _buildMainContent() {
     return CustomScrollView(
@@ -787,10 +723,8 @@ class _LandingPageState extends State<LandingPage>
               } else {
                 return _buildCategoryButton(category);
               }
-            }),
-            SizedBox(width: horizontalPadding),
-          ]
-              .expand(
+            }).toList() // Added .toList() here
+            ..expand(
                 (widgets) => [
                   widgets,
                   SizedBox(width: _getResponsiveValue(10, 12, 16)),
@@ -798,6 +732,7 @@ class _LandingPageState extends State<LandingPage>
               )
               .toList()
             ..removeLast(),
+          ],
         ),
       ),
     );
@@ -807,9 +742,7 @@ class _LandingPageState extends State<LandingPage>
     final buttonSize = _getResponsiveValue(40, 44, 48);
     return GestureDetector(
       onTap: () => _onCategoryTap(category.id),
-      child: AnimatedContainer(
-        duration: AppConfig.quickAnimationDuration,
-        curve: AppConfig.quickCurve,
+      child: Container( // Changed from AnimatedContainer to Container
         width: buttonSize,
         height: buttonSize,
         decoration: BoxDecoration(
@@ -845,9 +778,7 @@ class _LandingPageState extends State<LandingPage>
     final verticalPadding = _getResponsiveValue(8, 10, 12);
     return GestureDetector(
       onTap: () => _onCategoryTap(category.id),
-      child: AnimatedContainer(
-        duration: AppConfig.quickAnimationDuration,
-        curve: AppConfig.quickCurve,
+      child: Container( // Changed from AnimatedContainer to Container
         padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding,
           vertical: verticalPadding,

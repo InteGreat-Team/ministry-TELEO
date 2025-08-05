@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../1/c1homepage/landingpage.dart';
+import '../1/c1homepage/lpcontent/homepage/landingpage.dart';
 import '../1/c1homepage/lpcontent/service/service.dart';
 import '../1/c1homepage/lpcontent/connect/connect.dart';
 import '../1/c1homepage/lpcontent/read/read.dart';

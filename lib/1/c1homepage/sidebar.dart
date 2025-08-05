@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../3/welcome_screen.dart'; // Import the welcome screen for logout navigation
-import 'landingpage.dart'; // Import AppConfig for colors
+import './lpcontent/homepage/landingpage.dart'; // Import AppConfig for colors
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key}); // Use super.key

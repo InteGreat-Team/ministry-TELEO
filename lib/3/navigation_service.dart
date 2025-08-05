@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../1/c1homepage/landingpage.dart';
+import '../1/c1homepage/lpcontent/homepage/landingpage.dart';
 import '../2/c1homepage/home_page.dart';
 
 class NavigationService {

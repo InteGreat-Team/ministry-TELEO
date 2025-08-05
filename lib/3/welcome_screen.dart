@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../1/c1registrationflow/c1s1signupwelcome_screen.dart'
     as signup; // User registration welcome
 import 'login_screen.dart'; // Login
-import '../1/c1homepage/landingpage.dart';// Guest homepage
+import '../../1/c1homepage/lpcontent/homepage/landingpage.dart';
 import '../2/c1registration/c1s1churchwelcome_screen.dart'; // Church registration
 import '../2/c1homepage/home_page.dart' as admin; // Admin homepage
 
