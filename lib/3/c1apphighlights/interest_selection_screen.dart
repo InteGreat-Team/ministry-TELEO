@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../userhomepage/home_page.dart';
+import '../../1/c1homepage/landingpage.dart';
 
 class InterestSelectionScreen extends StatefulWidget {
   const InterestSelectionScreen({super.key});
@@ -64,7 +64,7 @@ class _InterestSelectionScreenState extends State<InterestSelectionScreen> {
   void _goToHomePage() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
+      MaterialPageRoute(builder: (context) => const LandingPage()),
     );
   }
 

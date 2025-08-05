@@ -6,7 +6,7 @@ import '../../../2/c1registration/c1s1churchwelcome_screen.dart';
 import 'user_registration_api_service.dart';
 import '../user_model.dart';
 import '../../../3/c1widgets/animated_wave_background.dart';
-import '../../../3/app_highlights/splash_screen.dart';
+import '../../3/c1apphighlights/splash_screen.dart';
 
 class SignupCompleteScreen extends StatefulWidget {
   final String firstName;
