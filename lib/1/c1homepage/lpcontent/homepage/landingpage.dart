@@ -5,14 +5,8 @@ import './upcoming_services.dart';
 import './exploreteleo.dart';
 import './services.dart';
 import './events.dart';
-import '../../sidebar.dart'; // Import the new Sidebar
-// Import new pages
-import '../service/service.dart';
-import '../connect/connect.dart';
-import '../read/read.dart';
-import '../you/you.dart';
 import '../../../../utils/app_navigator.dart'; // Import the new navigation helper
-
+import '../../../c1homepage/sidebar.dart';
 // Data Models
 class UserData {
   final String name;
@@ -703,6 +697,25 @@ class _LandingPageState extends State<LandingPage>
   Widget _buildCategoryButtonsSection() {
     final horizontalPadding = _getResponsivePadding();
     final verticalPadding = _getResponsiveValue(24, 28, 32);
+
+    // Ensure _categories is not empty before attempting to expand and removeLast
+    List<Widget> categoryButtons = [];
+    if (_categories.isNotEmpty) {
+      categoryButtons = _categories
+          .map((category) {
+            if (category.isHome) {
+              return _buildHomeButton(category);
+            } else {
+              return _buildCategoryButton(category);
+            }
+          })
+          .expand((widgets) => [widgets, SizedBox(width: _getResponsiveValue(10, 12, 16))])
+          .toList();
+      if (categoryButtons.isNotEmpty) {
+        categoryButtons.removeLast(); // Only remove if the list is not empty
+      }
+    }
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
@@ -713,26 +726,13 @@ class _LandingPageState extends State<LandingPage>
       ),
       child: SizedBox(
         height: _getResponsiveValue(40, 44, 48),
-        child: ListView(
+        child: ListView.builder( // Changed to ListView.builder for better performance with dynamic lists
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
-          children: [
-            ..._categories.map((category) {
-              if (category.isHome) {
-                return _buildHomeButton(category);
-              } else {
-                return _buildCategoryButton(category);
-              }
-            }).toList() // Added .toList() here
-            ..expand(
-                (widgets) => [
-                  widgets,
-                  SizedBox(width: _getResponsiveValue(10, 12, 16)),
-                ],
-              )
-              .toList()
-            ..removeLast(),
-          ],
+          itemCount: categoryButtons.length,
+          itemBuilder: (context, index) {
+            return categoryButtons[index];
+          },
         ),
       ),
     );
