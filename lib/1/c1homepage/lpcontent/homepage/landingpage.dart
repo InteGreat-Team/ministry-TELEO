@@ -143,7 +143,7 @@ class ApiService {
     // Mock API call - replace with actual HTTP request
     await Future.delayed(const Duration(milliseconds: 500));
     return UserData.fromJson({
-      'name': 'Juan',
+      'name': 'User', // Changed from 'Juan' to 'User'
       'greeting': 'What\'s the agenda for today?',
     });
   }
@@ -538,7 +538,7 @@ class _LandingPageState extends State<LandingPage>
                   children: [
                     const TextSpan(text: 'Welcome, '),
                     TextSpan(
-                      text: _userData?.name ?? 'User',
+                      text: 'User', // Changed from dynamic _userData?.name to static 'User'
                       style: const TextStyle(color: AppConfig.accentColor),
                     ),
                     const TextSpan(text: '!'),
@@ -637,36 +637,12 @@ class _LandingPageState extends State<LandingPage>
           ),
           // Further reduced SizedBox heights for better fit
           SizedBox(height: _getResponsiveValue(1, 2, 3)),
-          // Use FittedBox for value to prevent overflow by scaling down text
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              card.value,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: _getResponsiveValue(20, 24, 28),
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-            ),
-          ),
+          // Empty space where the value used to be - keeping the container structure but removing the text
+          SizedBox(height: _getResponsiveValue(20, 24, 28)), // Maintain card height
           // Further reduced SizedBox heights for better fit
           SizedBox(height: _getResponsiveValue(0, 1, 2)),
-          // Use FittedBox for change to prevent overflow by scaling down text
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              card.change,
-              style: TextStyle(
-                color: card.changeColor,
-                fontSize: _getResponsiveValue(12, 14, 16),
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 1,
-            ),
-          ),
+          // Empty space where the change used to be - keeping the container structure but removing the text
+          SizedBox(height: _getResponsiveValue(12, 14, 16)), // Maintain card height
         ],
       ),
     );

@@ -9,7 +9,7 @@
     <application
         android:label="teleo_organized_new"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
 
         <!-- ✅ Your Google Maps API key -->
         <meta-data

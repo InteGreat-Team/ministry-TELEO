@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../3/welcome_screen.dart'; // Import the welcome screen for logout navigation
 import './lpcontent/homepage/landingpage.dart'; // Import AppConfig for colors
+import 'donate_screen.dart'; // Import the DonateScreen
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key}); // Use super.key
@@ -106,11 +107,12 @@ class Sidebar extends StatelessWidget {
                   text: 'Donate Now',
                   textColor: AppConfig.accentColor, // Highlight donate button
                   onTap: () {
-                    // Handle Donate Now tap
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Donate Now functionality coming soon!'),
+                    // Navigate to the DonateScreen
+                    Navigator.pop(context); // Close the drawer first
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DonateScreen(),
                       ),
                     );
                   },
