@@ -3,11 +3,12 @@ import '../../3/welcome_screen.dart'; // Import the welcome screen for logout na
 import 'landingpage.dart'; // Import AppConfig for colors
 
 class Sidebar extends StatelessWidget {
-  const Sidebar({super.key});
+  const Sidebar({super.key}); // Use super.key
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      width: 250.0, // Set a fixed narrower width for the sidebar
       backgroundColor:
           AppConfig.primaryColor, // Use the primary color from AppConfig
       child: Column(
@@ -21,25 +22,44 @@ class Sidebar extends StatelessWidget {
               16.0,
               24.0,
             ), // Adjusted padding for top and bottom
-            child: Column(
+            child: Row( // Use Row to place avatar/name and the three-dot icon
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Placeholder for custom avatar image
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundImage: NetworkImage(
-                    '/placeholder.svg?height=60&width=60',
-                  ), // Placeholder image
-                  backgroundColor: Colors.grey,
-                ),
-                const SizedBox(height: 16), // Space between avatar and name
-                const Text(
-                  'Juan de la Cruz', // Name as per image
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Placeholder for custom avatar image
+                      const CircleAvatar(
+                        radius: 30,
+                        backgroundImage: NetworkImage(
+                          '/placeholder.svg?height=60&width=60',
+                        ), // Placeholder image
+                        backgroundColor: Colors.grey,
+                      ),
+                      const SizedBox(height: 16), // Space between avatar and name
+                      const Text(
+                        'Guest', // Changed to Guest as per image
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                // Three-dot icon at the top right
+                IconButton(
+                  icon: const Icon(Icons.more_horiz, color: Colors.white),
+                  onPressed: () {
+                    // Handle more options tap
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('More options coming soon!'),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -82,8 +102,7 @@ class Sidebar extends StatelessWidget {
                 _buildSidebarItem(
                   context,
                   icon:
-                      Icons
-                          .volunteer_activism_outlined, // A suitable icon for donate
+                      Icons.volunteer_activism_outlined, // A suitable icon for donate
                   text: 'Donate Now',
                   textColor: AppConfig.accentColor, // Highlight donate button
                   onTap: () {
@@ -141,35 +160,63 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          // Fixed Logout button at the bottom
+          // Fixed Logout button at the bottom-right corner
           Padding(
             padding: const EdgeInsets.only(
               bottom: 32.0,
-            ), // Adjusted bottom padding
-            child: TextButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const WelcomeScreen(),
-                  ),
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red, // Set text color to red
-                padding: EdgeInsets.zero, // Remove default padding
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min, // Shrink to fit content
-                children: [
-                  Text('Log Out', style: TextStyle(fontSize: 16)),
-                  SizedBox(width: 8), // Space between text and icon
-                  Icon(
-                    Icons.arrow_forward,
-                    color: Colors.red,
-                  ), // Changed icon to arrow_forward
-                ],
+              right: 24.0, // Added right padding to push it to the corner
+            ),
+            child: Align( // Use Align to push the button to the end
+              alignment: Alignment.bottomRight,
+              child: TextButton(
+                onPressed: () {
+                  // Show confirmation dialog before logging out
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return AlertDialog(
+                        title: const Text('Confirm Logout'),
+                        content: const Text('Are you sure you want to log out?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop(); // Dismiss dialog
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop(); // Dismiss dialog
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const WelcomeScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red, // Set text color to red
+                  padding: EdgeInsets.zero, // Remove default padding
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.end, // Align content to the right
+                  mainAxisSize: MainAxisSize.min, // Shrink to fit content
+                  children: [
+                    Text('Log Out', style: TextStyle(fontSize: 16)),
+                    SizedBox(width: 8), // Space between text and icon
+                    Icon(
+                      Icons.logout, // Changed icon to logout
+                      color: Colors.red,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../3/nav_bar.dart';
+import 'nav_bar.dart';
 import 'lpcontent/homepage/upcoming_services.dart';
 import 'lpcontent/homepage/exploreteleo.dart';
 import 'lpcontent/homepage/services.dart';
 import 'lpcontent/homepage/events.dart';
 import 'sidebar.dart'; // Import the new Sidebar
+// Import new pages
+import 'lpcontent/service/service.dart';
+import 'lpcontent/connect/connect.dart';
+import 'lpcontent/read/read.dart';
+import 'lpcontent/you/you.dart';
+import '../../utils/app_navigator.dart'; // Import the new navigation helper
 
 // Data Models
 class UserData {
   final String name;
   final String greeting;
   const UserData({required this.name, required this.greeting});
-
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(
       name: json['name'] ?? 'User',
@@ -23,10 +28,8 @@ class UserData {
 
 class StatCard {
   final String title;
-  final String
-  value; // Keeping for data model consistency as per previous instruction
-  final String
-  change; // Keeping for data model consistency as per previous instruction
+  final String value; // Keeping for data model consistency as per previous instruction
+  final String change; // Keeping for data model consistency as per previous instruction
   final Color changeColor;
   final bool isPositive;
   const StatCard({
@@ -36,7 +39,6 @@ class StatCard {
     required this.changeColor,
     required this.isPositive,
   });
-
   factory StatCard.fromJson(Map<String, dynamic> json) {
     final changeValue = json['change'] ?? '+0%';
     final isPositive = !changeValue.startsWith('-');
@@ -61,7 +63,6 @@ class CategoryItem {
     required this.icon,
     this.isHome = false,
   });
-
   factory CategoryItem.fromJson(Map<String, dynamic> json) {
     return CategoryItem(
       id: json['id'] ?? 0,
@@ -70,7 +71,6 @@ class CategoryItem {
       isHome: json['isHome'] ?? false,
     );
   }
-
   static IconData _getIconFromString(String iconName) {
     switch (iconName.toLowerCase()) {
       case 'home':
@@ -100,7 +100,6 @@ class ActionButton {
     required this.icon,
     required this.action,
   });
-
   factory ActionButton.fromJson(Map<String, dynamic> json) {
     return ActionButton(
       title: json['title'] ?? '',
@@ -108,7 +107,6 @@ class ActionButton {
       action: json['action'] ?? '',
     );
   }
-
   static IconData _getIconFromString(String iconName) {
     switch (iconName.toLowerCase()) {
       case 'announcement':
@@ -136,7 +134,7 @@ class AppConfig {
   static const Color buttonColor = Color(0xFF3949ab);
   static const Color backgroundColor = Colors.white;
   static const Duration animationDuration = Duration(milliseconds: 400);
-  static const Duration quickAnimationDuration = Duration(milliseconds: 150);
+  static const Duration quickAnimationDuration = Duration(milliseconds: 50);
   // Adjusted header height values
   static const double maxHeaderHeight = 300.0;
   static const double minHeaderHeight = 220.0;
@@ -238,8 +236,7 @@ class ApiService {
 }
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({Key? key}) : super(key: key);
-
+  const LandingPage({super.key});
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
@@ -273,10 +270,8 @@ class _LandingPageState extends State<LandingPage>
   bool _isSmallScreen = false;
   bool _isLargeScreen = false;
   bool _dimensionsInitialized = false;
-
   @override
   bool get wantKeepAlive => true;
-
   // ==========================================
   // LIFECYCLE METHODS
   // ==========================================
@@ -389,13 +384,16 @@ class _LandingPageState extends State<LandingPage>
   }
 
   void _onNavTap(int index) async {
-    if (_currentNavIndex == index) return;
     // Track navigation
     await ApiService.trackUserAction('nav_selected', {'nav_index': index});
+
     if (mounted) {
       setState(() {
         _currentNavIndex = index;
       });
+
+      // Use the global navigation helper
+      navigateToMainPage(context, index);
     }
   }
 
@@ -450,20 +448,32 @@ class _LandingPageState extends State<LandingPage>
     if (_hasError) {
       return _buildErrorScreen();
     }
-    return Scaffold(
-      backgroundColor: AppConfig.primaryColor,
-      drawer: const Sidebar(), // Added the Sidebar here
-      drawerEdgeDragWidth:
-          MediaQuery.of(context).size.width *
-          0.5, // Make the swipe area wider (50% of screen width)
-      body: Stack(children: [_buildMainContent(), _buildBottomNavigation()]),
+    return PopScope(
+      // Prevents the system back gesture (e.g., swipe from left edge on iOS)
+      // This addresses the request "when i swipe to the right, it does not go back to the previous slide i went to"
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          return; // A pop was already handled by the system
+        }
+        // Optionally, you can add custom logic here if the user tries to go back,
+        // for example, showing an exit confirmation dialog.
+        // Navigator.of(context).pop(); // To allow popping if needed
+      },
+      child: Scaffold(
+        backgroundColor: AppConfig.primaryColor,
+        drawer: const Sidebar(), // Added the Sidebar here
+        // Set a very small drawerEdgeDragWidth to require precise swipe from the edge
+        drawerEdgeDragWidth: 30.0,
+        body: Stack(children: [_buildMainContent(), _buildBottomNavigation()]),
+      ),
     );
   }
 
   Widget _buildLoadingScreen() {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: AppConfig.primaryColor,
-      body: const Center(
+      body: Center(
         child: CircularProgressIndicator(color: AppConfig.accentColor),
       ),
     );
@@ -478,10 +488,10 @@ class _LandingPageState extends State<LandingPage>
           children: [
             Icon(
               Icons.error_outline,
-              size: 64,
+              size: _getResponsiveValue(60, 64, 70), // Made responsive
               color: Colors.white.withOpacity(0.7),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: _getResponsiveValue(16, 18, 20)), // Made responsive
             const Text(
               'Something went wrong',
               style: TextStyle(
@@ -490,7 +500,7 @@ class _LandingPageState extends State<LandingPage>
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: _getResponsiveValue(8, 10, 12)), // Made responsive
             Text(
               _errorMessage,
               style: TextStyle(
@@ -500,7 +510,7 @@ class _LandingPageState extends State<LandingPage>
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: _getResponsiveValue(24, 28, 32)), // Made responsive
             ElevatedButton(
               onPressed: _loadData,
               style: ElevatedButton.styleFrom(
@@ -646,27 +656,26 @@ class _LandingPageState extends State<LandingPage>
   Widget _buildStatsRow() {
     final cardSpacing = _getResponsiveValue(10, 14, 18);
     return Row(
-      children:
-          _statCards
-              .asMap()
-              .entries
-              .map((entry) {
-                final index = entry.key;
-                final card = entry.value;
-                return [
-                  Expanded(child: _buildStatCard(card)),
-                  if (index < _statCards.length - 1)
-                    SizedBox(width: cardSpacing),
-                ];
-              })
-              .expand((widgets) => widgets)
-              .toList(),
+      children: _statCards
+          .asMap()
+          .entries
+          .map((entry) {
+            final index = entry.key;
+            final card = entry.value;
+            return [
+              Expanded(child: _buildStatCard(card)),
+              if (index < _statCards.length - 1)
+                SizedBox(width: cardSpacing),
+            ];
+          })
+          .expand((widgets) => widgets)
+          .toList(),
     );
   }
 
   Widget _buildStatCard(StatCard card) {
-    // Reduced padding to make the card smaller
-    final cardPadding = _getResponsiveValue(8, 10, 12);
+    // Adjusted padding to help prevent overflow in stat cards
+    final cardPadding = _getResponsiveValue(6, 8, 10);
     final borderRadius = _getResponsiveValue(10, 12, 14);
     return Container(
       padding: EdgeInsets.all(cardPadding),
@@ -694,7 +703,39 @@ class _LandingPageState extends State<LandingPage>
               letterSpacing: 0.3,
             ),
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.ellipsis, // Keep ellipsis for title
+          ),
+          // Further reduced SizedBox heights for better fit
+          SizedBox(height: _getResponsiveValue(1, 2, 3)),
+          // Use FittedBox for value to prevent overflow by scaling down text
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              card.value,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: _getResponsiveValue(20, 24, 28),
+                fontWeight: FontWeight.w700,
+              ),
+              maxLines: 1,
+            ),
+          ),
+          // Further reduced SizedBox heights for better fit
+          SizedBox(height: _getResponsiveValue(0, 1, 2)),
+          // Use FittedBox for change to prevent overflow by scaling down text
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              card.change,
+              style: TextStyle(
+                color: card.changeColor,
+                fontSize: _getResponsiveValue(12, 14, 16),
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+            ),
           ),
         ],
       ),
@@ -707,13 +748,8 @@ class _LandingPageState extends State<LandingPage>
   Widget _buildSliverContent() {
     return SliverToBoxAdapter(
       child: Container(
-        // Further adjusted minHeight to move the white part even higher
-        constraints: BoxConstraints(
-          minHeight:
-              _screenHeight -
-              _headerHeight -
-              _getResponsiveValue(50, 60, 70), // Further reduced offset
-        ),
+        // Removed fixed minHeight to allow it to expand naturally within its parent
+        // The CustomScrollView will handle the scrolling if content exceeds screen height.
         decoration: const BoxDecoration(
           color: AppConfig.backgroundColor,
           borderRadius: BorderRadius.only(
@@ -744,25 +780,24 @@ class _LandingPageState extends State<LandingPage>
         child: ListView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
-          children:
-              [
-                    ..._categories.map((category) {
-                      if (category.isHome) {
-                        return _buildHomeButton(category);
-                      } else {
-                        return _buildCategoryButton(category);
-                      }
-                    }),
-                    SizedBox(width: horizontalPadding),
-                  ]
-                  .expand(
-                    (widgets) => [
-                      widgets,
-                      SizedBox(width: _getResponsiveValue(10, 12, 16)),
-                    ],
-                  )
-                  .toList()
-                ..removeLast(),
+          children: [
+            ..._categories.map((category) {
+              if (category.isHome) {
+                return _buildHomeButton(category);
+              } else {
+                return _buildCategoryButton(category);
+              }
+            }),
+            SizedBox(width: horizontalPadding),
+          ]
+              .expand(
+                (widgets) => [
+                  widgets,
+                  SizedBox(width: _getResponsiveValue(10, 12, 16)),
+                ],
+              )
+              .toList()
+            ..removeLast(),
         ),
       ),
     );
@@ -779,27 +814,23 @@ class _LandingPageState extends State<LandingPage>
         height: buttonSize,
         decoration: BoxDecoration(
           color:
-              _selectedCategory == category.id
-                  ? AppConfig.accentColor
-                  : Colors.grey[200],
+              _selectedCategory == category.id ? AppConfig.accentColor : Colors.grey[200],
           shape: BoxShape.circle,
           boxShadow:
               _selectedCategory == category.id
                   ? [
-                    BoxShadow(
-                      color: AppConfig.accentColor.withOpacity(0.25),
-                      blurRadius: 6,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
+                      BoxShadow(
+                        color: AppConfig.accentColor.withOpacity(0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
                   : null,
         ),
         child: Icon(
           category.icon,
           color:
-              _selectedCategory == category.id
-                  ? Colors.white
-                  : Colors.grey[600],
+              _selectedCategory == category.id ? Colors.white : Colors.grey[600],
           size: _getResponsiveValue(18, 20, 22),
         ),
       ),
@@ -823,26 +854,24 @@ class _LandingPageState extends State<LandingPage>
         ),
         decoration: BoxDecoration(
           color:
-              isSelected
-                  ? AppConfig.accentColor.withOpacity(0.08)
-                  : Colors.grey[50],
+              isSelected ? AppConfig.accentColor.withOpacity(0.08) : Colors.grey[50],
           borderRadius: BorderRadius.circular(20),
           border:
               isSelected
                   ? Border.all(
-                    color: AppConfig.accentColor.withOpacity(0.8),
-                    width: 1,
-                  )
+                      color: AppConfig.accentColor.withOpacity(0.8),
+                      width: 1,
+                    )
                   : Border.all(color: Colors.grey[200]!, width: 0.5),
           boxShadow:
               isSelected
                   ? [
-                    BoxShadow(
-                      color: AppConfig.accentColor.withOpacity(0.15),
-                      blurRadius: 3,
-                      offset: const Offset(0, 0.5),
-                    ),
-                  ]
+                      BoxShadow(
+                        color: AppConfig.accentColor.withOpacity(0.15),
+                        blurRadius: 3,
+                        offset: const Offset(0, 0.5),
+                      ),
+                    ]
                   : null,
         ),
         child: Row(
@@ -872,14 +901,12 @@ class _LandingPageState extends State<LandingPage>
   }
 
   Widget _buildContentSection() {
+    // Removed fixed minHeight to allow it to expand naturally within its parent
     return Container(
       width: double.infinity,
-      constraints: BoxConstraints(minHeight: _screenHeight - 500),
       color: AppConfig.backgroundColor,
       child:
-          _selectedCategory == 0
-              ? _buildHomeContent()
-              : _buildCategoryContent(),
+          _selectedCategory == 0 ? _buildHomeContent() : _buildCategoryContent(),
     );
   }
 
@@ -927,21 +954,20 @@ class _LandingPageState extends State<LandingPage>
         _getResponsiveValue(20, 24, 28),
       ),
       child: Row(
-        children:
-            _actionButtons
-                .asMap()
-                .entries
-                .map((entry) {
-                  final index = entry.key;
-                  final button = entry.value;
-                  return [
-                    Expanded(child: _buildActionButton(button)),
-                    if (index < _actionButtons.length - 1)
-                      SizedBox(width: _getResponsiveValue(12, 14, 16)),
-                  ];
-                })
-                .expand((widgets) => widgets)
-                .toList(),
+        children: _actionButtons
+            .asMap()
+            .entries
+            .map((entry) {
+              final index = entry.key;
+              final button = entry.value;
+              return [
+                Expanded(child: _buildActionButton(button)),
+                if (index < _actionButtons.length - 1)
+                  SizedBox(width: _getResponsiveValue(12, 14, 16)),
+              ];
+            })
+            .expand((widgets) => widgets)
+            .toList(),
       ),
     );
   }
@@ -992,11 +1018,39 @@ class _LandingPageState extends State<LandingPage>
 
   // CATEGORY CONTENT - Placeholder for other categories
   Widget _buildCategoryContent() {
-    return Center(
+    String buttonText;
+    String messageText;
+    VoidCallback onButtonPressed;
+
+    switch (_selectedCategory) {
+      case 1: // Appointment
+        buttonText = 'Schedule an Appointment';
+        messageText = 'There are no upcoming appointments';
+        onButtonPressed = () => _showSuccessSnackBar('Schedule Appointment tapped!');
+        break;
+      case 2: // Events
+        buttonText = 'Explore Events';
+        messageText = 'There are no upcoming events';
+        onButtonPressed = () => _showSuccessSnackBar('Explore Events tapped!');
+        break;
+      case 3: // Reading
+        buttonText = 'Start Reading';
+        messageText = 'There are no upcoming readings';
+        onButtonPressed = () => _showSuccessSnackBar('Start Reading tapped!');
+        break;
+      default:
+        buttonText = 'Explore';
+        messageText = 'No ${_getCategoryTitle().toLowerCase()} yet';
+        onButtonPressed = () => _showSuccessSnackBar('Explore tapped!');
+        break;
+    }
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
       child: Padding(
         padding: EdgeInsets.all(_getResponsivePadding()),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start, // Align content to the top
           children: [
             Icon(
               _getCategoryIcon(),
@@ -1005,7 +1059,7 @@ class _LandingPageState extends State<LandingPage>
             ),
             SizedBox(height: _getResponsiveValue(10, 12, 16)),
             Text(
-              'No ${_getCategoryTitle().toLowerCase()} yet',
+              messageText,
               style: TextStyle(
                 fontSize: _getResponsiveValue(14, 16, 18),
                 color: Colors.grey[500],
@@ -1023,6 +1077,29 @@ class _LandingPageState extends State<LandingPage>
               ),
               textAlign: TextAlign.center,
             ),
+            SizedBox(height: _getResponsiveValue(20, 24, 28)), // Spacing before the button
+            ElevatedButton(
+              onPressed: onButtonPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppConfig.accentColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: _getResponsiveValue(24, 28, 32),
+                  vertical: _getResponsiveValue(12, 14, 16),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                buttonText,
+                style: TextStyle(
+                  fontSize: _getResponsiveValue(14, 16, 18),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(height: _getResponsiveValue(100, 120, 140)), // Added bottom padding instead of Spacer
           ],
         ),
       ),

@@ -7,11 +7,11 @@ class NavBar extends StatelessWidget {
   final bool useCircularHighlight;
 
   const NavBar({
-    Key? key,
+    super.key, // Use super.key
     this.currentIndex = 0,
     this.onTap, // make optional
     this.useCircularHighlight = true,
-  }) : super(key: key);
+  });
 
   static const _highlightColor = Color(0xFF0277BD);
   static const _inactiveColor = Colors.grey;
