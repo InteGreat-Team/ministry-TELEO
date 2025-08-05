@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:teleo_organized_new/1/c1homepage/lpcontent/connect/prayer_wall/FE/prayerwall/home_screen.dart';
 import '../1/c1homepage/lpcontent/homepage/landingpage.dart';
 import '../1/c1homepage/lpcontent/service/service.dart';
 import '../1/c1homepage/lpcontent/connect/connect.dart';
@@ -19,7 +20,7 @@ void navigateToMainPage(BuildContext context, int index) {
       targetPage = const ServicePage();
       break;
     case 2: // Connect
-      targetPage = const ConnectPage();
+      targetPage = const HomeScreen();
       break;
     case 3: // Read
       targetPage = const ReadPage();

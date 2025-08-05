@@ -12,6 +12,12 @@ import '../Firebase/firebase_options.dart';
 import '../../3/report/main_report_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+// Provider imports
+import 'package:provider/provider.dart';
+import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/history_prayer_provider.dart';
+import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/prayer_provider.dart';
+import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/prayer_request_provider.dart';
+
 // Import these to disable debug overlays
 import 'package:flutter/rendering.dart';
 
@@ -29,7 +35,14 @@ void main() async {
     ScreenUtilInit(
       designSize: const Size(430, 932),
       minTextAdapt: true,
-      builder: (context, child) => const MyApp(),
+      builder: (context, child) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => PrayerProvider()),
+          ChangeNotifierProvider(create: (_) => PrayerRequestProvider()),
+          ChangeNotifierProvider(create: (_) => UserPostsViewModel()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
