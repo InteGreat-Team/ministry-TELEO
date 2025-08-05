@@ -49,6 +49,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   Timer? _cooldownTimer;
   String? _error;
   String? _currentCode;
+  bool _isProcessing = false; // Prevent multiple simultaneous operations
 
   @override
   void initState() {
@@ -63,7 +64,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     // Add listeners to update UI on focus change for visual feedback
     for (var node in _focusNodes) {
       node.addListener(() {
-        setState(() {}); // Rebuild to update box decoration on focus change
+        if (mounted) setState(() {}); // Rebuild to update box decoration on focus change
       });
     }
   }
@@ -76,7 +77,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     }
     for (var node in _focusNodes) {
       node.removeListener(() {
-        setState(() {});
+        if (mounted) setState(() {});
       });
       node.dispose();
     }
@@ -85,7 +86,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   }
 
   void _clearErrorOnInput() {
-    if (_error != null) {
+    if (_error != null && mounted) {
       setState(() {
         _error = null;
       });
@@ -98,7 +99,10 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       _cooldownSeconds = 60;
     });
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       setState(() {
         if (_cooldownSeconds > 0) {
           _cooldownSeconds--;
@@ -120,7 +124,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   String get _fullCode => _controllers.map((c) => c.text).join();
 
   Future<void> _resendCode() async {
-    if (!_isResendEnabled) return;
+    if (!_isResendEnabled || _isProcessing) return;
+    
+    setState(() {
+      _isProcessing = true;
+    });
+
     // Clear all text fields and errors before resending
     for (var controller in _controllers) {
       controller.clear();
@@ -128,18 +137,42 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     setState(() {
       _error = null;
     });
-    _focusNodes[0].requestFocus(); // Focus the first field
-
-    final newCode = await EmailService.sendVerificationCode(widget.email, "${widget.firstName} ${widget.lastName}");
-    if (!mounted) return;
-    setState(() {
-      _currentCode = newCode;
+    
+    // Focus the first field after a brief delay to ensure UI is updated
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focusNodes[0].requestFocus();
+      }
     });
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verification code resent!')));
-    _startCooldownTimer();
+
+    try {
+      final newCode = await EmailService.sendVerificationCode(widget.email, "${widget.firstName} ${widget.lastName}");
+      if (!mounted) return;
+      setState(() {
+        _currentCode = newCode;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verification code resent!')));
+      _startCooldownTimer();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to resend code: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
   }
 
   Future<void> _validateCodeAndProceed() async {
+    if (_isProcessing || !_isCodeComplete) return;
+    
+    setState(() {
+      _isProcessing = true;
+    });
+
     try {
       final isValid = await EmailService.verifyCode(widget.email, _fullCode);
       if (!mounted) return;
@@ -171,6 +204,70 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Verification failed: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
+
+  void _handleTextChange(String value, int index) {
+    if (_isProcessing) return; // Prevent input during processing
+
+    // Handle input
+    if (value.length == 1) {
+      // A digit was entered - move to next field
+      if (index < 5) {
+        // Use post frame callback to ensure the text is set before moving focus
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _focusNodes[index + 1].requestFocus();
+          }
+        });
+      } else {
+        // Last field - unfocus to hide keyboard
+        _focusNodes[index].unfocus();
+      }
+    } else if (value.isEmpty) {
+      // Field was cleared - handle backspace logic
+      if (index > 0) {
+        // Move to previous field and position cursor at the end
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _focusNodes[index - 1].requestFocus();
+            // Set cursor position to end of text
+            final controller = _controllers[index - 1];
+            controller.selection = TextSelection.fromPosition(
+              TextPosition(offset: controller.text.length),
+            );
+          }
+        });
+      }
+    }
+    
+    // Update UI
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  // Handle paste operation for better UX
+  void _handlePaste(String pastedText) {
+    if (pastedText.length >= 6) {
+      final digits = pastedText.replaceAll(RegExp(r'[^0-9]'), '').substring(0, 6);
+      for (int i = 0; i < 6 && i < digits.length; i++) {
+        _controllers[i].text = digits[i];
+      }
+      // Focus the last filled field or unfocus if all are filled
+      final lastIndex = digits.length - 1;
+      if (lastIndex < 5) {
+        _focusNodes[lastIndex + 1].requestFocus();
+      } else {
+        _focusNodes[lastIndex].unfocus();
+      }
+      setState(() {});
     }
   }
 
@@ -270,13 +367,23 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   maxLength: 1,
+                  enabled: !_isProcessing, // Disable during processing
                   inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly // Accept only digits
+                    FilteringTextInputFormatter.digitsOnly, // Accept only digits
+                    // Custom formatter to handle paste operations
+                    TextInputFormatter.withFunction((oldValue, newValue) {
+                      // Handle paste of multiple digits
+                      if (newValue.text.length > 1) {
+                        _handlePaste(newValue.text);
+                        return oldValue; // Keep the old value, we handle paste manually
+                      }
+                      return newValue;
+                    }),
                   ],
                   style: TextStyle(
                     fontSize: isWeb ? 24.0 : 20.0,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: _isProcessing ? Colors.grey : Colors.black,
                   ),
                   decoration: const InputDecoration(
                     counterText: '', // Hide the character counter
@@ -288,23 +395,13 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                     focusedErrorBorder: InputBorder.none,
                     contentPadding: EdgeInsets.zero, // Remove default padding
                   ),
-                  onChanged: (value) {
-                    if (value.length == 1) { // A digit was typed
-                      if (index < 5) {
-                        _focusNodes[index + 1].requestFocus();
-                      } else {
-                        _focusNodes[index].unfocus(); // Unfocus last field
-                      }
-                    } else if (value.isEmpty && index > 0) { // Backspace pressed on an empty field
-                      // Move focus to the previous field
-                      _focusNodes[index - 1].requestFocus();
-                      // Ensure cursor is at the end of the text in the previous field
-                      // This helps with smooth backspacing if the user holds down backspace
-                      _controllers[index - 1].selection = TextSelection.fromPosition(
-                        TextPosition(offset: _controllers[index - 1].text.length),
-                      );
-                    }
-                    setState(() {}); // Rebuild to update button state and focus visuals
+                  onChanged: (value) => _handleTextChange(value, index),
+                  onTap: () {
+                    // Ensure cursor is positioned correctly when tapping
+                    final controller = _controllers[index];
+                    controller.selection = TextSelection.fromPosition(
+                      TextPosition(offset: controller.text.length),
+                    );
                   },
                 ),
               ),
@@ -328,13 +425,13 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         // Resend Code button and timer
         Center(
           child: TextButton(
-            onPressed: _isResendEnabled ? _resendCode : null,
+            onPressed: (_isResendEnabled && !_isProcessing) ? _resendCode : null,
             child: Text(
               _isResendEnabled
                   ? 'Haven\'t got the code yet? Resend code'
                   : 'Resend in $_formatCooldownTime',
               style: TextStyle(
-                color: _isResendEnabled ? const Color(0xFF007AFF) : Colors.grey, // Hyperlink blue
+                color: (_isResendEnabled && !_isProcessing) ? const Color(0xFF007AFF) : Colors.grey, // Hyperlink blue
                 fontSize: isWeb ? 16.0 : 14.0,
                 fontWeight: FontWeight.w500,
               ),
@@ -351,7 +448,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
             width: double.infinity,
             height: isWeb ? 60.0 : 56.0, // Consistent height
             child: ElevatedButton(
-              onPressed: _isCodeComplete ? _validateCodeAndProceed : null, // Enabled only when code is complete
+              onPressed: (_isCodeComplete && !_isProcessing) ? _validateCodeAndProceed : null, // Enabled only when code is complete
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF002540), // Consistent color
                 foregroundColor: Colors.white,
@@ -362,13 +459,22 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                 elevation: 0,
                 shadowColor: Colors.transparent,
               ),
-              child: Text(
-                'Verify', // Text is 'Verify'
-                style: TextStyle(
-                  fontSize: isWeb ? 18.0 : 16.0, // Consistent font size
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: _isProcessing
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'Verify', // Text is 'Verify'
+                      style: TextStyle(
+                        fontSize: isWeb ? 18.0 : 16.0, // Consistent font size
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ),

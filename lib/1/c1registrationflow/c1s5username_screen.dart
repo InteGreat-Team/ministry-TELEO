@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'c1s5_1location_question_screen.dart';
 import '../../3/c1widgets/back_button.dart';
 
@@ -22,6 +23,7 @@ class UsernameScreen extends StatefulWidget {
 
 class _UsernameScreenState extends State<UsernameScreen> {
   final _usernameController = TextEditingController();
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -29,7 +31,23 @@ class _UsernameScreenState extends State<UsernameScreen> {
     super.dispose();
   }
 
-  bool get _isFormValid => _usernameController.text.isNotEmpty;
+  bool get _isFormValid => _usernameController.text.length >= 4;
+
+  String? _validateUsername(String username) {
+    if (username.isEmpty) {
+      return null; // Don't show error for empty field
+    }
+    if (username.length < 4) {
+      return 'Username must be at least 4 characters';
+    }
+    return null;
+  }
+
+  void _onUsernameChanged(String value) {
+    setState(() {
+      _errorMessage = _validateUsername(value);
+    });
+  }
 
   void _navigateToNext() {
     Navigator.push(
@@ -138,6 +156,22 @@ class _UsernameScreenState extends State<UsernameScreen> {
           isWeb: isWeb,
         ),
         
+        // Error message
+        if (_errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 14.0,
+                ),
+              ),
+            ),
+          ),
+        
         SizedBox(height: isWeb ? 48 : 80), // Same spacing as other screens
         
         // Next button - exact measurements from other screens
@@ -181,6 +215,10 @@ class _UsernameScreenState extends State<UsernameScreen> {
   }) {
     return TextField(
       controller: controller,
+      maxLength: 20, // Limit to 20 characters
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(20), // Enforce 20 character limit
+      ],
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: _hintStyle,
@@ -190,15 +228,16 @@ class _UsernameScreenState extends State<UsernameScreen> {
         ),
         filled: true,
         fillColor: _fillColor,
-        border: _inputBorder,
-        enabledBorder: _inputBorder,
-        focusedBorder: _focusedBorder,
+        border: _errorMessage != null ? _errorBorder : _inputBorder,
+        enabledBorder: _errorMessage != null ? _errorBorder : _inputBorder,
+        focusedBorder: _errorMessage != null ? _errorFocusedBorder : _focusedBorder,
+        counterText: '', // Hide the character counter
       ),
       style: TextStyle(
         fontSize: isWeb ? 18.0 : 16.0,
         color: Colors.black,
       ),
-      onChanged: (_) => setState(() {}),
+      onChanged: _onUsernameChanged,
     );
   }
 
@@ -215,5 +254,13 @@ class _UsernameScreenState extends State<UsernameScreen> {
   static final _focusedBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(12),
     borderSide: const BorderSide(color: Color(0xFF002642), width: 2),
+  );
+  static final _errorBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: Colors.red),
+  );
+  static final _errorFocusedBorder = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: Colors.red, width: 2),
   );
 }

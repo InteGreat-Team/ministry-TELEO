@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../1/c1homepage/home_page.dart';
+import '../1/c1homepage/landingpage.dart';
 import '../2/c1homepage/home_page.dart';
 
 class NavigationService {
@@ -13,7 +13,7 @@ class NavigationService {
   static void navigateToUserHome(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
+      MaterialPageRoute(builder: (context) => const LandingPage()),
     );
   }
 }

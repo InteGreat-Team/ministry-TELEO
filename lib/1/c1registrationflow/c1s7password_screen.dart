@@ -38,6 +38,10 @@ class _PasswordScreenState extends State<PasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   String? _error;
+  
+  // Password visibility states
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   // Password validation criteria
   bool _hasMinLength = false;
@@ -69,7 +73,8 @@ class _PasswordScreenState extends State<PasswordScreen> {
       _hasUppercase = password.contains(RegExp(r'[A-Z]'));
       _hasLowercase = password.contains(RegExp(r'[a-z]'));
       _hasDigit = password.contains(RegExp(r'[0-9]'));
-      _hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+      // Updated regex to include more special characters including underscore
+      _hasSpecialChar = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>_+=\-\[\]\\\/~`]'));
       _validateConfirmPassword(); // Re-validate confirm password on password change
     });
   }
@@ -167,7 +172,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
         SizedBox(height: isWeb ? 12 : 8),
         TextField(
           controller: _passwordController,
-          obscureText: true,
+          obscureText: !_isPasswordVisible,
           style: TextStyle(fontSize: isWeb ? 18.0 : 16.0),
           decoration: InputDecoration(
             hintText: 'Enter your password',
@@ -180,6 +185,28 @@ class _PasswordScreenState extends State<PasswordScreen> {
             contentPadding: EdgeInsets.symmetric(
               horizontal: isWeb ? 24.0 : 16.0,
               vertical: isWeb ? 20.0 : 16.0,
+            ),
+            suffixIcon: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return RotationTransition(
+                    turns: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: Icon(
+                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  key: ValueKey<bool>(_isPasswordVisible),
+                  color: Colors.grey[600],
+                  size: 20,
+                ),
+              ),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -219,7 +246,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
         SizedBox(height: isWeb ? 12 : 8),
         TextField(
           controller: _confirmPasswordController,
-          obscureText: true,
+          obscureText: !_isConfirmPasswordVisible,
           style: TextStyle(fontSize: isWeb ? 18.0 : 16.0),
           decoration: InputDecoration(
             hintText: 'Confirm your password',
@@ -232,6 +259,28 @@ class _PasswordScreenState extends State<PasswordScreen> {
             contentPadding: EdgeInsets.symmetric(
               horizontal: isWeb ? 24.0 : 16.0,
               vertical: isWeb ? 20.0 : 16.0,
+            ),
+            suffixIcon: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                });
+              },
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return RotationTransition(
+                    turns: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: Icon(
+                  _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  key: ValueKey<bool>(_isConfirmPasswordVisible),
+                  color: Colors.grey[600],
+                  size: 20,
+                ),
+              ),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

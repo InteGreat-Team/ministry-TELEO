@@ -213,7 +213,7 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
           
           // Phone field
           Text(
-            'Phone Number (optional)',
+            'Phone Number',
             style: TextStyle(
               fontSize: isWeb ? 18.0 : 16.0,
               fontWeight: FontWeight.w500,
@@ -225,7 +225,7 @@ class _ContactInfoScreenState extends State<ContactInfoScreen> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             enabled: !_isLoading,
-            maxLength: 13, // Updated to accept 13 characters (+639xxxxxxxxx)
+            maxLength: 13, // Updated to accept 13 characters (+63xxxxxxxxxx)
             style: TextStyle(fontSize: isWeb ? 18.0 : 16.0),
             decoration: InputDecoration(
               hintText: '+639xxxxxxxxx', // Updated hint text for Philippine numbers

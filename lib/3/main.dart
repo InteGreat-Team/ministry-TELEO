@@ -4,7 +4,7 @@ import 'login_screen.dart';
 import 'forgotpassword/c1s1forgot_password_screen.dart';
 import '../2/c1approvalstatus/approval_status_check_screen.dart';
 import 'signup/c1s1signupwelcome_screen.dart' as signup;
-import '../1/c1homepage/home_page.dart';
+import '../1/c1homepage/landingpage.dart'; // Updated import to use landingpage.dart
 import '../2/c1homepage/home_page.dart';
 import 'app_highlights/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => const signup.SignupWelcomeScreen(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/approval-status': (context) => const ApprovalStatusCheckScreen(),
-        '/home': (context) => const HomePage(),
+        '/home': (context) => const LandingPage(), // Updated to use LandingPage
         '/admin': (context) => const AdminHomePage(),
       },
       builder: (context, child) {

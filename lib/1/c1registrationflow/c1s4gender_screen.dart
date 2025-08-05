@@ -167,7 +167,7 @@ class _GenderScreenState extends State<GenderScreen> {
       children: [
         _buildGenderOption('Male', 'Male', Icons.male, isWeb),
         _buildGenderOption('Female', 'Female', Icons.female, isWeb),
-        _buildGenderOption('Non_binary', 'Non-binary', Icons.person, isWeb),
+        _buildGenderOption('Non-binary', 'Non-binary', Icons.person, isWeb),
       ],
     );
   }
