@@ -3,10 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
-
 import '../3/widget_login/login_widget.dart'; // Updated import
 import 'navigation_service.dart';
 import '../2/c1homepage/home_page.dart';
+import '../1/c1homepage/landingpage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
