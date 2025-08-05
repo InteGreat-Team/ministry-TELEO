@@ -11,6 +11,7 @@ const commentsRouter = require("./prayerwall/routes/comments");
 const prayerLikesRouter = require("./prayerwall/routes/prayer_likes");
 
 const emailRoleRouter = require("./user/routes/getUserRole");
+const profileInfoRouter = require("./user/routes/profileInfo");
 
 const DATABASE_URL = defineSecret("DATABASE_URL");
 
@@ -68,6 +69,7 @@ exports.emailrole = onRequest(
       });
 
       app.use("/api/emailRole", emailRoleRouter);
+      app.use("/api/profileInfo", profileInfoRouter);
 
       return app(req, res);
     },
