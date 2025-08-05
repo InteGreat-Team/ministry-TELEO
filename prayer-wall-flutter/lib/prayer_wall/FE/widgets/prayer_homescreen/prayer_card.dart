@@ -324,6 +324,13 @@ class _PrayerCardState extends State<PrayerCard>
                     ),
                   ),
                   Text(
+                    widget.post.tags.join(', '), // e.g. "adoration, family"
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                  Text(
                     DateFormat(
                       'MMM d, yyyy • hh:mm a',
                     ).format(widget.post.createdAt),
@@ -496,16 +503,6 @@ class _PrayerCardState extends State<PrayerCard>
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              fontFamily: 'Poppins',
-                            ),
-                          ),
-                          Text(
-                            DateFormat(
-                              'MMM d, yyyy • hh:mm a',
-                            ).format(widget.post.createdAt.toLocal()),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.7),
                               fontFamily: 'Poppins',
                             ),
                           ),

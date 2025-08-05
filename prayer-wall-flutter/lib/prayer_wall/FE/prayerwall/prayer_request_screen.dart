@@ -114,6 +114,7 @@ class _PrayerRequestScreenState extends State<PrayerRequestScreen> {
       hasPrayed: false,
       cardColor: provider.selectedColor,
       commentList: [],
+      tags: [],
     );
   }
 

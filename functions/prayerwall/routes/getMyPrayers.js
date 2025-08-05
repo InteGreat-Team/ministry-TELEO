@@ -47,6 +47,7 @@ router.get("/", async (req, res) => {
       SELECT 
         p.*,
         u.first_name,
+        COALESCE(tags.tag_names, '[]') AS tags,
         COALESCE(likes.like_count, 0) AS likes,
         COALESCE(comments.comments, '[]') AS comments
       FROM prayers p
@@ -67,6 +68,12 @@ router.get("/", async (req, res) => {
         JOIN users cu ON cu.id = c.user_id
         GROUP BY c.prayer_id
       ) comments ON comments.prayer_id = p.id
+      LEFT JOIN (
+        SELECT pt.prayer_id, json_agg(t.name) AS tag_names
+        FROM prayer_tags pt
+        JOIN tags t ON t.id = pt.tag_id
+        GROUP BY pt.prayer_id
+      ) tags ON tags.prayer_id = p.id
       WHERE p.user_id = $1
       ORDER BY p.created_at DESC
       LIMIT $2 OFFSET $3

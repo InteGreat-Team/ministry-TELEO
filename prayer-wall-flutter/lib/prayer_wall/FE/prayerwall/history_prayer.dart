@@ -317,6 +317,13 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ),
                               ),
                               Text(
+                                prayer.tags.join(', '),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
+                              ),
+                              Text(
                                 DateFormat(
                                   'MMM d, yyyy • hh:mm a',
                                 ).format(prayer.createdAt),

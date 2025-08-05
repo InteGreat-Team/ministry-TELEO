@@ -29,6 +29,7 @@ class PrayerPost {
   final String userAvatar;
   final String content;
   final String details;
+  final List<String> tags;
   final DateTime createdAt;
   int likes;
   int prayers;
@@ -44,6 +45,7 @@ class PrayerPost {
     required this.userAvatar,
     required this.content,
     required this.details,
+    required this.tags,
     required this.createdAt,
     required this.likes,
     required this.prayers,
@@ -70,6 +72,11 @@ class PrayerPost {
       userName: json['first_name']?.toString() ?? 'Anonymous',
       userAvatar: json['userAvatar'] ?? 'assets/images/profile.jpg',
       content: json['content']?.toString() ?? '',
+      tags:
+          (json['tags'] as List<dynamic>?)
+              ?.map((tag) => tag.toString())
+              .toList() ??
+          [],
       details: json['details']?.toString() ?? '',
       createdAt: DateTime.parse(json['created_at']),
       likes: int.tryParse(json['likes'].toString()) ?? 0,

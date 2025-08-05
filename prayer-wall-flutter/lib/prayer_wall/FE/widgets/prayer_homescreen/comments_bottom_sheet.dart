@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:teleo_organized_new/prayer_wall/BE/models/prayer_post.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
 
 class CommentsBottomSheet extends StatefulWidget {
   final PrayerPost post;
@@ -92,7 +92,9 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                 ),
               ),
               Text(
-                timeago.format(widget.post.createdAt.toLocal()),
+                DateFormat(
+                  'MMM d, yyyy • hh:mm a',
+                ).format(widget.post.createdAt),
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.white.withOpacity(0.7),
