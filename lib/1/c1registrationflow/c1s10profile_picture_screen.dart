@@ -51,39 +51,129 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
   Future<void> _showImageSourceOptions() async {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Photo Gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Camera'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel),
-                title: const Text('Cancel'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Choose Photo Source',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF002642),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildSourceOption(
+                  icon: Icons.photo_library_outlined,
+                  title: 'Photo Gallery',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+                _buildSourceOption(
+                  icon: Icons.camera_alt_outlined,
+                  title: 'Camera',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSourceOption({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF002642).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: const Color(0xFF002642),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF002642),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -103,12 +193,31 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Error',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF002642),
+            ),
+          ),
+          content: Text(
+            message,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              style: TextButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Color(0xFF002642),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );
@@ -157,11 +266,20 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
+    final imageSize = isTablet ? 180.0 : screenWidth * 0.4;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 48.0 : 24.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -169,35 +287,73 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                 padding: EdgeInsets.only(top: 16.0),
                 child: TeleoBackButton(),
               ),
-              const SizedBox(height: 40),
-              const Text(
-                "Add a Profile Picture",
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              
+              const Spacer(flex: 1),
+              
+              // Title Section
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      "Lastly, put a face to the name!",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isTablet ? 32 : 26,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF002642),
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "This will help people recognize you",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isTablet ? 18 : 16,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                "This will help people recognize you",
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 20),
+              
+              const Spacer(flex: 1),
+              
               // Testing indicator
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  border: Border.all(color: Colors.orange.shade200),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.amber.shade50,
+                      Colors.orange.shade50,
+                    ],
+                  ),
+                  border: Border.all(color: Colors.orange.shade200, width: 1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.science, color: Colors.orange.shade700, size: 20),
-                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Icon(
+                        Icons.science_outlined,
+                        color: Colors.orange.shade700,
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         "Testing Feature: Profile pictures won't reflect in your account yet",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 13,
                           color: Colors.orange.shade800,
                           fontWeight: FontWeight.w500,
                         ),
@@ -206,39 +362,121 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              
+              const Spacer(flex: 2),
+              
+              // Profile Picture Section
               Center(
-                child: GestureDetector(
-                  onTap: _isUploading ? null : _showImageSourceOptions,
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF002642), width: 2),
-                      image: _selectedImage != null
-                          ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
-                          : null,
-                    ),
-                    child: _isUploading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _selectedImage == null
-                            ? const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo, color: Color(0xFF002642), size: 50),
-                                  SizedBox(height: 8),
-                                  Text("Add Photo", style: TextStyle(color: Color(0xFF002642), fontWeight: FontWeight.w500)),
-                                ],
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: _isUploading ? null : _showImageSourceOptions,
+                      child: Container(
+                        width: imageSize,
+                        height: imageSize,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _selectedImage != null 
+                                ? const Color(0xFF002642)
+                                : Colors.grey.shade300,
+                            width: _selectedImage != null ? 3 : 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                          image: _selectedImage != null
+                              ? DecorationImage(
+                                  image: FileImage(_selectedImage!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: _isUploading
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.3),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    strokeWidth: 3,
+                                  ),
+                                ),
                               )
-                            : null,
-                  ),
+                            : _selectedImage == null
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF002642).withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.add_a_photo_outlined,
+                                          color: Color(0xFF002642),
+                                          size: 28,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        "Add Photo",
+                                        style: TextStyle(
+                                          color: Color(0xFF002642),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "Tap to choose",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade500,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : null,
+                      ),
+                    ),
+                    
+                    if (_selectedImage != null && !_isUploading) ...[
+                      const SizedBox(height: 14),
+                      TextButton.icon(
+                        onPressed: _showImageSourceOptions,
+                        icon: const Icon(Icons.edit_outlined, size: 14),
+                        label: const Text('Change Photo'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF002642),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 40.0),
+              
+              const Spacer(flex: 2),
+              
+              // Bottom Buttons
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(bottom: 24),
                 child: Row(
                   children: [
                     Expanded(
@@ -268,8 +506,20 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                                   ),
                                 );
                               },
-                        style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
-                        child: const Text('Skip', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.grey.shade600,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Skip',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -281,12 +531,36 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                           backgroundColor: const Color(0xFF002642),
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 4,
-                          shadowColor: Colors.black.withOpacity(0.3),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
                         ),
-                        child: Text(_isUploading ? 'Uploading...' : 'Next', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_isUploading) ...[
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Text(
+                              _isUploading ? 'Uploading...' : 'Continue',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
