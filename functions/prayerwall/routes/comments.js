@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
 
     // 👇 Get numeric user ID and name
     const userRes = await client.query(
-        `SELECT id, first_name FROM users WHERE firebase_uid = $1`,
+        `SELECT id, first_name FROM teleo_users WHERE firebase_uid = $1`,
         [uid],
     );
 

@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
   try {
     // Check user existence with pool.query instead of manual client connection
     const userResult = await pool.query(
-        `SELECT id FROM users WHERE firebase_uid = $1`,
+        `SELECT id FROM teleo_users WHERE firebase_uid = $1`,
         [uid],
     );
     if (userResult.rows.length === 0) {
@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
         COALESCE(l.like_count, 0) AS likes,
         COALESCE(comments.comments, '[]') AS comments
       FROM prayers p
-      JOIN users u ON p.user_id = u.id
+      JOIN teleo_users u ON p.user_id = u.id
       LEFT JOIN (
         SELECT prayer_id, COUNT(*) AS like_count
         FROM likes
@@ -64,7 +64,7 @@ router.get("/", async (req, res) => {
           'first_name', cu.first_name
         )) AS comments
         FROM comments c
-        JOIN users cu ON cu.id = c.user_id
+        JOIN teleo_users cu ON cu.id = c.user_id
         GROUP BY c.prayer_id
       ) comments ON comments.prayer_id = p.id
       LEFT JOIN (
