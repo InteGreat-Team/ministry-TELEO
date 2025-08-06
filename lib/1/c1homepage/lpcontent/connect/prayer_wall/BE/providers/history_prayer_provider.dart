@@ -18,10 +18,15 @@ class UserPostsViewModel extends ChangeNotifier {
 
     try {
       // Step 1: Fetch user profile to get role
-      final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+      final user = FirebaseAuth.instance.currentUser;
+      final idToken = await user?.getIdToken();
+
+      final email = user?.email;
+      if (email == null) throw Exception('User email is null');
+
       final res = await http.get(
         Uri.parse(
-          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/getUserProfile',
+          'https://asia-southeast1-teleo-church-application.cloudfunctions.net/emailrole/api/emailrole?email=$email',
         ),
         headers: {
           'Authorization': 'Bearer $idToken',
@@ -32,7 +37,7 @@ class UserPostsViewModel extends ChangeNotifier {
       if (res.statusCode == 200) {
         final profile = jsonDecode(res.body);
         _userRole = profile['role'];
-    
+
         // Step 2: Fetch shared prayers (available to all users)
         await _fetchSharedByMe();
 
