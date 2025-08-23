@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:provider/provider.dart'; // ✅ Added
 import '../../../../prayer_wall/BE/models/prayer_post.dart';
+import '../../../../prayer_wall/BE/providers/read_prayer_provider.dart';
 import 'package:intl/intl.dart';
 
 // Define SwipeDirection enum to fix the undefined class error
@@ -219,7 +221,7 @@ class _PrayerCardState extends State<PrayerCard>
           _dragUpdateX = details.globalPosition.dx - _dragStartX;
         });
       },
-      onHorizontalDragEnd: (details) {
+      onHorizontalDragEnd: (details) async {
         final threshold = MediaQuery.of(context).size.width * 0.3;
         if (_dragUpdateX.abs() > threshold) {
           // Fix: Account for card flip state when determining swipe direction
@@ -235,6 +237,13 @@ class _PrayerCardState extends State<PrayerCard>
           widget.onSwipe(
             isSwipeRight ? SwipeDirection.right : SwipeDirection.left,
           );
+
+          if (isSwipeRight) {
+            // ✅ Call Provider to update read_status
+            final provider =
+                Provider.of<PrayerReadProvider>(context, listen: false);
+            provider.markPrayerAsRead(widget.post.id.toString());
+          }
         }
         setState(() {
           _dragStartX = 0;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../BE/models/prayer_post.dart';
 import '../../BE/providers/history_prayer_provider.dart';
+import '../../BE/providers/history_read_provider.dart';
 import 'package:intl/intl.dart';
 
 class UserPostsScreen extends StatefulWidget {
@@ -20,16 +21,34 @@ class _UserPostsScreenState extends State<UserPostsScreen>
   @override
   void initState() {
     super.initState();
-    int tabLength = widget.userRole == 'pastor' ? 2 : 1;
+    // Add 1 extra tab for "History"
+    int tabLength = widget.userRole == 'pastor' ? 3 : 2;
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(() => setState(() {}));
-    _fetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData(); // ✅ safe, runs after first frame
+      _fetchHistoryData();
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchHistoryData() async {
+    final historyProvider =
+        Provider.of<HistoryReadProvider>(context, listen: false);
+    try {
+      await historyProvider.fetchReadPrayers();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading history: $e')));
+      }
+    }
   }
 
   Future<void> _fetchData() async {
@@ -80,55 +99,83 @@ class _UserPostsScreenState extends State<UserPostsScreen>
               textAlign: TextAlign.center,
             ),
           ),
-          if (widget.userRole == 'pastor')
-            Container(
-              color: const Color(0xFF0A0E2D),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
+
+          // Tab bar for BOTH roles (keeps your original styling)
+          Container(
+            color: const Color(0xFF0A0E2D),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(30),
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: const Color(0xFF0A0E2D),
                     borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.white, width: 1),
                   ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: const Color(0xFF0A0E2D),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.white, width: 1),
-                    ),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white.withOpacity(0.7),
-                    tabs: const [
-                      Tab(text: 'Shared by Me'),
-                      Tab(text: 'Specific Requests'),
-                    ],
-                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white.withOpacity(0.7),
+                  tabs: widget.userRole == 'pastor'
+                      ? const [
+                          Tab(text: 'Shared by Me'),
+                          Tab(text: 'Specific Requests'),
+                          Tab(text: 'History'),
+                        ]
+                      : const [
+                          Tab(text: 'My Posts'),
+                          Tab(text: 'History'),
+                        ],
                 ),
               ),
             ),
+          ),
+
           Expanded(
-            child:
-                viewModel.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : widget.userRole == 'pastor'
-                    ? TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildPrayersList(viewModel.sharedByMe, 'shared'),
-                        _buildPrayersList(
-                          viewModel.specificRequests,
-                          'specific',
-                        ),
-                      ],
-                    )
-                    : _buildPrayersList(viewModel.sharedByMe, 'shared'),
+            child: viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: widget.userRole == 'pastor'
+                        ? [
+                            _buildPrayersList(viewModel.sharedByMe, 'shared'),
+                            _buildPrayersList(
+                                viewModel.specificRequests, 'specific'),
+                            _buildHistoryTab(), // empty for now
+                          ]
+                        : [
+                            _buildPrayersList(viewModel.sharedByMe, 'shared'),
+                            _buildHistoryTab(), // empty for now
+                          ],
+                  ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHistoryTab() {
+    return Consumer<HistoryReadProvider>(
+      builder: (context, historyProvider, _) {
+        if (historyProvider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (historyProvider.errorMessage != null) {
+          return Center(child: Text(historyProvider.errorMessage!));
+        }
+
+        if (historyProvider.readPrayers.isEmpty) {
+          return const Center(child: Text("No read prayers found"));
+        }
+
+        // ✅ Reuse your existing list builder
+        return _buildPrayersList(historyProvider.readPrayers, 'history');
+      },
     );
   }
 
@@ -214,9 +261,8 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                                 ),
                               ),
                               Text(
-                                DateFormat(
-                                  'MMM d, yyyy • hh:mm a',
-                                ).format(prayer.createdAt),
+                                DateFormat('MMM d, yyyy • hh:mm a')
+                                    .format(prayer.createdAt),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.white.withOpacity(0.7),
@@ -277,107 +323,104 @@ class _UserPostsScreenState extends State<UserPostsScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder:
-          (context) => DraggableScrollableSheet(
-            initialChildSize: 0.9,
-            minChildSize: 0.5,
-            maxChildSize: 0.95,
-            expand: false,
-            builder:
-                (context, scrollController) => Column(
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2.5),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(prayer.userAvatar),
+                    radius: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        prayer.userName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        prayer.tags.join(', '),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      Text(
+                        DateFormat('MMM d, yyyy • hh:mm a')
+                            .format(prayer.createdAt),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${prayer.likes} likes · ${prayer.comments} prayers',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(2.5),
+                    Text(
+                      prayer.content,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundImage: AssetImage(prayer.userAvatar),
-                            radius: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                prayer.userName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                prayer.tags.join(', '),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
-                              ),
-                              Text(
-                                DateFormat(
-                                  'MMM d, yyyy • hh:mm a',
-                                ).format(prayer.createdAt),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${prayer.likes} likes · ${prayer.comments} prayers',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              prayer.content,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              prayer.details,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white.withOpacity(0.9),
-                              ),
-                            ),
-                          ],
-                        ),
+                    const SizedBox(height: 8),
+                    Text(
+                      prayer.details,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
                       ),
                     ),
                   ],
                 ),
-          ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

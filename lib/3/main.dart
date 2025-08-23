@@ -17,7 +17,8 @@ import 'package:provider/provider.dart';
 import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/history_prayer_provider.dart';
 import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/prayer_provider.dart';
 import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/prayer_request_provider.dart';
-
+import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/read_prayer_provider.dart';
+import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/history_read_provider.dart';
 // Import these to disable debug overlays
 import 'package:flutter/rendering.dart';
 
@@ -40,6 +41,8 @@ void main() async {
           ChangeNotifierProvider(create: (_) => PrayerProvider()),
           ChangeNotifierProvider(create: (_) => PrayerRequestProvider()),
           ChangeNotifierProvider(create: (_) => UserPostsViewModel()),
+          ChangeNotifierProvider(create: (_) => PrayerReadProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryReadProvider()),
         ],
         child: const MyApp(),
       ),
