@@ -4,7 +4,7 @@ import 'login_screen.dart';
 import 'forgotpassword/c1s1forgot_password_screen.dart';
 import '../2/c1approvalstatus/approval_status_check_screen.dart';
 import 'signup/c1s1signupwelcome_screen.dart' as signup;
-import '../../1/c1homepage/lpcontent/homepage/landingpage.dart'; // Updated import to use landingpage.dart
+import '../../1/c1homepage/lpcontent/homepage/landingpage.dart'; // Updated path to FE folder
 import '../2/c1homepage/home_page.dart';
 import 'app_highlights/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,6 +19,7 @@ import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/prayer_provid
 import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/prayer_request_provider.dart';
 import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/read_prayer_provider.dart';
 import '../1/c1homepage/lpcontent/connect/prayer_wall/BE/providers/history_read_provider.dart';
+import '../1/c1homepage/lpcontent/homepage/BE/provider/landing_page_provider.dart'; // Added LandingPageViewModel import
 // Import these to disable debug overlays
 import 'package:flutter/rendering.dart';
 
@@ -43,6 +44,9 @@ void main() async {
           ChangeNotifierProvider(create: (_) => UserPostsViewModel()),
           ChangeNotifierProvider(create: (_) => PrayerReadProvider()),
           ChangeNotifierProvider(create: (_) => HistoryReadProvider()),
+          ChangeNotifierProvider(
+              create: (_) =>
+                  LandingPageViewModel()), // Added LandingPageViewModel provider
         ],
         child: const MyApp(),
       ),

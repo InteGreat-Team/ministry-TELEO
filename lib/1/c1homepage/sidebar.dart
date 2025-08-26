@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../3/welcome_screen.dart'; // Import the welcome screen for logout navigation
-import './lpcontent/homepage/landingpage.dart'; // Import AppConfig for colors
+import './lpcontent/homepage/BE/models/landing_page_models.dart'; // Import AppConfig for colors
 import 'donate_screen.dart'; // Import the DonateScreen
 
 class Sidebar extends StatelessWidget {
@@ -23,7 +23,8 @@ class Sidebar extends StatelessWidget {
               16.0,
               24.0,
             ), // Adjusted padding for top and bottom
-            child: Row( // Use Row to place avatar/name and the three-dot icon
+            child: Row(
+              // Use Row to place avatar/name and the three-dot icon
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
@@ -38,7 +39,8 @@ class Sidebar extends StatelessWidget {
                         ), // Placeholder image
                         backgroundColor: Colors.grey,
                       ),
-                      const SizedBox(height: 16), // Space between avatar and name
+                      const SizedBox(
+                          height: 16), // Space between avatar and name
                       const Text(
                         'Guest', // Changed to Guest as per image
                         style: TextStyle(
@@ -102,8 +104,8 @@ class Sidebar extends StatelessWidget {
                 // Donate Now button (kept in place as requested)
                 _buildSidebarItem(
                   context,
-                  icon:
-                      Icons.volunteer_activism_outlined, // A suitable icon for donate
+                  icon: Icons
+                      .volunteer_activism_outlined, // A suitable icon for donate
                   text: 'Donate Now',
                   textColor: AppConfig.accentColor, // Highlight donate button
                   onTap: () {
@@ -168,7 +170,8 @@ class Sidebar extends StatelessWidget {
               bottom: 32.0,
               right: 24.0, // Added right padding to push it to the corner
             ),
-            child: Align( // Use Align to push the button to the end
+            child: Align(
+              // Use Align to push the button to the end
               alignment: Alignment.bottomRight,
               child: TextButton(
                 onPressed: () {
@@ -178,17 +181,20 @@ class Sidebar extends StatelessWidget {
                     builder: (BuildContext dialogContext) {
                       return AlertDialog(
                         title: const Text('Confirm Logout'),
-                        content: const Text('Are you sure you want to log out?'),
+                        content:
+                            const Text('Are you sure you want to log out?'),
                         actions: <Widget>[
                           TextButton(
                             onPressed: () {
-                              Navigator.of(dialogContext).pop(); // Dismiss dialog
+                              Navigator.of(dialogContext)
+                                  .pop(); // Dismiss dialog
                             },
                             child: const Text('Cancel'),
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(dialogContext).pop(); // Dismiss dialog
+                              Navigator.of(dialogContext)
+                                  .pop(); // Dismiss dialog
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -196,7 +202,8 @@ class Sidebar extends StatelessWidget {
                                 ),
                               );
                             },
-                            child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+                            child: const Text('Log Out',
+                                style: TextStyle(color: Colors.red)),
                           ),
                         ],
                       );
@@ -208,7 +215,8 @@ class Sidebar extends StatelessWidget {
                   padding: EdgeInsets.zero, // Remove default padding
                 ),
                 child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.end, // Align content to the right
+                  mainAxisAlignment:
+                      MainAxisAlignment.end, // Align content to the right
                   mainAxisSize: MainAxisSize.min, // Shrink to fit content
                   children: [
                     Text('Log Out', style: TextStyle(fontSize: 16)),

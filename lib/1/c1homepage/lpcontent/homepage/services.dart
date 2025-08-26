@@ -48,7 +48,7 @@ class ServiceModel {
   // Helper method to convert string to IconData
   static IconData? _getIconFromString(String? iconName) {
     if (iconName == null) return null;
-    
+
     final iconMap = {
       'favorite': Icons.favorite,
       'water_drop': Icons.water_drop,
@@ -59,14 +59,14 @@ class ServiceModel {
       'celebration': Icons.celebration,
       'support': Icons.support,
     };
-    
+
     return iconMap[iconName] ?? Icons.miscellaneous_services;
   }
 
   // Helper method to convert string to Color
   static Color? _getColorFromString(String? colorString) {
     if (colorString == null) return null;
-    
+
     final colorMap = {
       'pink': Colors.pink[50],
       'blue': Colors.blue[50],
@@ -75,7 +75,7 @@ class ServiceModel {
       'green': Colors.green[50],
       'purple': Colors.purple[50],
     };
-    
+
     return colorMap[colorString] ?? Colors.grey[50];
   }
 }
@@ -138,7 +138,7 @@ class Services extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final horizontalPadding = getResponsivePadding();
-    
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
         horizontalPadding,
@@ -154,15 +154,16 @@ class Services extends StatelessWidget {
             padding: EdgeInsets.only(right: horizontalPadding),
             child: Text(
               config.sectionTitle,
-              style: config.titleStyle ?? TextStyle(
-                fontSize: getResponsiveValue(18, 20, 22),
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
+              style: config.titleStyle ??
+                  TextStyle(
+                    fontSize: getResponsiveValue(18, 20, 22),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
             ),
           ),
           SizedBox(height: getResponsiveValue(16, 18, 20)),
-          
+
           // Content
           if (isLoading)
             _buildLoadingState()
@@ -179,7 +180,7 @@ class Services extends StatelessWidget {
 
   Widget _buildServicesHorizontalList() {
     final displayServices = services.take(config.maxServices).toList();
-    
+
     return SizedBox(
       height: config.cardHeight,
       child: ListView.builder(
@@ -240,15 +241,16 @@ class Services extends StatelessWidget {
             ? Image.network(
                 service.imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildFallbackIcon(service),
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildFallbackIcon(service),
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / 
-                            loadingProgress.expectedTotalBytes!
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   );
@@ -277,11 +279,12 @@ class Services extends StatelessWidget {
         children: [
           Text(
             service.title,
-            style: config.cardTitleStyle ?? TextStyle(
-              fontSize: getResponsiveValue(13, 14, 15),
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+            style: config.cardTitleStyle ??
+                TextStyle(
+                  fontSize: getResponsiveValue(13, 14, 15),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -289,11 +292,12 @@ class Services extends StatelessWidget {
           Expanded(
             child: Text(
               service.description,
-              style: config.cardDescriptionStyle ?? TextStyle(
-                fontSize: getResponsiveValue(10, 11, 12),
-                color: Colors.grey[600],
-                height: 1.2,
-              ),
+              style: config.cardDescriptionStyle ??
+                  TextStyle(
+                    fontSize: getResponsiveValue(10, 11, 12),
+                    color: Colors.grey[600],
+                    height: 1.2,
+                  ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -316,18 +320,19 @@ class Services extends StatelessWidget {
           service.onBook?.call();
           onBookService?.call();
         },
-        style: config.buttonStyle ?? ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3949ab),
-          foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(
-            vertical: getResponsiveValue(6, 8, 10),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: 0,
-          minimumSize: const Size(double.infinity, 32),
-        ),
+        style: config.buttonStyle ??
+            ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3949ab),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(
+                vertical: getResponsiveValue(6, 8, 10),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+              minimumSize: const Size(double.infinity, 32),
+            ),
         child: Text(
           config.bookButtonText,
           style: TextStyle(
@@ -377,7 +382,8 @@ class Services extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.grey[200],
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: const Center(
               child: CircularProgressIndicator(strokeWidth: 2),
@@ -516,16 +522,17 @@ class ServicesService {
       // Replace with your actual HTTP client implementation
       // Example using http package:
       // final response = await http.get(Uri.parse('$_baseUrl/services'));
-      
+
       // Mock implementation - replace with actual API call
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // Mock data - replace with actual API response parsing
       final mockData = [
         {
           'id': 'wedding',
           'title': 'Wedding Services',
-          'description': 'Make your special day even more special with our wedding services.',
+          'description':
+              'Make your special day even more special with our wedding services.',
           'icon': 'favorite',
           'backgroundColor': 'pink',
           'imageUrl': 'https://example.com/wedding.jpg',
@@ -533,7 +540,8 @@ class ServicesService {
         {
           'id': 'baptism',
           'title': 'Baptism',
-          'description': 'Welcome into the grace, rejoice in your new life with Christ.',
+          'description':
+              'Welcome into the grace, rejoice in your new life with Christ.',
           'icon': 'water_drop',
           'backgroundColor': 'blue',
           'imageUrl': 'https://example.com/baptism.jpg',
@@ -541,7 +549,8 @@ class ServicesService {
         {
           'id': 'funeral',
           'title': 'Funerals',
-          'description': 'Commemorate a beautiful life told in prayer and song.',
+          'description':
+              'Commemorate a beautiful life told in prayer and song.',
           'icon': 'local_florist',
           'backgroundColor': 'grey',
           'imageUrl': 'https://example.com/funeral.jpg',
@@ -549,7 +558,8 @@ class ServicesService {
         {
           'id': 'youth',
           'title': 'Youth',
-          'description': 'Ignite your faith, where passion, purpose, and prayer collide.',
+          'description':
+              'Ignite your faith, where passion, purpose, and prayer collide.',
           'icon': 'group',
           'backgroundColor': 'orange',
           'imageUrl': 'https://example.com/youth.jpg',
@@ -557,13 +567,14 @@ class ServicesService {
         {
           'id': 'outreach',
           'title': 'Outreach',
-          'description': 'Spreading hope and kindness, guided by faith and love.',
+          'description':
+              'Spreading hope and kindness, guided by faith and love.',
           'icon': 'volunteer_activism',
           'backgroundColor': 'green',
           'imageUrl': 'https://example.com/outreach.jpg',
         },
       ];
-      
+
       return mockData.map((json) => ServiceModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch services: $e');
@@ -575,7 +586,7 @@ class ServicesService {
     try {
       // Replace with your actual API call
       await Future.delayed(const Duration(seconds: 1));
-      
+
       // Mock success response
       return true;
     } catch (e) {

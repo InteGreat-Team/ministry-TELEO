@@ -50,26 +50,26 @@ class NavBar extends StatelessWidget {
 
   Widget _item(BuildContext context, IconData icon, String label, int index) {
     final bool selected = currentIndex == index;
-    final Widget iconW =
-        selected && useCircularHighlight
-            ? Container( // Changed from AnimatedContainer to Container
-                width: 40.w, // Increased responsive width
-                height: 40.h, // Increased responsive height
-                decoration: BoxDecoration(
-                  color: _highlightColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 24.sp, // Increased responsive icon size
-                ),
-              )
-            : Icon(
-                icon,
-                color: selected ? _highlightColor : _inactiveColor,
-                size: 28.sp, // Increased responsive icon size
-              );
+    final Widget iconW = selected && useCircularHighlight
+        ? Container(
+            // Changed from AnimatedContainer to Container
+            width: 40.w, // Increased responsive width
+            height: 40.h, // Increased responsive height
+            decoration: BoxDecoration(
+              color: _highlightColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 24.sp, // Increased responsive icon size
+            ),
+          )
+        : Icon(
+            icon,
+            color: selected ? _highlightColor : _inactiveColor,
+            size: 28.sp, // Increased responsive icon size
+          );
     return Expanded(
       child: InkWell(
         onTap: () {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../nav_bar.dart';
 import './upcoming_services.dart';
 import './exploreteleo.dart';
@@ -7,230 +8,16 @@ import './services.dart';
 import './events.dart';
 import '../../../../utils/app_navigator.dart'; // Import the new navigation helper
 import '../../../c1homepage/sidebar.dart';
-// Data Models
-class UserData {
-  final String name;
-  final String greeting;
-  const UserData({required this.name, required this.greeting});
-  factory UserData.fromJson(Map<String, dynamic> json) {
-    return UserData(
-      name: json['name'] ?? 'User',
-      greeting: json['greeting'] ?? 'What\'s the agenda for today?',
-    );
-  }
-}
-
-class StatCard {
-  final String title;
-  final String value; // Keeping for data model consistency as per previous instruction
-  final String change; // Keeping for data model consistency as per previous instruction
-  final Color changeColor;
-  final bool isPositive;
-  const StatCard({
-    required this.title,
-    required this.value,
-    required this.change,
-    required this.changeColor,
-    required this.isPositive,
-  });
-  factory StatCard.fromJson(Map<String, dynamic> json) {
-    final changeValue = json['change'] ?? '+0%';
-    final isPositive = !changeValue.startsWith('-');
-    return StatCard(
-      title: json['title'] ?? '',
-      value: json['value'] ?? '0',
-      change: changeValue,
-      changeColor: isPositive ? Colors.green : Colors.red,
-      isPositive: isPositive,
-    );
-  }
-}
-
-class CategoryItem {
-  final int id;
-  final String label;
-  final IconData icon;
-  final bool isHome;
-  const CategoryItem({
-    required this.id,
-    required this.label,
-    required this.icon,
-    this.isHome = false,
-  });
-  factory CategoryItem.fromJson(Map<String, dynamic> json) {
-    return CategoryItem(
-      id: json['id'] ?? 0,
-      label: json['label'] ?? '',
-      icon: _getIconFromString(json['icon'] ?? 'home'),
-      isHome: json['isHome'] ?? false,
-    );
-  }
-  static IconData _getIconFromString(String iconName) {
-    switch (iconName.toLowerCase()) {
-      case 'home':
-        return Icons.home;
-      case 'calendar':
-        return Icons.calendar_today_outlined;
-      case 'event':
-        return Icons.event_outlined;
-      case 'book':
-        return Icons.menu_book_outlined;
-      case 'appointment':
-        return Icons.calendar_today_outlined;
-      case 'reading':
-        return Icons.menu_book_outlined;
-      default:
-        return Icons.home;
-    }
-  }
-}
-
-class ActionButton {
-  final String title;
-  final IconData icon;
-  final String action;
-  const ActionButton({
-    required this.title,
-    required this.icon,
-    required this.action,
-  });
-  factory ActionButton.fromJson(Map<String, dynamic> json) {
-    return ActionButton(
-      title: json['title'] ?? '',
-      icon: _getIconFromString(json['icon'] ?? 'home'),
-      action: json['action'] ?? '',
-    );
-  }
-  static IconData _getIconFromString(String iconName) {
-    switch (iconName.toLowerCase()) {
-      case 'announcement':
-        return Icons.announcement;
-      case 'favorite':
-        return Icons.favorite;
-      case 'forum':
-        return Icons.forum;
-      case 'bulletin':
-        return Icons.announcement;
-      case 'prayer':
-        return Icons.favorite;
-      case 'discussion':
-        return Icons.forum;
-      default:
-        return Icons.home;
-    }
-  }
-}
-
-class AppConfig {
-  static const Color primaryColor = Color(0xFF000233);
-  static const Color secondaryColor = Color(0xFF1F2156);
-  static const Color accentColor = Color(0xFFFFB74D);
-  static const Color buttonColor = Color(0xFF3949ab);
-  static const Color backgroundColor = Colors.white;
-  static const Duration animationDuration = Duration(milliseconds: 400);
-  static const Duration quickAnimationDuration = Duration(milliseconds: 50);
-  // Adjusted header height values
-  static const double maxHeaderHeight = 300.0;
-  static const double minHeaderHeight = 220.0;
-  static const double headerHeightRatio = 0.28;
-  static const Curve defaultCurve = Curves.easeOutCubic;
-  static const Curve quickCurve = Curves.easeInOut;
-}
-
-// API Service (Mock implementation - replace with actual API calls)
-class ApiService {
-  static Future<UserData> fetchUserData() async {
-    // Mock API call - replace with actual HTTP request
-    await Future.delayed(const Duration(milliseconds: 500));
-    return UserData.fromJson({
-      'name': 'User', // Changed from 'Juan' to 'User'
-      'greeting': 'What\'s the agenda for today?',
-    });
-  }
-
-  static Future<List<StatCard>> fetchStatCards() async {
-    // Mock API call - replace with actual HTTP request
-    await Future.delayed(const Duration(milliseconds: 300));
-    return [
-      StatCard.fromJson({
-        'title': 'Daily Streak',
-        'value': '7 days',
-        'change': '+100%',
-      }),
-      StatCard.fromJson({
-        'title': 'Lives Reached',
-        'value': '3,671',
-        'change': '-0.03%',
-      }),
-    ];
-  }
-
-  static Future<List<CategoryItem>> fetchCategories() async {
-    // Mock API call - replace with actual HTTP request
-    await Future.delayed(const Duration(milliseconds: 200));
-    return [
-      CategoryItem.fromJson({
-        'id': 0,
-        'label': 'Home',
-        'icon': 'home',
-        'isHome': true,
-      }),
-      CategoryItem.fromJson({
-        'id': 1,
-        'label': 'Appointment',
-        'icon': 'calendar',
-        'isHome': false,
-      }),
-      CategoryItem.fromJson({
-        'id': 2,
-        'label': 'Events',
-        'icon': 'event',
-        'isHome': false,
-      }),
-      CategoryItem.fromJson({
-        'id': 3,
-        'label': 'Reading',
-        'icon': 'book',
-        'isHome': false,
-      }),
-    ];
-  }
-
-  static Future<List<ActionButton>> fetchActionButtons() async {
-    // Mock API call - replace with actual HTTP request
-    await Future.delayed(const Duration(milliseconds: 250));
-    return [
-      ActionButton.fromJson({
-        'title': 'Bulletin\nBoard',
-        'icon': 'announcement',
-        'action': 'bulletin_board',
-      }),
-      ActionButton.fromJson({
-        'title': 'Prayer\nWall',
-        'icon': 'favorite',
-        'action': 'prayer_wall',
-      }),
-      ActionButton.fromJson({
-        'title': 'Discussion\nBoard',
-        'icon': 'forum',
-        'action': 'discussion_board',
-      }),
-    ];
-  }
-
-  static Future<void> trackUserAction(
-    String action,
-    Map<String, dynamic> data,
-  ) async {
-    // Mock API call for analytics - replace with actual HTTP request
-    await Future.delayed(const Duration(milliseconds: 100));
-    // Use debugPrint instead of print for production code
-    debugPrint('Action tracked: $action with data: $data');
-  }
-}
+import 'BE/models/landing_page_models.dart';
+import 'BE/provider/landing_page_provider.dart';
+import 'FE/widgets/stats_section.dart';
+import 'FE/widgets/home_content_section.dart';
+import 'FE/widgets/categories_section.dart';
+import '../connect/prayer_wall/FE/prayerwall/home_screen.dart' as PrayerWall;
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
+
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
@@ -240,38 +27,28 @@ class _LandingPageState extends State<LandingPage>
         TickerProviderStateMixin,
         AutomaticKeepAliveClientMixin,
         WidgetsBindingObserver {
-  // ==========================================
-  // STATE VARIABLES
-  // ==========================================
-  int _selectedCategory = 0;
+  // Navigation state
   int _currentNavIndex = 0;
+
   late ScrollController _scrollController;
   late AnimationController _headerAnimationController;
   late Animation<double> _headerAnimation;
-  // Data variables - initialized with default/empty values
-  UserData? _userData = const UserData(name: 'User', greeting: 'What\'s the agenda for today?');
-  List<StatCard> _statCards = [];
-  List<CategoryItem> _categories = [];
-  List<ActionButton> _actionButtons = [];
-  // Removed loading and error states
-  // Initialize responsive dimensions with default values
+
   double _screenWidth = 375.0;
   double _screenHeight = 812.0;
   double _headerHeight = 320.0;
   bool _isSmallScreen = false;
   bool _isLargeScreen = false;
   bool _dimensionsInitialized = false;
+
   @override
   bool get wantKeepAlive => true;
-  // ==========================================
-  // LIFECYCLE METHODS
-  // ==========================================
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeControllers();
-    _loadData(); // Data will load in the background
   }
 
   void _initializeControllers() {
@@ -286,37 +63,6 @@ class _LandingPageState extends State<LandingPage>
         curve: AppConfig.defaultCurve,
       ),
     );
-  }
-
-  Future<void> _loadData() async {
-    if (!mounted) return;
-    try {
-      // Load all data concurrently
-      final results = await Future.wait([
-        ApiService.fetchUserData(),
-        ApiService.fetchStatCards(),
-        ApiService.fetchCategories(),
-        ApiService.fetchActionButtons(),
-      ]);
-      if (mounted) {
-        setState(() {
-          _userData = results[0] as UserData;
-          _statCards = results[1] as List<StatCard>;
-          _categories = results[2] as List<CategoryItem>;
-          _actionButtons = results[3] as List<ActionButton>;
-          // No _isLoading = false; needed as there's no loading screen
-        });
-      }
-    } catch (e) {
-      // Handle error, e.g., log it or show a non-blocking message
-      debugPrint('Failed to load data: ${e.toString()}');
-      // Optionally, update state to show an error message on the page
-      // if (mounted) {
-      //   setState(() {
-      //     _errorMessage = 'Failed to load data: ${e.toString()}';
-      //   });
-      // }
-    }
   }
 
   @override
@@ -341,9 +87,6 @@ class _LandingPageState extends State<LandingPage>
     super.dispose();
   }
 
-  // ==========================================
-  // HELPER METHODS
-  // ==========================================
   void _updateResponsiveDimensions() {
     final mediaQuery = MediaQuery.of(context);
     _screenWidth = mediaQuery.size.width;
@@ -356,117 +99,70 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  void _onCategoryTap(int index) async {
-    if (_selectedCategory == index) return;
-    HapticFeedback.lightImpact();
-    // Track category selection
-    await ApiService.trackUserAction('category_selected', {
-      'category_id': index,
-      'category_name': _getCategoryById(index)?.label ?? 'Unknown',
-    });
-    if (mounted) {
-      setState(() {
-        _selectedCategory = index;
-      });
-    }
-  }
-
+  // Navigation functionality from original
   void _onNavTap(int index) async {
-    // Track navigation
-    await ApiService.trackUserAction('nav_selected', {'nav_index': index});
+    // Track navigation - from original
+    // await ApiService.trackUserAction('nav_selected', {'nav_index': index});
 
     if (mounted) {
       setState(() {
         _currentNavIndex = index;
       });
 
-      // Use the global navigation helper
-      navigateToMainPage(context, index);
+      // Handle Connect button (index 2) to navigate to Prayer Wall
+      if (index == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PrayerWall.HomeScreen(),
+          ),
+        );
+      } else {
+        // Use the global navigation helper for other tabs
+        navigateToMainPage(context, index);
+      }
     }
   }
 
-  void _onActionButtonTap(ActionButton button) async {
-    HapticFeedback.lightImpact();
-    // Track action button tap
-    await ApiService.trackUserAction('action_button_tapped', {
-      'action': button.action,
-      'title': button.title,
-    });
-    // Handle different actions
-    switch (button.action) {
-      case 'bulletin_board':
-        _showSuccessSnackBar('On-going Development Here');
-        break;
-      case 'prayer_wall':
-        _showSuccessSnackBar('On-going Development Here');
-        break;
-      case 'discussion_board':
-        _showSuccessSnackBar('On-going Development Here');
-        break;
-      default:
-        // TODO: Handle unknown action
-        break;
-    }
-  }
-
-  void _onSearchTap() async {
-    HapticFeedback.lightImpact();
-    // Track search tap
-    await ApiService.trackUserAction('search_tapped', {});
-    // TODO: Implement search functionality
-  }
-
-  CategoryItem? _getCategoryById(int id) {
-    try {
-      return _categories.firstWhere((category) => category.id == id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // ==========================================
-  // MAIN BUILD METHOD
-  // ==========================================
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // Removed loading and error screen checks.
-    return PopScope(
-      // Prevents the system back gesture (e.g., swipe from left edge on iOS)
-      // This addresses the request "when i swipe to the right, it does not go back to the previous slide i went to"
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          return; // A pop was already handled by the system
-        }
-        // Optionally, you can add custom logic here if the user tries to go back,
-        // for example, showing an exit confirmation dialog.
-        // Navigator.of(context).pop(); // To allow popping if needed
-      },
-      child: Scaffold(
-        backgroundColor: AppConfig.primaryColor,
-        drawer: const Sidebar(), // Added the Sidebar here
-        // Set a very small drawerEdgeDragWidth to require precise swipe from the edge
-        drawerEdgeDragWidth: 30.0,
-        body: Stack(children: [_buildMainContent(), _buildBottomNavigation()]),
+    return ChangeNotifierProvider(
+      create: (_) => LandingPageViewModel(),
+      child: Consumer<LandingPageViewModel>(
+        builder: (context, viewModel, child) {
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (didPop) {
+              if (didPop) return;
+            },
+            child: Scaffold(
+              backgroundColor: AppConfig.primaryColor,
+              drawer: const Sidebar(),
+              drawerEdgeDragWidth: 30.0,
+              body: Stack(
+                children: [
+                  _buildMainContent(viewModel),
+                  _buildBottomNavigation(),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  // Removed _buildLoadingScreen() and _buildErrorScreen()
-
-  Widget _buildMainContent() {
+  /// Main content - always shows the home content structure
+  Widget _buildMainContent(LandingPageViewModel viewModel) {
     return CustomScrollView(
       controller: _scrollController,
       physics: const ClampingScrollPhysics(),
-      slivers: [_buildSliverHeader(), _buildSliverContent()],
+      slivers: [_buildSliverHeader(viewModel), _buildSliverContent(viewModel)],
     );
   }
 
-  // ==========================================
-  // HEADER SECTION METHODS
-  // ==========================================
-  Widget _buildSliverHeader() {
+  Widget _buildSliverHeader(LandingPageViewModel viewModel) {
     return SliverAppBar(
       expandedHeight: _headerHeight,
       floating: false,
@@ -481,7 +177,7 @@ class _LandingPageState extends State<LandingPage>
                 offset: Offset(0, -20 * (1 - _headerAnimation.value)),
                 child: Opacity(
                   opacity: _headerAnimation.value,
-                  child: _buildHeaderSection(),
+                  child: _buildHeaderSection(viewModel),
                 ),
               );
             },
@@ -492,7 +188,7 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildHeaderSection(LandingPageViewModel viewModel) {
     final horizontalPadding = _getResponsivePadding();
     return Container(
       width: double.infinity,
@@ -509,9 +205,14 @@ class _LandingPageState extends State<LandingPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildGreetingRow(),
+              _buildGreetingRow(viewModel),
               SizedBox(height: _getResponsiveValue(24, 32, 40)),
-              Expanded(child: _buildStatsRow()),
+              Expanded(
+                child: StatsSection(
+                  statCards: viewModel.statCards,
+                  getResponsiveValue: _getResponsiveValue,
+                ),
+              ),
             ],
           ),
         ),
@@ -519,7 +220,7 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _buildGreetingRow() {
+  Widget _buildGreetingRow(LandingPageViewModel viewModel) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -538,7 +239,7 @@ class _LandingPageState extends State<LandingPage>
                   children: [
                     const TextSpan(text: 'Welcome, '),
                     TextSpan(
-                      text: 'User', // Changed from dynamic _userData?.name to static 'User'
+                      text: viewModel.userData.name,
                       style: const TextStyle(color: AppConfig.accentColor),
                     ),
                     const TextSpan(text: '!'),
@@ -547,7 +248,7 @@ class _LandingPageState extends State<LandingPage>
               ),
               SizedBox(height: _getResponsiveValue(3, 5, 7)),
               Text(
-                _userData?.greeting ?? 'What\'s the agenda for today?',
+                viewModel.userData.greeting,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: _getResponsiveValue(13, 15, 17),
@@ -558,11 +259,13 @@ class _LandingPageState extends State<LandingPage>
             ],
           ),
         ),
+        // Search button from original
         _buildSearchButton(),
       ],
     );
   }
 
+  // Search button from original
   Widget _buildSearchButton() {
     final buttonSize = _getResponsiveValue(40, 44, 48);
     return GestureDetector(
@@ -583,79 +286,17 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _buildStatsRow() {
-    final cardSpacing = _getResponsiveValue(10, 14, 18);
-    return Row(
-      children: _statCards
-          .asMap()
-          .entries
-          .map((entry) {
-            final index = entry.key;
-            final card = entry.value;
-            return [
-              Expanded(child: _buildStatCard(card)),
-              if (index < _statCards.length - 1)
-                SizedBox(width: cardSpacing),
-            ];
-          })
-          .expand((widgets) => widgets)
-          .toList(),
-    );
+  // Search tap handler from original
+  void _onSearchTap() async {
+    HapticFeedback.lightImpact();
+    // Track search tap - from original
+    // await ApiService.trackUserAction('search_tapped', {});
+    // TODO: Implement search functionality
   }
 
-  Widget _buildStatCard(StatCard card) {
-    // Adjusted padding to help prevent overflow in stat cards
-    final cardPadding = _getResponsiveValue(6, 8, 10);
-    final borderRadius = _getResponsiveValue(10, 12, 14);
-    return Container(
-      padding: EdgeInsets.all(cardPadding),
-      decoration: BoxDecoration(
-        color: AppConfig.secondaryColor,
-        borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            card.title,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: _getResponsiveValue(14, 16, 18),
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.3,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis, // Keep ellipsis for title
-          ),
-          // Further reduced SizedBox heights for better fit
-          SizedBox(height: _getResponsiveValue(1, 2, 3)),
-          // Empty space where the value used to be - keeping the container structure but removing the text
-          SizedBox(height: _getResponsiveValue(20, 24, 28)), // Maintain card height
-          // Further reduced SizedBox heights for better fit
-          SizedBox(height: _getResponsiveValue(0, 1, 2)),
-          // Empty space where the change used to be - keeping the container structure but removing the text
-          SizedBox(height: _getResponsiveValue(12, 14, 16)), // Maintain card height
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // CONTENT SECTION METHODS
-  // ==========================================
-  Widget _buildSliverContent() {
+  Widget _buildSliverContent(LandingPageViewModel viewModel) {
     return SliverToBoxAdapter(
       child: Container(
-        // Removed fixed minHeight to allow it to expand naturally within its parent
-        // The CustomScrollView will handle the scrolling if content exceeds screen height.
         decoration: const BoxDecoration(
           color: AppConfig.backgroundColor,
           borderRadius: BorderRadius.only(
@@ -664,167 +305,39 @@ class _LandingPageState extends State<LandingPage>
           ),
         ),
         child: Column(
-          children: [_buildCategoryButtonsSection(), _buildContentSection()],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButtonsSection() {
-    final horizontalPadding = _getResponsivePadding();
-    final verticalPadding = _getResponsiveValue(24, 28, 32);
-
-    // Ensure _categories is not empty before attempting to expand and removeLast
-    List<Widget> categoryButtons = [];
-    if (_categories.isNotEmpty) {
-      categoryButtons = _categories
-          .map((category) {
-            if (category.isHome) {
-              return _buildHomeButton(category);
-            } else {
-              return _buildCategoryButton(category);
-            }
-          })
-          .expand((widgets) => [widgets, SizedBox(width: _getResponsiveValue(10, 12, 16))])
-          .toList();
-      if (categoryButtons.isNotEmpty) {
-        categoryButtons.removeLast(); // Only remove if the list is not empty
-      }
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        horizontalPadding,
-        verticalPadding,
-        0,
-        verticalPadding,
-      ),
-      child: SizedBox(
-        height: _getResponsiveValue(40, 44, 48),
-        child: ListView.builder( // Changed to ListView.builder for better performance with dynamic lists
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          itemCount: categoryButtons.length,
-          itemBuilder: (context, index) {
-            return categoryButtons[index];
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHomeButton(CategoryItem category) {
-    final buttonSize = _getResponsiveValue(40, 44, 48);
-    return GestureDetector(
-      onTap: () => _onCategoryTap(category.id),
-      child: Container( // Changed from AnimatedContainer to Container
-        width: buttonSize,
-        height: buttonSize,
-        decoration: BoxDecoration(
-          color:
-              _selectedCategory == category.id ? AppConfig.accentColor : Colors.grey[200],
-          shape: BoxShape.circle,
-          boxShadow:
-              _selectedCategory == category.id
-                  ? [
-                      BoxShadow(
-                        color: AppConfig.accentColor.withOpacity(0.25),
-                        blurRadius: 6,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                  : null,
-        ),
-        child: Icon(
-          category.icon,
-          color:
-              _selectedCategory == category.id ? Colors.white : Colors.grey[600],
-          size: _getResponsiveValue(18, 20, 22),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButton(CategoryItem category) {
-    final isSelected = _selectedCategory == category.id;
-    final fontSize = _getResponsiveValue(11, 12, 13);
-    final iconSize = _getResponsiveValue(16, 17, 18);
-    final horizontalPadding = _getResponsiveValue(14, 16, 18);
-    final verticalPadding = _getResponsiveValue(8, 10, 12);
-    return GestureDetector(
-      onTap: () => _onCategoryTap(category.id),
-      child: Container( // Changed from AnimatedContainer to Container
-        padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding,
-          vertical: verticalPadding,
-        ),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? AppConfig.accentColor.withOpacity(0.08) : Colors.grey[50],
-          borderRadius: BorderRadius.circular(20),
-          border:
-              isSelected
-                  ? Border.all(
-                      color: AppConfig.accentColor.withOpacity(0.8),
-                      width: 1,
-                    )
-                  : Border.all(color: Colors.grey[200]!, width: 0.5),
-          boxShadow:
-              isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppConfig.accentColor.withOpacity(0.15),
-                        blurRadius: 3,
-                        offset: const Offset(0, 0.5),
-                      ),
-                    ]
-                  : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              category.icon,
-              color: isSelected ? AppConfig.accentColor : Colors.grey[500],
-              size: iconSize,
+            CategoriesSection(
+              categories: viewModel.categories,
+              selectedCategory: viewModel.selectedCategory,
+              onCategoryTap: viewModel.selectCategory,
+              getResponsiveValue: _getResponsiveValue,
+              getResponsivePadding: _getResponsivePadding,
             ),
-            SizedBox(width: _getResponsiveValue(6, 8, 10)),
-            Text(
-              category.label,
-              style: TextStyle(
-                color: isSelected ? AppConfig.accentColor : Colors.grey[500],
-                fontSize: fontSize,
-                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-                letterSpacing: 0.1,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            _buildContentSection(viewModel),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContentSection() {
-    // Removed fixed minHeight to allow it to expand naturally within its parent
+  Widget _buildContentSection(LandingPageViewModel viewModel) {
     return Container(
       width: double.infinity,
       color: AppConfig.backgroundColor,
-      child:
-          _selectedCategory == 0 ? _buildHomeContent() : _buildCategoryContent(),
+      child: viewModel.selectedCategory == 0
+          ? _buildHomeContent() // Use original home content structure
+          : _buildCategoryContent(viewModel),
     );
   }
 
-  // HOME CONTENT - Main content sections from separate files
+  // HOME CONTENT - Main content sections from original
   Widget _buildHomeContent() {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Import content components from separate files
+          // Import content components from separate files - from original
           UpcomingServices(
             getResponsiveValue: _getResponsiveValue,
             getResponsivePadding: _getResponsivePadding,
@@ -841,7 +354,6 @@ class _LandingPageState extends State<LandingPage>
             getResponsiveValue: _getResponsiveValue,
             getResponsivePadding: _getResponsivePadding,
           ),
-          _buildActionButtons(),
           SizedBox(
             height: _getResponsiveValue(100, 120, 140),
           ), // Bottom padding for nav bar
@@ -850,104 +362,31 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  // ACTION BUTTONS SECTION
-  Widget _buildActionButtons() {
-    final horizontalPadding = _getResponsivePadding();
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        horizontalPadding,
-        _getResponsiveValue(20, 24, 28),
-        horizontalPadding,
-        _getResponsiveValue(20, 24, 28),
-      ),
-      child: Row(
-        children: _actionButtons
-            .asMap()
-            .entries
-            .map((entry) {
-              final index = entry.key;
-              final button = entry.value;
-              return [
-                Expanded(child: _buildActionButton(button)),
-                if (index < _actionButtons.length - 1)
-                  SizedBox(width: _getResponsiveValue(12, 14, 16)),
-              ];
-            })
-            .expand((widgets) => widgets)
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(ActionButton button) {
-    return GestureDetector(
-      onTap: () => _onActionButtonTap(button),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          vertical: _getResponsiveValue(12, 14, 16),
-          horizontal: _getResponsiveValue(6, 8, 10),
-        ),
-        decoration: BoxDecoration(
-          color: AppConfig.buttonColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: AppConfig.buttonColor.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              button.icon,
-              color: Colors.white,
-              size: _getResponsiveValue(20, 24, 28),
-            ),
-            SizedBox(height: _getResponsiveValue(6, 8, 10)),
-            Text(
-              button.title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: _getResponsiveValue(10, 11, 12),
-                fontWeight: FontWeight.w500,
-                height: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // CATEGORY CONTENT - Placeholder for other categories
-  Widget _buildCategoryContent() {
+  Widget _buildCategoryContent(LandingPageViewModel viewModel) {
     String buttonText;
     String messageText;
     VoidCallback onButtonPressed;
 
-    switch (_selectedCategory) {
-      case 1: // Appointment
+    switch (viewModel.selectedCategory) {
+      case 1:
         buttonText = 'Schedule an Appointment';
         messageText = 'There are no upcoming appointments';
-        onButtonPressed = () => _showSuccessSnackBar('Schedule Appointment tapped!');
+        onButtonPressed =
+            () => _showSuccessSnackBar('Schedule Appointment tapped!');
         break;
-      case 2: // Events
+      case 2:
         buttonText = 'Explore Events';
         messageText = 'There are no upcoming events';
         onButtonPressed = () => _showSuccessSnackBar('Explore Events tapped!');
         break;
-      case 3: // Reading
+      case 3:
         buttonText = 'Start Reading';
         messageText = 'There are no upcoming readings';
         onButtonPressed = () => _showSuccessSnackBar('Start Reading tapped!');
         break;
       default:
         buttonText = 'Explore';
-        messageText = 'No ${_getCategoryTitle().toLowerCase()} yet';
+        messageText = 'No ${viewModel.getCategoryTitle().toLowerCase()} yet';
         onButtonPressed = () => _showSuccessSnackBar('Explore tapped!');
         break;
     }
@@ -957,10 +396,10 @@ class _LandingPageState extends State<LandingPage>
       child: Padding(
         padding: EdgeInsets.all(_getResponsivePadding()),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start, // Align content to the top
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Icon(
-              _getCategoryIcon(),
+              viewModel.getCategoryIcon(),
               size: _getResponsiveValue(50, 60, 70),
               color: Colors.grey[300],
             ),
@@ -975,7 +414,7 @@ class _LandingPageState extends State<LandingPage>
             ),
             SizedBox(height: _getResponsiveValue(4, 6, 8)),
             Text(
-              'Content for ${_getCategoryTitle().toLowerCase()} will appear here',
+              'Content for ${viewModel.getCategoryTitle().toLowerCase()} will appear here',
               style: TextStyle(
                 fontSize: _getResponsiveValue(11, 12, 14),
                 color: Colors.grey[400],
@@ -984,7 +423,7 @@ class _LandingPageState extends State<LandingPage>
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: _getResponsiveValue(20, 24, 28)), // Spacing before the button
+            SizedBox(height: _getResponsiveValue(20, 24, 28)),
             ElevatedButton(
               onPressed: onButtonPressed,
               style: ElevatedButton.styleFrom(
@@ -1006,16 +445,14 @@ class _LandingPageState extends State<LandingPage>
                 ),
               ),
             ),
-            SizedBox(height: _getResponsiveValue(100, 120, 140)), // Added bottom padding instead of Spacer
+            SizedBox(height: _getResponsiveValue(100, 120, 140)),
           ],
         ),
       ),
     );
   }
 
-  // ==========================================
-  // NAVIGATION METHODS
-  // ==========================================
+  // Bottom navigation from original
   Widget _buildBottomNavigation() {
     return Positioned(
       bottom: 0,
@@ -1025,9 +462,6 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  // ==========================================
-  // UTILITY METHODS
-  // ==========================================
   double _getResponsiveValue(double small, double medium, double large) {
     if (_isSmallScreen) return small;
     if (_isLargeScreen) return large;
@@ -1038,19 +472,6 @@ class _LandingPageState extends State<LandingPage>
     return _getResponsiveValue(18, 20, 24);
   }
 
-  String _getCategoryTitle() {
-    final category = _getCategoryById(_selectedCategory);
-    return category?.label ?? 'Home';
-  }
-
-  IconData _getCategoryIcon() {
-    final category = _getCategoryById(_selectedCategory);
-    return category?.icon ?? Icons.home;
-  }
-
-  // ==========================================
-  // ERROR HANDLING METHODS
-  // ==========================================
   void _showSuccessSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1062,57 +483,5 @@ class _LandingPageState extends State<LandingPage>
         margin: EdgeInsets.all(_getResponsivePadding()),
       ),
     );
-  }
-
-  // ==========================================
-  // ANALYTICS AND TRACKING METHODS
-  // ==========================================
-  void _trackScreenView() {
-    ApiService.trackUserAction('screen_view', {
-      'screen_name': 'home_page',
-      'selected_category': _selectedCategory,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  // ==========================================
-  // WIDGET LIFECYCLE OPTIMIZATION
-  // ==========================================
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    switch (state) {
-      case AppLifecycleState.resumed:
-        _loadData();
-        _trackScreenView();
-        break;
-      case AppLifecycleState.paused:
-        // Track user engagement when app is paused
-        ApiService.trackUserAction('user_engagement', {
-          'session_duration': 0, // TODO: Calculate actual session duration
-          'interactions': _selectedCategory,
-          'timestamp': DateTime.now().toIso8601String(),
-        });
-        break;
-      case AppLifecycleState.detached:
-        // Cleanup is handled in dispose()
-        break;
-      default:
-        break;
-    }
-  }
-
-  // ==========================================
-  // FINAL CLEANUP
-  // ==========================================
-  @override
-  void deactivate() {
-    // Track user engagement when widget is deactivated
-    ApiService.trackUserAction('user_engagement', {
-      'session_duration': 0, // TODO: Calculate actual session duration
-      'interactions': _selectedCategory,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-    super.deactivate();
   }
 }
