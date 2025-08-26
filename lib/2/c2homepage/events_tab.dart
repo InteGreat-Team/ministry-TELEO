@@ -1,4 +1,6 @@
+//event
 import 'package:flutter/material.dart';
+import '../c2eventscreation/c2s1caeventcreation.dart';
 
 class EventsTab extends StatelessWidget {
   const EventsTab({super.key});
@@ -22,7 +24,13 @@ class EventsTab extends StatelessWidget {
               Row(
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () {},
+                   onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const CreateEventScreen(),
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.add, size: 16, color: Colors.white),
                     label: const Text(
                       'Create Event',

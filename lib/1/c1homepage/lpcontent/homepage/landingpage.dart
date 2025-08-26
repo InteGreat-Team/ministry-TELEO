@@ -1,3 +1,4 @@
+//landingpage.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import './services.dart';
 import './events.dart';
 import '../../../../utils/app_navigator.dart'; // Import the new navigation helper
 import '../../../c1homepage/sidebar.dart';
+import '../../../../2/c2homepage/schedule_tab.dart';
 import 'BE/models/landing_page_models.dart';
 import 'BE/provider/landing_page_provider.dart';
 import 'FE/widgets/stats_section.dart';
@@ -99,7 +101,7 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  // Navigation functionality from original
+  // Navigation functionality - updated to handle Events navigation
   void _onNavTap(int index) async {
     // Track navigation - from original
     // await ApiService.trackUserAction('nav_selected', {'nav_index': index});
@@ -109,17 +111,28 @@ class _LandingPageState extends State<LandingPage>
         _currentNavIndex = index;
       });
 
-      // Handle Connect button (index 2) to navigate to Prayer Wall
-      if (index == 2) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PrayerWall.HomeScreen(),
-          ),
-        );
-      } else {
-        // Use the global navigation helper for other tabs
-        navigateToMainPage(context, index);
+      // Handle navigation based on index
+      switch (index) {
+        case 1: // Service/Events button
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ScheduleTab(),
+            ),
+          );
+          break;
+        case 2: // Connect button - navigate to Prayer Wall
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PrayerWall.HomeScreen(),
+            ),
+          );
+          break;
+        default:
+          // Use the global navigation helper for other tabs (Home, Give, Profile)
+          navigateToMainPage(context, index);
+          break;
       }
     }
   }
