@@ -9,7 +9,7 @@ class UserData {
 
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(
-      name: json['name'] ?? 'User',
+      name: json['username'] ?? 'User',
       greeting: json['greeting'] ?? 'What\'s the agenda for today?',
     );
   }

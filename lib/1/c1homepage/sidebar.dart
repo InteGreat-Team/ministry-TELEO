@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import '../../3/welcome_screen.dart'; // Import the welcome screen for logout navigation
 import './lpcontent/homepage/BE/models/landing_page_models.dart'; // Import AppConfig for colors
 import 'donate_screen.dart'; // Import the DonateScreen
+import 'package:provider/provider.dart'; // ✅ added
+import './lpcontent/homepage/BE/provider/user_provider.dart'; // ✅ added
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key}); // Use super.key
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Get username from provider
+    final userProvider = Provider.of<UserProvider>(context);
+    final userName = userProvider.userData?.name ?? 'Guest';
     return Drawer(
       width: 250.0, // Set a fixed narrower width for the sidebar
       backgroundColor:
@@ -41,9 +46,9 @@ class Sidebar extends StatelessWidget {
                       ),
                       const SizedBox(
                           height: 16), // Space between avatar and name
-                      const Text(
-                        'Guest', // Changed to Guest as per image
-                        style: TextStyle(
+                      Text(
+                        userName, // ✅ now works
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,

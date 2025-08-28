@@ -16,6 +16,10 @@ import 'FE/widgets/stats_section.dart';
 import 'FE/widgets/home_content_section.dart';
 import 'FE/widgets/categories_section.dart';
 import '../connect/prayer_wall/FE/prayerwall/home_screen.dart' as PrayerWall;
+import 'package:firebase_auth/firebase_auth.dart';
+
+// ✅ import your user provider
+import 'BE/provider/user_provider.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -103,17 +107,13 @@ class _LandingPageState extends State<LandingPage>
 
   // Navigation functionality - updated to handle Events navigation
   void _onNavTap(int index) async {
-    // Track navigation - from original
-    // await ApiService.trackUserAction('nav_selected', {'nav_index': index});
-
     if (mounted) {
       setState(() {
         _currentNavIndex = index;
       });
 
-      // Handle navigation based on index
       switch (index) {
-        case 1: // Service/Events button
+        case 1:
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -121,7 +121,7 @@ class _LandingPageState extends State<LandingPage>
             ),
           );
           break;
-        case 2: // Connect button - navigate to Prayer Wall
+        case 2:
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -130,7 +130,6 @@ class _LandingPageState extends State<LandingPage>
           );
           break;
         default:
-          // Use the global navigation helper for other tabs (Home, Give, Profile)
           navigateToMainPage(context, index);
           break;
       }
@@ -140,10 +139,19 @@ class _LandingPageState extends State<LandingPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ChangeNotifierProvider(
-      create: (_) => LandingPageViewModel(),
-      child: Consumer<LandingPageViewModel>(
-        builder: (context, viewModel, child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LandingPageViewModel()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final user = FirebaseAuth.instance.currentUser;
+            final email = user?.email ?? "";
+            return UserProvider()..fetchUserData(email);
+          },
+        ),
+      ],
+      child: Consumer2<LandingPageViewModel, UserProvider>(
+        builder: (context, viewModel, userProvider, child) {
           return PopScope(
             canPop: false,
             onPopInvoked: (didPop) {
@@ -155,7 +163,8 @@ class _LandingPageState extends State<LandingPage>
               drawerEdgeDragWidth: 30.0,
               body: Stack(
                 children: [
-                  _buildMainContent(viewModel),
+                  _buildMainContent(
+                      viewModel, userProvider), // ✅ pass userProvider
                   _buildBottomNavigation(),
                 ],
               ),
@@ -166,16 +175,20 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  /// Main content - always shows the home content structure
-  Widget _buildMainContent(LandingPageViewModel viewModel) {
+  Widget _buildMainContent(
+      LandingPageViewModel viewModel, UserProvider userProvider) {
     return CustomScrollView(
       controller: _scrollController,
       physics: const ClampingScrollPhysics(),
-      slivers: [_buildSliverHeader(viewModel), _buildSliverContent(viewModel)],
+      slivers: [
+        _buildSliverHeader(viewModel, userProvider), // ✅ pass userProvider
+        _buildSliverContent(viewModel),
+      ],
     );
   }
 
-  Widget _buildSliverHeader(LandingPageViewModel viewModel) {
+  Widget _buildSliverHeader(
+      LandingPageViewModel viewModel, UserProvider userProvider) {
     return SliverAppBar(
       expandedHeight: _headerHeight,
       floating: false,
@@ -190,7 +203,7 @@ class _LandingPageState extends State<LandingPage>
                 offset: Offset(0, -20 * (1 - _headerAnimation.value)),
                 child: Opacity(
                   opacity: _headerAnimation.value,
-                  child: _buildHeaderSection(viewModel),
+                  child: _buildHeaderSection(viewModel, userProvider), // ✅
                 ),
               );
             },
@@ -201,7 +214,8 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _buildHeaderSection(LandingPageViewModel viewModel) {
+  Widget _buildHeaderSection(
+      LandingPageViewModel viewModel, UserProvider userProvider) {
     final horizontalPadding = _getResponsivePadding();
     return Container(
       width: double.infinity,
@@ -218,7 +232,7 @@ class _LandingPageState extends State<LandingPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildGreetingRow(viewModel),
+              _buildGreetingRow(userProvider), // ✅ use UserProvider
               SizedBox(height: _getResponsiveValue(24, 32, 40)),
               Expanded(
                 child: StatsSection(
@@ -233,7 +247,28 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  Widget _buildGreetingRow(LandingPageViewModel viewModel) {
+  // ✅ updated greeting row to use UserProvider instead of viewModel
+  Widget _buildGreetingRow(UserProvider userProvider) {
+    if (userProvider.isLoading) {
+      return const CircularProgressIndicator(color: Colors.white);
+    }
+
+    if (userProvider.errorMessage != null) {
+      return Text(
+        userProvider.errorMessage!,
+        style: const TextStyle(color: Colors.red, fontSize: 16),
+      );
+    }
+
+    final user = userProvider.userData;
+    if (user == null) {
+      return const Text(
+        "Welcome, Guest!",
+        style: TextStyle(
+            color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -252,7 +287,7 @@ class _LandingPageState extends State<LandingPage>
                   children: [
                     const TextSpan(text: 'Welcome, '),
                     TextSpan(
-                      text: viewModel.userData.name,
+                      text: user.name,
                       style: const TextStyle(color: AppConfig.accentColor),
                     ),
                     const TextSpan(text: '!'),
@@ -261,7 +296,7 @@ class _LandingPageState extends State<LandingPage>
               ),
               SizedBox(height: _getResponsiveValue(3, 5, 7)),
               Text(
-                viewModel.userData.greeting,
+                user.greeting,
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: _getResponsiveValue(13, 15, 17),
@@ -272,13 +307,11 @@ class _LandingPageState extends State<LandingPage>
             ],
           ),
         ),
-        // Search button from original
         _buildSearchButton(),
       ],
     );
   }
 
-  // Search button from original
   Widget _buildSearchButton() {
     final buttonSize = _getResponsiveValue(40, 44, 48);
     return GestureDetector(
@@ -299,12 +332,8 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  // Search tap handler from original
   void _onSearchTap() async {
     HapticFeedback.lightImpact();
-    // Track search tap - from original
-    // await ApiService.trackUserAction('search_tapped', {});
-    // TODO: Implement search functionality
   }
 
   Widget _buildSliverContent(LandingPageViewModel viewModel) {
@@ -338,19 +367,17 @@ class _LandingPageState extends State<LandingPage>
       width: double.infinity,
       color: AppConfig.backgroundColor,
       child: viewModel.selectedCategory == 0
-          ? _buildHomeContent() // Use original home content structure
+          ? _buildHomeContent()
           : _buildCategoryContent(viewModel),
     );
   }
 
-  // HOME CONTENT - Main content sections from original
   Widget _buildHomeContent() {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Import content components from separate files - from original
           UpcomingServices(
             getResponsiveValue: _getResponsiveValue,
             getResponsivePadding: _getResponsivePadding,
@@ -369,7 +396,7 @@ class _LandingPageState extends State<LandingPage>
           ),
           SizedBox(
             height: _getResponsiveValue(100, 120, 140),
-          ), // Bottom padding for nav bar
+          ),
         ],
       ),
     );
@@ -465,7 +492,6 @@ class _LandingPageState extends State<LandingPage>
     );
   }
 
-  // Bottom navigation from original
   Widget _buildBottomNavigation() {
     return Positioned(
       bottom: 0,
