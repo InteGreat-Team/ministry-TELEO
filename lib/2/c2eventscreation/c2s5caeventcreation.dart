@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import 'models/event.dart';
 import 'widgets/step_indicator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -8,8 +9,54 @@ import 'widgets/event_app_bar.dart';
 
 class EventSummaryScreen extends StatelessWidget {
   final Event event;
+  // c1-style carried fields
+  final String? title;
+  final List<String> tags;
+  final String? description;
+  final String? contactInfo;
+  final String? churchLandline;
+  final String? dressCode;
+  final List<String> speakers;
+  final String? imageUrl;
+  final String? imagePath;
+  final Uint8List? imageBytes;
+  final List<EventImage> additionalImages;
+  final bool isOneDay;
+  final List<EventDay> eventDays;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final TimeOfDay? startTime;
+  final TimeOfDay? endTime;
+  final bool isOnline;
+  final String? eventLink;
+  final bool isOutsourcedVenue;
+  final String? meetingPlatform;
 
-  const EventSummaryScreen({super.key, required this.event});
+  const EventSummaryScreen({
+    super.key,
+    required this.event,
+    required this.title,
+    required this.tags,
+    required this.description,
+    required this.contactInfo,
+    required this.churchLandline,
+    required this.dressCode,
+    required this.speakers,
+    required this.imageUrl,
+    required this.imagePath,
+    required this.imageBytes,
+    required this.additionalImages,
+    required this.isOneDay,
+    required this.eventDays,
+    required this.startDate,
+    required this.endDate,
+    required this.startTime,
+    required this.endTime,
+    required this.isOnline,
+    required this.eventLink,
+    required this.isOutsourcedVenue,
+    required this.meetingPlatform,
+  });
 
   void _showConfirmDialog(BuildContext context) {
     showDialog(
@@ -79,7 +126,30 @@ class EventSummaryScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => EventRegistrationFormScreen(event: event),
+                              builder: (context) => EventRegistrationFormScreen(
+                                event: event,
+                                title: title,
+                                tags: tags,
+                                description: description,
+                                contactInfo: contactInfo,
+                                churchLandline: churchLandline,
+                                dressCode: dressCode,
+                                speakers: speakers,
+                                imageUrl: imageUrl,
+                                imagePath: imagePath,
+                                imageBytes: imageBytes,
+                                additionalImages: additionalImages,
+                                isOneDay: isOneDay,
+                                eventDays: eventDays,
+                                startDate: startDate,
+                                endDate: endDate,
+                                startTime: startTime,
+                                endTime: endTime,
+                                isOnline: isOnline,
+                                eventLink: eventLink,
+                                isOutsourcedVenue: isOutsourcedVenue,
+                                meetingPlatform: meetingPlatform,
+                              ),
                             ),
                           );
                         },
@@ -172,27 +242,27 @@ class EventSummaryScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         // Event Details
-                        _buildDetailRow('Event Title', event.title ?? 'To be answered'),
-                        _buildDetailRow('Tags', event.tags.isEmpty ? 'None selected' : event.tags.join(', ')),
-                        _buildDetailRow('Event Description', event.description ?? 'To be answered'),
-                        _buildDetailRow('Speaker', event.speakers.isEmpty ? 'None specified' : event.speakers.join(', ')),
-                        _buildDetailRow('Event Date', event.isOneDay ? 'One day event' : 'Multiple day event'),
+                        _buildDetailRow('Event Title', title ?? event.title ?? 'To be answered'),
+                        _buildDetailRow('Tags', (tags.isNotEmpty ? tags : event.tags).isEmpty ? 'None selected' : (tags.isNotEmpty ? tags : event.tags).join(', ')),
+                        _buildDetailRow('Event Description', description ?? event.description ?? 'To be answered'),
+                        _buildDetailRow('Speaker', (speakers.isNotEmpty ? speakers : event.speakers).isEmpty ? 'None specified' : (speakers.isNotEmpty ? speakers : event.speakers).join(', ')),
+                        _buildDetailRow('Event Date', isOneDay ? 'One day event' : 'Multiple day event'),
                         _buildDetailRow(
                           'Date', 
-                          event.isOneDay 
-                              ? _formatDate(event.startDate)
-                              : '${_formatDate(event.startDate)} - ${_formatDate(event.endDate)}'
+                          isOneDay 
+                              ? _formatDate(startDate)
+                              : '${_formatDate(startDate)} - ${_formatDate(endDate)}'
                         ),
                         _buildDetailRow(
                           'Time', 
-                          '${_formatTime(event.startTime)} - ${_formatTime(event.endTime)}'
+                          '${_formatTime(startTime)} - ${_formatTime(endTime)}'
                         ),
-                        _buildDetailRow('Event Setting', event.isOnline ? 'Online' : 'Onsite'),
+                        _buildDetailRow('Event Setting', isOnline ? 'Online' : 'Onsite'),
                         _buildDetailRow(
                           'Venue/Location', 
-                          event.isOnline 
-                              ? (event.eventLink ?? 'No link provided')
-                              : (event.isOutsourcedVenue 
+                          isOnline 
+                              ? (eventLink ?? 'No link provided')
+                              : (isOutsourcedVenue 
                                   ? 'Outsourced Event API (link)'
                                   : (event.venueName ?? 'No venue specified'))
                         ),
