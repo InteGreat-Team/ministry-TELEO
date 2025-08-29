@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 // Import your home page
-
 
 void main() {
   runApp(const DonationApp());
@@ -61,8 +61,7 @@ class _HomePageState extends State<HomePage> {
   String _searchQuery = '';
 
   final List<DonationProgram> _donationPrograms = [
-
-      DonationProgram(
+    DonationProgram(
       id: 6,
       title: 'Support the Teleo Team',
       description: 'Support the developers of the Teleo App',
@@ -70,9 +69,9 @@ class _HomePageState extends State<HomePage> {
       location: 'Nationwide',
       icon: Icons.support_agent,
       category: 'Teleo Team',
-      imagePath: 'assets/images/Team_Teleo.png', // Using Emergency Relief as fallback
+      imagePath:
+          'assets/images/Team_Teleo.png', // Using Emergency Relief as fallback
     ),
-
     DonationProgram(
       id: 1,
       title: 'Feeding Program',
@@ -123,7 +122,6 @@ class _HomePageState extends State<HomePage> {
       category: 'emergency',
       imagePath: 'assets/images/Emergency_Relief.jpg',
     ),
-  
   ];
 
   List<DonationProgram> get _filteredPrograms {
@@ -133,8 +131,8 @@ class _HomePageState extends State<HomePage> {
     return _donationPrograms.where((program) {
       return program.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           program.description.toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          ) ||
+                _searchQuery.toLowerCase(),
+              ) ||
           program.location.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           program.category.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
@@ -289,7 +287,8 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DonatePage(program: program),
+                                builder: (context) =>
+                                    DonatePage(program: program),
                               ),
                             );
                           },
@@ -313,23 +312,29 @@ class _HomePageState extends State<HomePage> {
                                     child: Image.asset(
                                       program.imagePath,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
                                         // Fallback to colored container if image fails to load
                                         return Container(
                                           color: const Color(0xFF1A237E),
                                           child: Center(
                                             child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(8.0),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8.0),
                                                   ),
                                                   child: Icon(
                                                     program.icon,
-                                                    color: const Color(0xFF1A237E),
+                                                    color:
+                                                        const Color(0xFF1A237E),
                                                     size: 24,
                                                   ),
                                                 ),
@@ -368,20 +373,26 @@ class _HomePageState extends State<HomePage> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(16.0),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           // Amount in top right
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
                                             children: [
                                               Container(
-                                                padding: const EdgeInsets.symmetric(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
                                                   horizontal: 8.0,
                                                   vertical: 4.0,
                                                 ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withOpacity(0.9),
-                                                  borderRadius: BorderRadius.circular(12.0),
+                                                  color: Colors.white
+                                                      .withOpacity(0.9),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12.0),
                                                 ),
                                                 child: Text(
                                                   program.amount,
@@ -466,7 +477,6 @@ class _DonatePageState extends State<DonatePage> {
   String? _errorMessage;
 
   final List<Map<String, dynamic>> _donationAmounts = [
-    {'value': 50, 'label': 'P 50'},
     {'value': 100, 'label': 'P 100'},
     {'value': 200, 'label': 'P 200'},
     {'value': 300, 'label': 'P 300'},
@@ -493,7 +503,7 @@ class _DonatePageState extends State<DonatePage> {
     try {
       // Get Firebase Auth ID token
       final User? currentUser = FirebaseAuth.instance.currentUser;
-      
+
       if (currentUser == null) {
         setState(() {
           _errorMessage = 'Please sign in to make a donation.';
@@ -502,24 +512,23 @@ class _DonatePageState extends State<DonatePage> {
       }
 
       final String? token = await currentUser.getIdToken();
-      
+
       if (token == null) {
         setState(() {
-          _errorMessage = 'Failed to get authentication token. Please try signing in again.';
+          _errorMessage =
+              'Failed to get authentication token. Please try signing in again.';
         });
         return;
       }
 
-      final url = Uri.parse("https://asia-southeast1-teleo-church-application.cloudfunctions.net/donationApi/donate");
+      final url = Uri.parse(
+          "https://asia-southeast1-teleo-church-application.cloudfunctions.net/donationApi/donate");
 
       final amount = _selectedAmount!;
       final category = widget.program.category;
 
-      final body = jsonEncode({
-        "amount": amount,
-        "category": category,
-        "description": "Donation"
-      });
+      final body = jsonEncode(
+          {"amount": amount, "category": category, "description": "Donation"});
 
       print('🚀 Making donation request to: $url');
       print('📦 Request body: $body');
@@ -555,7 +564,8 @@ class _DonatePageState extends State<DonatePage> {
       } else {
         final errorData = jsonDecode(response.body);
         setState(() {
-          _errorMessage = errorData['error'] ?? 'Failed to create donation. Please try again.';
+          _errorMessage = errorData['error'] ??
+              'Failed to create donation. Please try again.';
         });
       }
     } catch (e) {
@@ -607,11 +617,12 @@ class _DonatePageState extends State<DonatePage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                    Icon(Icons.check_circle,
+                        color: Colors.green[600], size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Payment link has been copied to your clipboard. Open your browser and paste the link to complete the payment.',
+                        'Click the button below to proceed to payment.',
                         style: TextStyle(
                           color: Colors.green[800],
                           fontSize: 14,
@@ -644,46 +655,34 @@ class _DonatePageState extends State<DonatePage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Close'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton.icon(
-              onPressed: () {
-                _copyToClipboard(checkoutUrl);
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-                
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const Icon(Icons.check_circle, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Payment link copied! Open your browser and paste the link to complete the donation.',
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Colors.green[600],
-                    duration: const Duration(seconds: 5),
-                    action: SnackBarAction(
-                      label: 'OK',
-                      textColor: Colors.white,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      },
-                    ),
-                  ),
+              onPressed: () async {
+                final Uri url = Uri.parse(checkoutUrl);
+                final bool launched = await launchUrl(
+                  url,
+                  mode: LaunchMode.externalApplication,
                 );
+                if (!launched) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Could not open payment link.'),
+                      backgroundColor: Colors.red[600],
+                    ),
+                  );
+                } else {
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Back to donations list
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A237E),
               ),
-              icon: const Icon(Icons.copy, color: Colors.white, size: 18),
+              icon: const Icon(Icons.open_in_browser,
+                  color: Colors.white, size: 18),
               label: const Text(
-                'Copy Link & Close',
+                'Proceed to Payment',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -776,13 +775,15 @@ class _DonatePageState extends State<DonatePage> {
                                   return Container(
                                     color: const Color(0xFF6A1B9A),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(8.0),
                                           decoration: BoxDecoration(
                                             color: Colors.white24,
-                                            borderRadius: BorderRadius.circular(16.0),
+                                            borderRadius:
+                                                BorderRadius.circular(16.0),
                                           ),
                                           child: Icon(
                                             widget.program.icon,
@@ -928,7 +929,8 @@ class _DonatePageState extends State<DonatePage> {
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.orange[100],
                             borderRadius: BorderRadius.circular(12),
@@ -1052,7 +1054,8 @@ class _DonatePageState extends State<DonatePage> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error, color: Colors.red[600], size: 20),
+                              Icon(Icons.error,
+                                  color: Colors.red[600], size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
