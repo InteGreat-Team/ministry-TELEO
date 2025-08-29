@@ -73,6 +73,16 @@ class _EventInviteScreenState extends State<EventInviteScreen> {
   // New flag to track if we're in church selection mode
   bool _isInChurchSelectionMode = false;
 
+@override
+void dispose() {
+  _customCapacityController.dispose();
+  _searchController.dispose();
+  _usernameController.dispose();
+  _fullNameController.dispose();
+  _guestChurchController.dispose();
+  super.dispose();
+}
+
   @override
   void initState() {
     super.initState();
@@ -961,6 +971,8 @@ class _EventInviteScreenState extends State<EventInviteScreen> {
                                   onChanged: (String? value) {
                                     setState(() {
                                       _inviteType = value!;
+                                      _capacityErrorMessage = null;     // clear warnings
+                                      _isInChurchSelectionMode = false; // collapse selection UI
                                     });
                                   },
                                 ),
@@ -1814,27 +1826,3 @@ enum NotificationType {
   info,
 }
 
-// Model classes for church and guest invites
-class ChurchInvite {
-  final String name;
-  final int members;
-  final List<String> roles;
-
-  ChurchInvite({
-    required this.name,
-    required this.members,
-    required this.roles,
-  });
-}
-
-class GuestInvite {
-  final String username;
-  final String fullName;
-  final String churchName;
-
-  GuestInvite({
-    required this.username,
-    required this.fullName,
-    required this.churchName,
-  });
-}
