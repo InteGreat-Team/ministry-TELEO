@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'widgets/event_app_bar.dart';
+import 'models/event.dart';
+import 'c2s7caeventcreation.dart'; // EventInviteScreen
 
 class ConsentFormScreen extends StatefulWidget {
   final String title;
   final String content;
   final Function(bool) onAccept;
+  final Event event;
 
   const ConsentFormScreen({
     super.key,
     required this.title,
     required this.content,
     required this.onAccept,
+    required this.event,
   });
 
   @override
@@ -23,61 +27,106 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isScrollable = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_scrollListener);
-    
-    // Use a post-frame callback to check if content is scrollable
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.position.maxScrollExtent > 0) {
-        setState(() {
-          _isScrollable = true;
-        });
-      } else {
-        // If content is not scrollable, mark as already scrolled to bottom
-        setState(() {
-          _hasScrolledToBottom = true;
-        });
-      }
-    });
-  }
+  RegistrationFormConfig get _cfg {
+  return widget.event.registrationFormConfig ??= RegistrationFormConfig(
+    fieldVisibility: {},
+    consentRequired: true,
+    hasReadTerms: false,
+    hasAcceptedTerms: false,
+  );
+}
 
   @override
-  void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    super.dispose();
+void initState() {
+  super.initState();
+  _scrollController.addListener(_scrollListener);
+    // Hydrate from existing config so back-navigation preserves state
+  _hasAccepted = _cfg.hasAcceptedTerms;                 // <-- add
+  _hasScrolledToBottom = _cfg.hasReadTerms;             // <-- add
+
+  // If consent isn’t required, auto-pass
+  if (_cfg.consentRequired == false) {
+    _hasScrolledToBottom = true;
+    _cfg.hasReadTerms = true;
+    _hasAccepted = true;
+    _cfg.hasAcceptedTerms = true;
   }
 
-  void _scrollListener() {
-    if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
-        !_scrollController.position.outOfRange) {
+  // Post-frame: detect if content is scrollable
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!_scrollController.hasClients) return;
+    final max = _scrollController.position.maxScrollExtent;
+    if (max > 0) {
+      setState(() => _isScrollable = true);
+    } else {
+      setState(() {
+        _isScrollable = false;
+        _hasScrolledToBottom = true;
+        _cfg.hasReadTerms = true;
+      });
+    }
+  });
+}
+
+@override
+void dispose() {
+  _scrollController.removeListener(_scrollListener);
+  _scrollController.dispose();
+  super.dispose();
+}
+
+void _scrollListener() {
+  if (!_scrollController.hasClients) return;
+  final max = _scrollController.position.maxScrollExtent;
+  final off = _scrollController.offset;
+  if (off >= (max - 40.0) && !_scrollController.position.outOfRange) {
+    if (!_hasScrolledToBottom) {
       setState(() {
         _hasScrolledToBottom = true;
+        _cfg.hasReadTerms = true; // persist on Event
       });
     }
   }
+}
+
 
   void _toggleAccept(bool? value) {
-    if (_hasScrolledToBottom) {
-      setState(() {
-        _hasAccepted = value ?? false;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please read the entire document before accepting'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-    }
+  if (_cfg.consentRequired == false || _hasScrolledToBottom) {
+    setState(() {
+      _hasAccepted = value ?? false;
+      _cfg.hasAcceptedTerms = _hasAccepted; // persist on Event
+    });
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please read the entire document before accepting'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
+}
+
 
   void _handleComplete() {
-    widget.onAccept(_hasAccepted);
-    Navigator.pop(context);
+  if (_cfg.consentRequired && !_cfg.hasAcceptedTerms) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('You must accept the terms to continue.')),
+    );
+    return;
   }
+
+  // Inform parent callback
+  widget.onAccept(_hasAccepted);
+
+  // PUSH the next screen and pass the SAME event instance
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EventInviteScreen(event: widget.event),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
