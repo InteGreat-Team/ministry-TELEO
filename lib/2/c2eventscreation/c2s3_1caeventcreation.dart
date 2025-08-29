@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'models/event.dart';
 import 'widgets/step_indicator.dart';
@@ -11,8 +12,46 @@ import 'widgets/event_app_bar.dart';
 
 class EventLocationScreen extends StatefulWidget {
   final Event event;
+  // c1-style carried fields
+  final String? title;
+  final List<String> tags;
+  final String? description;
+  final String? contactInfo;
+  final String? churchLandline;
+  final String? dressCode;
+  final List<String> speakers;
+  final String? imageUrl;
+  final String? imagePath;
+  final Uint8List? imageBytes;
+  final List<EventImage> additionalImages;
+  final bool isOneDay;
+  final List<EventDay> eventDays;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final TimeOfDay? startTime;
+  final TimeOfDay? endTime;
 
-  const EventLocationScreen({super.key, required this.event});
+  const EventLocationScreen({
+    super.key,
+    required this.event,
+    required this.title,
+    required this.tags,
+    required this.description,
+    required this.contactInfo,
+    required this.churchLandline,
+    required this.dressCode,
+    required this.speakers,
+    required this.imageUrl,
+    required this.imagePath,
+    required this.imageBytes,
+    required this.additionalImages,
+    required this.isOneDay,
+    required this.eventDays,
+    required this.startDate,
+    required this.endDate,
+    required this.startTime,
+    required this.endTime,
+  });
 
   @override
   State<EventLocationScreen> createState() => _EventLocationScreenState();
@@ -657,11 +696,34 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                             // Save event location information
                             _saveEventData();
                             
-                            // Go directly to summary
+                            // Go directly to summary with c1-style carried args
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => EventSummaryScreen(event: widget.event),
+                                builder: (context) => EventSummaryScreen(
+                                  event: widget.event,
+                                  title: widget.title,
+                                  tags: widget.tags,
+                                  description: widget.description,
+                                  contactInfo: widget.contactInfo,
+                                  churchLandline: widget.churchLandline,
+                                  dressCode: widget.dressCode,
+                                  speakers: widget.speakers,
+                                  imageUrl: widget.imageUrl,
+                                  imagePath: widget.imagePath,
+                                  imageBytes: widget.imageBytes,
+                                  additionalImages: widget.additionalImages,
+                                  isOneDay: widget.isOneDay,
+                                  eventDays: widget.eventDays,
+                                  startDate: widget.startDate,
+                                  endDate: widget.endDate,
+                                  startTime: widget.startTime,
+                                  endTime: widget.endTime,
+                                  isOnline: true,
+                                  eventLink: _eventLinkController.text,
+                                  isOutsourcedVenue: false,
+                                  meetingPlatform: _isCustomPlatform ? _customPlatformController.text : _selectedPlatform,
+                                ),
                               ),
                             );
                           } else {

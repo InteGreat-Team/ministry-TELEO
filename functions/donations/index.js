@@ -43,22 +43,20 @@ exports.sendCodeEmail = onRequest(emailApp);
 const {createApp} = require("./donations/donationsFunctions");
 
 exports.donationApi = onRequest(
-  {
-    secrets: [paymongoSecretKey, neonDbUrl],
-  },
-  async (req, res) => {
-    const env = {
-      PAYMONGO_SECRET_KEY: paymongoSecretKey.value(),
-      NEON_DB_URL: neonDbUrl.value(),
-    };
+    {
+      secrets: [paymongoSecretKey, neonDbUrl],
+    },
+    async (req, res) => {
+      const env = {
+        PAYMONGO_SECRET_KEY: paymongoSecretKey.value(),
+        NEON_DB_URL: neonDbUrl.value(),
+      };
 
-    const {app, initDB} = createApp(env);
-    await initDB();
-    return app(req, res);
-  },
+      const {app, initDB} = createApp(env);
+      await initDB();
+      return app(req, res);
+    },
 );
-
-
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -70,8 +68,7 @@ exports.donationApi = onRequest(
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
-
+setGlobalOptions({maxInstances: 10});
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 

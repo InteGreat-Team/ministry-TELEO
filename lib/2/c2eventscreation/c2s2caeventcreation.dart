@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'models/event.dart';
 import 'widgets/step_indicator.dart';
 import 'widgets/required_asterisk.dart';
@@ -7,8 +8,34 @@ import 'widgets/event_app_bar.dart';
 
 class EventDateScreen extends StatefulWidget {
   final Event event;
+  // c1-style carried fields from previous screen
+  final String? title;
+  final List<String> tags;
+  final String? description;
+  final String? contactInfo;
+  final String? churchLandline;
+  final String? dressCode;
+  final List<String> speakers;
+  final String? imageUrl;
+  final String? imagePath;
+  final Uint8List? imageBytes;
+  final List<EventImage> additionalImages;
 
-  const EventDateScreen({super.key, required this.event});
+  const EventDateScreen({
+    super.key,
+    required this.event,
+    required this.title,
+    required this.tags,
+    required this.description,
+    required this.contactInfo,
+    required this.churchLandline,
+    required this.dressCode,
+    required this.speakers,
+    required this.imageUrl,
+    required this.imagePath,
+    required this.imageBytes,
+    required this.additionalImages,
+  });
 
   @override
   State<EventDateScreen> createState() => _EventDateScreenState();
@@ -722,13 +749,40 @@ class _EventDateScreenState extends State<EventDateScreen> {
                         if (_validateForm()) {
                           _saveEventData();
 
-                          // Navigate to next screen
+                          // Navigate to next screen with c1-style carried args
+                          // Derive start/end from current selection
+                          final DateTime? startDate = _eventDays.isNotEmpty ? _eventDays.first.date : null;
+                          final TimeOfDay? startTime = _eventDays.isNotEmpty ? _eventDays.first.startTime : null;
+                          final DateTime? endDate = _isOneDay
+                              ? (_eventDays.isNotEmpty ? _eventDays.first.date : null)
+                              : (_eventDays.isNotEmpty ? _eventDays.last.date : null);
+                          final TimeOfDay? endTime = _isOneDay
+                              ? (_eventDays.isNotEmpty ? _eventDays.first.endTime : null)
+                              : (_eventDays.isNotEmpty ? _eventDays.last.endTime : null);
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      EventLocationScreen(event: widget.event),
+                              builder: (context) => EventLocationScreen(
+                                event: widget.event,
+                                title: widget.title,
+                                tags: widget.tags,
+                                description: widget.description,
+                                contactInfo: widget.contactInfo,
+                                churchLandline: widget.churchLandline,
+                                dressCode: widget.dressCode,
+                                speakers: widget.speakers,
+                                imageUrl: widget.imageUrl,
+                                imagePath: widget.imagePath,
+                                imageBytes: widget.imageBytes,
+                                additionalImages: widget.additionalImages,
+                                isOneDay: _isOneDay,
+                                eventDays: List<EventDay>.from(_eventDays),
+                                startDate: startDate,
+                                endDate: endDate,
+                                startTime: startTime,
+                                endTime: endTime,
+                              ),
                             ),
                           );
                         } else {
