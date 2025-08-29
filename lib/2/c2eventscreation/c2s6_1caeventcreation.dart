@@ -155,6 +155,7 @@ class _EventRegistrationFormScreenState extends State<EventRegistrationFormScree
               _showInfoSnackbar('Terms and conditions viewed but not accepted');
             }
           },
+           event: widget.event,
         ),
       ),
     );
