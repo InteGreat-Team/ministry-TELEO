@@ -777,9 +777,27 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          EventDateScreen(event: _event),
+                                  builder: (context) => EventDateScreen(
+                                    event: _event,
+                                    title: _titleController.text,
+                                    tags: List<String>.from(_event.tags),
+                                    description: _descriptionController.text,
+                                    contactInfo: _mobileNumberController.text,
+                                    churchLandline: _churchLandlineController.text.isEmpty
+                                        ? null
+                                        : _churchLandlineController.text,
+                                    dressCode: _dressCodeController.text.isEmpty
+                                        ? null
+                                        : _dressCodeController.text,
+                                    speakers: _speakerControllers
+                                        .map((c) => c.text)
+                                        .where((t) => t.isNotEmpty)
+                                        .toList(),
+                                    imageUrl: _event.imageUrl,
+                                    imagePath: _event.imagePath,
+                                    imageBytes: _event.imageBytes,
+                                    additionalImages: List<EventImage>.from(_event.additionalImages),
+                                  ),
                                 ),
                               );
                             } else {

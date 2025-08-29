@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'models/event.dart';
 import 'widgets/step_indicator.dart';
 import 'c2s7caeventcreation.dart';
@@ -7,8 +8,54 @@ import 'c2s6_2caeventcreation.dart';
 
 class EventRegistrationFormScreen extends StatefulWidget {
   final Event event;
+  // c1-style carried fields
+  final String? title;
+  final List<String> tags;
+  final String? description;
+  final String? contactInfo;
+  final String? churchLandline;
+  final String? dressCode;
+  final List<String> speakers;
+  final String? imageUrl;
+  final String? imagePath;
+  final Uint8List? imageBytes;
+  final List<EventImage> additionalImages;
+  final bool isOneDay;
+  final List<EventDay> eventDays;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final TimeOfDay? startTime;
+  final TimeOfDay? endTime;
+  final bool isOnline;
+  final String? eventLink;
+  final bool isOutsourcedVenue;
+  final String? meetingPlatform;
 
-  const EventRegistrationFormScreen({super.key, required this.event});
+  const EventRegistrationFormScreen({
+    super.key,
+    required this.event,
+    required this.title,
+    required this.tags,
+    required this.description,
+    required this.contactInfo,
+    required this.churchLandline,
+    required this.dressCode,
+    required this.speakers,
+    required this.imageUrl,
+    required this.imagePath,
+    required this.imageBytes,
+    required this.additionalImages,
+    required this.isOneDay,
+    required this.eventDays,
+    required this.startDate,
+    required this.endDate,
+    required this.startTime,
+    required this.endTime,
+    required this.isOnline,
+    required this.eventLink,
+    required this.isOutsourcedVenue,
+    required this.meetingPlatform,
+  });
 
   @override
   State<EventRegistrationFormScreen> createState() => _EventRegistrationFormScreenState();
