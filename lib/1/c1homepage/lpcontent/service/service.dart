@@ -13,18 +13,27 @@ class ServicePage extends StatelessWidget {
       canPop: false, // Prevent swiping back from this page
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Service Page'),
+          title: const Text('Service'),
           backgroundColor: Colors.blue,
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.construction, size: 80.sp, color: Colors.grey[400]),
+              Icon(
+                Icons.construction, 
+                size: 80.sp, 
+                color: Colors.grey[400]
+              ),
               SizedBox(height: 20.h),
               Text(
-                'Service Page - Coming Soon!',
-                style: TextStyle(fontSize: 24, color: Colors.black),
+                'This page is currently being developed.\nComing soon!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

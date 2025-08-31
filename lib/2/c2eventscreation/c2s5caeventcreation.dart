@@ -6,6 +6,7 @@ import 'widgets/step_indicator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'c2s6_1caeventcreation.dart';
 import 'widgets/event_app_bar.dart';
+import 'c2s4caeventcreation.dart';
 
 class EventSummaryScreen extends StatelessWidget {
   final Event event;

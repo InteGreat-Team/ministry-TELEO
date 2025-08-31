@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'package:provider/provider.dart'; // ✅ Added
+import 'package:provider/provider.dart';
 import '../../../../prayer_wall/BE/models/prayer_post.dart';
 import '../../../../prayer_wall/BE/providers/read_prayer_provider.dart';
 import 'package:intl/intl.dart';
 
-// Define SwipeDirection enum to fix the undefined class error
 enum SwipeDirection { right, left }
 
 class PrayerCard extends StatefulWidget {
@@ -13,7 +12,7 @@ class PrayerCard extends StatefulWidget {
   final Color cardColor;
   final Color nextCardColor;
   final VoidCallback onLike;
-  final Function(String?) onPray; // Updated to accept a prayer message
+  final Function(String?) onPray;
   final VoidCallback onComment;
   final Function(SwipeDirection) onSwipe;
 
@@ -33,53 +32,116 @@ class PrayerCard extends StatefulWidget {
 }
 
 class _PrayerCardState extends State<PrayerCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+    with TickerProviderStateMixin {
+  late AnimationController _flipController;
+  late AnimationController _swipeController;
+  late AnimationController _likeController;
+  late Animation<double> _flipAnimation;
+  late Animation<double> _swipeAnimation;
+  late Animation<double> _likeAnimation;
+  late Animation<double> _scaleAnimation;
+  
   bool _showBackSide = false;
   double _dragStartX = 0;
   double _dragUpdateX = 0;
   bool _isDragging = false;
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
+  
+  // Track comment status - once commented, prayer is restricted
+  bool _hasCommented = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    
+    // Optimized animation controllers with better curves
+    _flipController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600),
     );
-    _animation = Tween<double>(
+    
+    _swipeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    
+    _likeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
+    _flipAnimation = Tween<double>(
       begin: 0,
       end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(
+      parent: _flipController, 
+      curve: Curves.easeInOutCubic,
+    ));
+
+    _swipeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(
+      parent: _swipeController,
+      curve: Curves.elasticOut,
+    ));
+
+    _likeAnimation = Tween<double>(
+      begin: 1,
+      end: 1.3,
+    ).animate(CurvedAnimation(
+      parent: _likeController,
+      curve: Curves.elasticOut,
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 1,
+      end: 0.98,
+    ).animate(CurvedAnimation(
+      parent: _swipeController,
+      curve: Curves.easeOut,
+    ));
   }
 
   @override
   void dispose() {
     _removeOverlay();
-    _controller.dispose();
+    _flipController.dispose();
+    _swipeController.dispose();
+    _likeController.dispose();
     super.dispose();
   }
 
   void _toggleCard() {
     if (_showBackSide) {
-      _controller.reverse().then((_) {
-        setState(() {
-          _showBackSide = false;
-        });
+      _flipController.reverse().then((_) {
+        if (mounted) {
+          setState(() {
+            _showBackSide = false;
+          });
+        }
       });
     } else {
-      _controller.forward().then((_) {
-        setState(() {
-          _showBackSide = true;
-        });
+      setState(() {
+        _showBackSide = true;
       });
+      _flipController.forward();
     }
   }
 
+  void _animateLike() {
+    _likeController.forward().then((_) {
+      _likeController.reverse();
+    });
+  }
+
   void _showPrayerOptions(BuildContext context) {
+    if (_hasCommented) {
+      _showAlreadyPrayedMessage(context);
+      return;
+    }
+    
     _removeOverlay();
     final List<Map<String, dynamic>> prayerOptions = [
       {
@@ -104,94 +166,148 @@ class _PrayerCardState extends State<PrayerCard>
       },
     ];
 
-    // Get the render box of the button
-
-    // Create a backdrop that will dismiss the menu when tapped
     _overlayEntry = OverlayEntry(
       builder: (context) => Stack(
         children: [
-          // Transparent backdrop for detecting taps outside the menu
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _removeOverlay,
-              child: Container(color: Colors.transparent),
+              child: Container(
+                color: Colors.black.withOpacity(0.2),
+              ),
             ),
           ),
-          // Dropdown menu positioned directly above the button
           Positioned(
             child: CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
-              offset: const Offset(
-                0,
-                -210,
-              ), // Position directly above the button
-              child: Material(
-                elevation: 8.0,
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: 280,
-                    maxHeight: MediaQuery.of(context).size.height *
-                        0.4, // Limit height to 40% of screen
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Prayer options
-                        ...prayerOptions
-                            .map(
-                              (option) => InkWell(
-                                onTap: () {
-                                  _removeOverlay();
-                                  widget.onPray(option["text"]);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.grey.withOpacity(0.2),
-                                        width: 0.5,
+              offset: const Offset(0, -220),
+              child: TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 300),
+                tween: Tween(begin: 0.0, end: 1.0),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: Material(
+                      elevation: 16.0,
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white,
+                              Colors.grey.shade50,
+                            ],
+                          ),
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: 300,
+                            maxHeight: MediaQuery.of(context).size.height * 0.4,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome,
+                                      color: widget.post.cardColor,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Choose a Prayer',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2C3E50),
+                                        fontFamily: 'Poppins',
                                       ),
                                     ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          option["text"],
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xFF333333),
+                                  ],
+                                ),
+                              ),
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: prayerOptions
+                                        .map(
+                                          (option) => InkWell(
+                                            onTap: () {
+                                              _removeOverlay();
+                                              widget.onPray(option["text"]);
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 20,
+                                                vertical: 16,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  bottom: BorderSide(
+                                                    color: Colors.grey.withOpacity(0.1),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    width: 4,
+                                                    height: 20,
+                                                    decoration: BoxDecoration(
+                                                      color: widget.post.cardColor.withOpacity(0.6),
+                                                      borderRadius: BorderRadius.circular(2),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Text(
+                                                      option["text"],
+                                                      style: const TextStyle(
+                                                        fontSize: 13,
+                                                        color: Color(0xFF4A5568),
+                                                        height: 1.4,
+                                                        fontFamily: 'Poppins',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
+                                        )
+                                        .toList(),
                                   ),
                                 ),
                               ),
-                            )
-                            .toList(),
-                        // Dropdown arrow at the bottom
-                        Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: const Icon(
-                            Icons.keyboard_arrow_down,
-                            color: Colors.grey,
+                              Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Colors.grey.shade400,
+                                  size: 20,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -199,6 +315,195 @@ class _PrayerCardState extends State<PrayerCard>
       ),
     );
     Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _showAlreadyPrayedMessage(BuildContext context) {
+    _removeOverlay();
+    
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _removeOverlay,
+              child: Container(
+                color: Colors.black.withOpacity(0.2),
+              ),
+            ),
+          ),
+          Positioned(
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: const Offset(0, -100),
+              child: TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 300),
+                tween: Tween(begin: 0.0, end: 1.0),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: Material(
+                      elevation: 16.0,
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white,
+                              Colors.grey.shade50,
+                            ],
+                          ),
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: 250,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: widget.post.cardColor,
+                                  size: 32,
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'You have prayed already!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2C3E50),
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    Overlay.of(context).insert(_overlayEntry!);
+    
+    // Auto-remove the message after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      _removeOverlay();
+    });
+  }
+
+  void _showAlreadyCommentedMessage(BuildContext context) {
+    _removeOverlay();
+    
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _removeOverlay,
+              child: Container(
+                color: Colors.black.withOpacity(0.2),
+              ),
+            ),
+          ),
+          Positioned(
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: const Offset(0, -100),
+              child: TweenAnimationBuilder<double>(
+                duration: const Duration(milliseconds: 300),
+                tween: Tween(begin: 0.0, end: 1.0),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: Material(
+                      elevation: 16.0,
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white,
+                      shadowColor: Colors.black.withOpacity(0.3),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white,
+                              Colors.grey.shade50,
+                            ],
+                          ),
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: 250,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.chat_bubble,
+                                  color: widget.post.cardColor,
+                                  size: 32,
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'You have commented already!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2C3E50),
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    Overlay.of(context).insert(_overlayEntry!);
+    
+    // Auto-remove the message after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      _removeOverlay();
+    });
+  }
+
+  void _handleComment() {
+    setState(() {
+      _hasCommented = true;
+    });
+    widget.onComment();
   }
 
   void _removeOverlay() {
@@ -215,6 +520,7 @@ class _PrayerCardState extends State<PrayerCard>
           _dragStartX = details.globalPosition.dx;
           _isDragging = true;
         });
+        _swipeController.forward();
       },
       onHorizontalDragUpdate: (details) {
         setState(() {
@@ -222,15 +528,12 @@ class _PrayerCardState extends State<PrayerCard>
         });
       },
       onHorizontalDragEnd: (details) async {
-        final threshold = MediaQuery.of(context).size.width * 0.3;
+        final threshold = MediaQuery.of(context).size.width * 0.25;
         if (_dragUpdateX.abs() > threshold) {
-          // Fix: Account for card flip state when determining swipe direction
           bool isSwipeRight;
           if (_showBackSide) {
-            // When card is flipped, invert the swipe direction logic
-            isSwipeRight = _dragUpdateX < 0; // Inverted for back side
+            isSwipeRight = _dragUpdateX < 0;
           } else {
-            // Normal logic for front side
             isSwipeRight = _dragUpdateX > 0;
           }
 
@@ -239,12 +542,13 @@ class _PrayerCardState extends State<PrayerCard>
           );
 
           if (isSwipeRight) {
-            // ✅ Call Provider to update read_status
             final provider =
                 Provider.of<PrayerReadProvider>(context, listen: false);
             provider.markPrayerAsRead(widget.post.id.toString());
           }
         }
+        
+        _swipeController.reverse();
         setState(() {
           _dragStartX = 0;
           _dragUpdateX = 0;
@@ -252,26 +556,30 @@ class _PrayerCardState extends State<PrayerCard>
         });
       },
       child: AnimatedBuilder(
-        animation: _animation,
+        animation: Listenable.merge([_flipAnimation, _swipeAnimation, _scaleAnimation]),
         builder: (context, child) {
-          final angle = _animation.value * math.pi;
-
-          // Fix: Apply drag offset correctly based on card state
+          final angle = _flipAnimation.value * math.pi;
+          
           double dragOffset = 0;
+          double rotationOffset = 0;
+          
           if (_isDragging) {
+            final normalizedDrag = _dragUpdateX / MediaQuery.of(context).size.width;
             if (_showBackSide) {
-              // When card is flipped, invert the drag offset
-              dragOffset = -_dragUpdateX * 0.5;
+              dragOffset = -_dragUpdateX * 0.3;
+              rotationOffset = normalizedDrag * 0.1;
             } else {
-              // Normal drag offset for front side
-              dragOffset = _dragUpdateX * 0.5;
+              dragOffset = _dragUpdateX * 0.3;
+              rotationOffset = -normalizedDrag * 0.1;
             }
           }
 
           final transform = Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // Perspective
+            ..setEntry(3, 2, 0.001)
             ..rotateY(angle)
-            ..translate(dragOffset, 0, 0); // Apply only X translation
+            ..rotateZ(rotationOffset)
+            ..translate(dragOffset, 0, 0)
+            ..scale(_scaleAnimation.value);
 
           return Transform(
             transform: transform,
@@ -290,333 +598,550 @@ class _PrayerCardState extends State<PrayerCard>
   }
 
   Widget _buildFrontSide() {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: 400,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: widget.post.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User info
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Colors.white,
-                backgroundImage: AssetImage(widget.post.userAvatar),
-                radius: 20,
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.post.userName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    widget.post.tags.join(', '), // e.g. "adoration, family"
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.7),
-                    ),
-                  ),
-                  Text(
-                    DateFormat(
-                      'MMM d, yyyy • hh:mm a',
-                    ).format(widget.post.createdAt),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.7),
-                    ),
-                  ),
+    return Hero(
+      tag: 'prayer_card_${widget.post.id}',
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.88,
+        height: 420,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              spreadRadius: 2,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 40,
+              spreadRadius: 0,
+              offset: const Offset(0, 16),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  widget.post.cardColor,
+                  widget.post.cardColor.withOpacity(0.85),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Prayer content
-          Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                child: Text(
-                  widget.post.content,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1.3,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-              ),
             ),
-          ),
-          // Action buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Like button
-              InkWell(
-                onTap: widget.onLike,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    widget.post.hasLiked
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color: widget.post.hasLiked ? Colors.red : Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-              // Pray button
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: CompositedTransformTarget(
-                    link: _layerLink,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        _showPrayerOptions(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.15),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.front_hand_outlined, size: 18),
-                      label: const Text(
-                        'Pray',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
+            child: Stack(
+              children: [
+                // Subtle pattern overlay
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.03,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/prayer_pattern.png'),
+                          fit: BoxFit.cover,
+                          repeat: ImageRepeat.repeat,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              // Comment button
-              InkWell(
-                onTap: widget.onComment,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.chat_bubble_outline,
-                    color: Colors.white,
-                    size: 20,
+                // Main content
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildUserInfo(),
+                      const SizedBox(height: 28),
+                      _buildPrayerContent(),
+                      const SizedBox(height: 24),
+                      _buildActionButtons(),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                // Subtle shine effect
+                if (_isDragging)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.1),
+                            Colors.transparent,
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildBackSide() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        16,
-      ), // Fixed: Add clipping to ensure consistent corners
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
-        height: 400,
-        decoration: BoxDecoration(
-          color: widget.post.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+  Widget _buildUserInfo() {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            backgroundImage: AssetImage(widget.post.userAvatar),
+            radius: 22,
+          ),
         ),
-        child: Stack(
-          clipBehavior: Clip.antiAlias, // Fixed: Ensure proper clipping
-          children: [
-            // Subtle next card color hint (optional - can be removed if causing issues)
-            Positioned(
-              right: -10,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 8,
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.post.userName,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: widget.nextCardColor.withOpacity(0.3),
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  widget.post.tags.join(' • '),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                DateFormat('MMM d, yyyy • hh:mm a').format(widget.post.createdAt),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withOpacity(0.7),
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrayerContent() {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Text(
+              widget.post.content,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                height: 1.4,
+                fontFamily: 'Poppins',
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildActionButton(
+          icon: widget.post.hasLiked ? Icons.favorite : Icons.favorite_border,
+          iconColor: widget.post.hasLiked ? Colors.red.shade400 : Colors.white,
+          onTap: () {
+            _animateLike();
+            widget.onLike();
+          },
+          scale: _likeAnimation,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: CompositedTransformTarget(
+              link: _layerLink,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () => _showPrayerOptions(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _hasCommented 
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.white.withOpacity(0.2),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                  ),
+                  icon: Icon(
+                    Icons.front_hand_outlined, 
+                    size: 18
+                  ),
+                  label: Text(
+                    'Pray',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ),
             ),
-            // Main content
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // User info
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        backgroundImage: AssetImage(widget.post.userAvatar),
-                        radius: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.post.userName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontFamily: 'Poppins',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  // Prayer details - main content of the back side
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(
-                        widget.post.details,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          height: 1.5,
-                          fontFamily: 'Poppins',
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Action buttons - now with Like, Pray, and Comment
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Like button
-                      InkWell(
-                        onTap: widget.onLike,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            widget.post.hasLiked
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: widget.post.hasLiked
-                                ? Colors.red
-                                : Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                      // Pray button
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: CompositedTransformTarget(
-                            link: _layerLink,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                _showPrayerOptions(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.15),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                elevation: 0,
-                              ),
-                              icon: const Icon(
-                                Icons.front_hand_outlined,
-                                size: 18,
-                              ),
-                              label: const Text(
-                                'Pray',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Poppins',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Comment button
-                      InkWell(
-                        onTap: widget.onComment,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.chat_bubble_outline,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+          ),
+        ),
+        _buildActionButton(
+          icon: Icons.chat_bubble_outline,
+          iconColor: Colors.white,
+          onTap: _handleComment,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color iconColor,
+    required VoidCallback onTap,
+    Animation<double>? scale,
+  }) {
+    Widget button = InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.18),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
+        child: Icon(
+          icon,
+          color: iconColor,
+          size: 20,
+        ),
       ),
+    );
+
+    if (scale != null) {
+      return AnimatedBuilder(
+        animation: scale,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: scale.value,
+            child: button,
+          );
+        },
+      );
+    }
+
+    return button;
+  }
+
+  Widget _buildBackSide() {
+    return Hero(
+      tag: 'prayer_card_back_${widget.post.id}',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.88,
+          height: 420,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                spreadRadius: 2,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 40,
+                spreadRadius: 0,
+                offset: const Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Stack(
+            clipBehavior: Clip.antiAlias,
+            children: [
+              // Enhanced gradient background
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      widget.post.cardColor,
+                      widget.post.cardColor.withOpacity(0.9),
+                      widget.post.cardColor.withOpacity(0.8),
+                    ],
+                  ),
+                ),
+              ),
+              // Subtle next card color hint
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 6,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        widget.nextCardColor.withOpacity(0.4),
+                        widget.nextCardColor.withOpacity(0.2),
+                        widget.nextCardColor.withOpacity(0.4),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Main content
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBackUserInfo(),
+                    const SizedBox(height: 28),
+                    _buildDetailsContent(),
+                    const SizedBox(height: 24),
+                    _buildBackActionButtons(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackUserInfo() {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            backgroundImage: AssetImage(widget.post.userAvatar),
+            radius: 22,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.post.userName,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Prayer Details',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailsContent() {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Text(
+            widget.post.details,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              height: 1.6,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildActionButton(
+          icon: widget.post.hasLiked ? Icons.favorite : Icons.favorite_border,
+          iconColor: widget.post.hasLiked ? Colors.red.shade400 : Colors.white,
+          onTap: () {
+            _animateLike();
+            widget.onLike();
+          },
+          scale: _likeAnimation,
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: CompositedTransformTarget(
+            link: _layerLink,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () => _showPrayerOptions(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _hasCommented 
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.2),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                ),
+                icon: Icon(
+                  Icons.front_hand_outlined, 
+                  size: 18
+                ),
+                label: Text(
+                  'Pray',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        _buildActionButton(
+          icon: Icons.chat_bubble_outline,
+          iconColor: Colors.white,
+          onTap: _handleComment,
+        ),
+      ],
     );
   }
 }
