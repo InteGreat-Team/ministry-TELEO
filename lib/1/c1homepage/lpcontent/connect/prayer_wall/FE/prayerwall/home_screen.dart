@@ -9,6 +9,7 @@ import '../../BE/providers/prayer_provider.dart';
 import '../../BE/providers/history_prayer_provider.dart';
 import 'prayer_request_screen.dart';
 import 'history_prayer.dart';
+import '../../../../../nav_bar.dart'; // Import the consistent NavBar widget
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,10 +18,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _selectedNavIndex = 2;
   int _currentCardIndex = 0;
   bool _allCardsSwiped = false;
+  late AnimationController _refreshAnimationController;
+  late Animation<double> _refreshAnimation;
 
   final List<Color> _cardColors = [
     const Color(0xFF6A1B9A),
@@ -34,13 +37,34 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _refreshAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _refreshAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _refreshAnimationController,
+      curve: Curves.easeInOutQuart,
+    ));
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PrayerProvider>(context, listen: false).fetchPrayers();
       Provider.of<UserPostsViewModel>(context, listen: false).fetchData();
     });
   }
 
+  @override
+  void dispose() {
+    _refreshAnimationController.dispose();
+    super.dispose();
+  }
+
   void _onNavItemTapped(int index) {
+    setState(() {
+      _selectedNavIndex = index;
+    });
     navigateToMainPage(context, index);
   }
 
@@ -54,8 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               listen: false,
             ).addNewPrayer(newPrayer);
-            _currentCardIndex = 0;
-            _allCardsSwiped = false;
+            setState(() {
+              _currentCardIndex = 0;
+              _allCardsSwiped = false;
+            });
           },
         ),
       ),
@@ -73,9 +99,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else {
-      // Optional: handle case where role is not yet loaded
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User role not available yet.')),
+        SnackBar(
+          content: const Text('User role not available yet.'),
+          backgroundColor: Colors.grey.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -97,7 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
           final success = await provider.addComment(post.id, comment);
           if (!success) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Failed to post comment")),
+              SnackBar(
+                content: const Text("Failed to post comment"),
+                backgroundColor: Colors.red.shade600,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             );
           }
         },
@@ -130,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handlePray(String? prayerMessage) async {
     if (prayerMessage == null) return;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final provider = Provider.of<PrayerProvider>(context, listen: false);
     final post = provider.prayers[_currentCardIndex];
     final success = await provider.addComment(post.id, prayerMessage);
@@ -140,9 +176,14 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       _showComments(post);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Failed to pray")));
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: const Text("Failed to pray"),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
     }
   }
 
@@ -164,15 +205,47 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _refreshPrayerWall() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    // Start refresh animation
+    _refreshAnimationController.forward().then((_) {
+      _refreshAnimationController.reset();
+    });
+
     Provider.of<PrayerProvider>(context, listen: false).refresh();
     setState(() {
       _currentCardIndex = 0;
       _allCardsSwiped = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Prayer wall refreshed!'),
-        backgroundColor: Colors.green,
+    
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Prayer wall refreshed!',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -199,20 +272,10 @@ class _HomeScreenState extends State<HomeScreen> {
         onSwipe: _handleSwipe,
         onHistoryTapped: _onHistoryTapped,
       ),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: NavBar(
         currentIndex: _selectedNavIndex,
         onTap: _onNavItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.volunteer_activism), label: 'Service'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Connect'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Read'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'You'),
-        ],
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
+        useCircularHighlight: true,
       ),
     );
   }

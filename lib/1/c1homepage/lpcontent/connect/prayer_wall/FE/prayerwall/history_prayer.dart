@@ -153,58 +153,28 @@ class _UserPostsScreenState extends State<UserPostsScreen>
 
   Widget _buildEnhancedHeader(viewModel) {
     return Container(
-      width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
             Color(0xFF0A0E2D),
-            Color(0xFF1A1E3D),
-            Color(0xFF2A2E4D),
+            Color(0xFF1A1F3A),
           ],
-          stops: [0.0, 0.6, 1.0],
         ),
       ),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-            child: Column(
-              children: [
-                // Enhanced description with better typography
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Text(
-                    widget.userRole == 'pastor'
-                        ? 'Manage your spiritual guidance and prayer responses'
-                        : 'Track your prayer journey and spiritual growth',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      height: 1.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Enhanced stats section
-                _buildEnhancedStatsRow(viewModel),
-              ],
-            ),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+            child: _buildStatsRow(viewModel),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEnhancedStatsRow(viewModel) {
+  Widget _buildCompactStatsRow(viewModel) {
     final totalPosts = (viewModel.sharedByMe?.length ?? 0) + 
                      (viewModel.specificRequests?.length ?? 0);
     
@@ -214,131 +184,41 @@ class _UserPostsScreenState extends State<UserPostsScreen>
         
         bool isHistoryTab = _tabController.index == (_tabController.length - 1);
         
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          child: Column(
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Main stat highlight
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.white.withOpacity(0.15),
-                      Colors.white.withOpacity(0.08),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        isHistoryTab ? Icons.auto_stories : Icons.edit_note,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isHistoryTab ? '$readPrayers' : '$totalPosts',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            height: 1.0,
-                          ),
-                        ),
-                        Text(
-                          isHistoryTab 
-                            ? (readPrayers == 1 ? 'Prayer Read' : 'Prayers Read')
-                            : (totalPosts == 1 ? 'Prayer Posted' : 'Prayers Posted'),
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              _buildCompactStatItem(
+                isHistoryTab ? 'Read' : 'Posts',
+                isHistoryTab ? '$readPrayers' : '$totalPosts',
+                isHistoryTab ? Icons.visibility : Icons.edit_note,
               ),
-              const SizedBox(height: 16),
-              // Secondary stats row
-              if (!isHistoryTab) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildSecondaryStatItem(
-                      'Shared',
-                      '${viewModel.sharedByMe?.length ?? 0}',
-                      Icons.public,
-                    ),
-                    Container(
-                      width: 1,
-                      height: 32,
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                    if (widget.userRole == 'pastor')
-                      _buildSecondaryStatItem(
-                        'Specific',
-                        '${viewModel.specificRequests?.length ?? 0}',
-                        Icons.person_outline,
-                      ),
-                    if (widget.userRole == 'pastor')
-                      Container(
-                        width: 1,
-                        height: 32,
-                        color: Colors.white.withOpacity(0.2),
-                      ),
-                    _buildSecondaryStatItem(
-                      'Read',
-                      '$readPrayers',
-                      Icons.visibility,
-                    ),
-                  ],
+              Container(
+                width: 1,
+                height: 24,
+                color: Colors.white.withOpacity(0.3),
+              ),
+              _buildCompactStatItem(
+                'Shared',
+                '${viewModel.sharedByMe?.length ?? 0}',
+                Icons.public,
+              ),
+              if (widget.userRole == 'pastor') ...[
+                Container(
+                  width: 1,
+                  height: 24,
+                  color: Colors.white.withOpacity(0.3),
                 ),
-              ] else ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildSecondaryStatItem(
-                      'My Posts',
-                      '$totalPosts',
-                      Icons.edit_note,
-                    ),
-                    Container(
-                      width: 1,
-                      height: 32,
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                    _buildSecondaryStatItem(
-                      'Journey Days',
-                      '${_calculateJourneyDays(historyProvider.readPrayers)}',
-                      Icons.calendar_today,
-                    ),
-                  ],
+                _buildCompactStatItem(
+                  'Specific',
+                  '${viewModel.specificRequests?.length ?? 0}',
+                  Icons.person_outline,
                 ),
               ],
             ],
@@ -348,57 +228,53 @@ class _UserPostsScreenState extends State<UserPostsScreen>
     );
   }
 
-  Widget _buildSecondaryStatItem(String label, String value, IconData icon) {
-    return Column(
+  Widget _buildCompactStatItem(String label, String value, IconData icon) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
-          color: Colors.white.withOpacity(0.7),
-          size: 18,
+          color: Colors.white.withOpacity(0.8),
+          size: 16,
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-          ),
+        const SizedBox(width: 6),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  int _calculateJourneyDays(List<PrayerPost> prayers) {
-    if (prayers.isEmpty) return 0;
-    final dates = prayers.map((p) => DateTime(p.createdAt.year, p.createdAt.month, p.createdAt.day)).toSet();
-    return dates.length;
-  }
-
   Widget _buildEnhancedTabBar() {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF2A2E4D), Color(0xFF0A0E2D)],
-        ),
+        color: Color(0xFF0A0E2D),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
         child: Container(
-          height: 48,
+          height: 40, // Reduced height from 48 to 40
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.white.withOpacity(0.1)),
           ),
           child: TabBar(
@@ -409,7 +285,7 @@ class _UserPostsScreenState extends State<UserPostsScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.15),
@@ -421,11 +297,11 @@ class _UserPostsScreenState extends State<UserPostsScreen>
             labelColor: const Color(0xFF0A0E2D),
             unselectedLabelColor: Colors.white.withOpacity(0.8),
             labelStyle: const TextStyle(
-              fontSize: 14,
+              fontSize: 13, // Reduced font size
               fontWeight: FontWeight.w700,
             ),
             unselectedLabelStyle: const TextStyle(
-              fontSize: 14,
+              fontSize: 13, // Reduced font size
               fontWeight: FontWeight.w500,
             ),
             indicatorSize: TabBarIndicatorSize.tab,
@@ -751,7 +627,280 @@ class _UserPostsScreenState extends State<UserPostsScreen>
           return _buildEmptyHistoryState();
         }
 
-        return _buildHistoryTimeline(_filterPrayers(historyProvider.readPrayers));
+        return RefreshIndicator(
+          onRefresh: _fetchData,
+          child: _isCardView 
+            ? _buildHistoryCardView(_filterPrayers(historyProvider.readPrayers))
+            : _buildHistoryListView(_filterPrayers(historyProvider.readPrayers)),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryCardView(List<PrayerPost> prayers) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: prayers.length,
+      itemExtent: 200,
+      itemBuilder: (context, index) {
+        final prayer = prayers[index];
+        final cardColor = prayer.cardColor;
+
+        return GestureDetector(
+          onTap: () => _showPrayerDetails(context, prayer, cardColor),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: AssetImage(prayer.userAvatar),
+                        radius: 16,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              prayer.userName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              _formatDate(prayer.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Read',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: Text(
+                      prayer.content,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        size: 16,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${prayer.likes}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(
+                        Icons.comment,
+                        size: 16,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${prayer.comments}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryListView(List<PrayerPost> prayers) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: prayers.length,
+      itemBuilder: (context, index) {
+        final prayer = prayers[index];
+        final cardColor = prayer.cardColor;
+
+        return GestureDetector(
+          onTap: () => _showPrayerDetails(context, prayer, cardColor),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: cardColor.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Color indicator
+                Container(
+                  width: 3,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Avatar
+                CircleAvatar(
+                  backgroundImage: AssetImage(prayer.userAvatar),
+                  radius: 16,
+                ),
+                const SizedBox(width: 12),
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              prayer.userName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Color(0xFF0A0E2D),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: cardColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Read',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: cardColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        prayer.content,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            _formatDate(prayer.createdAt),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.favorite,
+                            size: 12,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${prayer.likes}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.comment,
+                            size: 12,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${prayer.comments}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
@@ -1418,5 +1567,9 @@ class _UserPostsScreenState extends State<UserPostsScreen>
         ),
       ],
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('MMM d, yyyy').format(date);
   }
 }

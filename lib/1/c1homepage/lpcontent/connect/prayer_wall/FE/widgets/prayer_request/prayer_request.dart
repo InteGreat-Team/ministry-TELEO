@@ -188,8 +188,7 @@ class PrayerRequestWidgets {
                   ],
                 ),
               ),
-              // Tabs
-              SizedBox(height: 16),
+              SizedBox(height: 4),
             ],
           ),
         ),

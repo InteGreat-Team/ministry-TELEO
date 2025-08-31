@@ -47,9 +47,6 @@ class _PrayerCardState extends State<PrayerCard>
   bool _isDragging = false;
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
-  
-  // Track comment status - once commented, prayer is restricted
-  bool _hasCommented = false;
 
   @override
   void initState() {
@@ -137,11 +134,6 @@ class _PrayerCardState extends State<PrayerCard>
   }
 
   void _showPrayerOptions(BuildContext context) {
-    if (_hasCommented) {
-      _showAlreadyPrayedMessage(context);
-      return;
-    }
-    
     _removeOverlay();
     final List<Map<String, dynamic>> prayerOptions = [
       {
@@ -315,195 +307,6 @@ class _PrayerCardState extends State<PrayerCard>
       ),
     );
     Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  void _showAlreadyPrayedMessage(BuildContext context) {
-    _removeOverlay();
-    
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _removeOverlay,
-              child: Container(
-                color: Colors.black.withOpacity(0.2),
-              ),
-            ),
-          ),
-          Positioned(
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: const Offset(0, -100),
-              child: TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 300),
-                tween: Tween(begin: 0.0, end: 1.0),
-                curve: Curves.elasticOut,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Material(
-                      elevation: 16.0,
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.white,
-                      shadowColor: Colors.black.withOpacity(0.3),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white,
-                              Colors.grey.shade50,
-                            ],
-                          ),
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: 250,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: widget.post.cardColor,
-                                  size: 32,
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'You have prayed already!',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2C3E50),
-                                    fontFamily: 'Poppins',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    Overlay.of(context).insert(_overlayEntry!);
-    
-    // Auto-remove the message after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
-      _removeOverlay();
-    });
-  }
-
-  void _showAlreadyCommentedMessage(BuildContext context) {
-    _removeOverlay();
-    
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _removeOverlay,
-              child: Container(
-                color: Colors.black.withOpacity(0.2),
-              ),
-            ),
-          ),
-          Positioned(
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: const Offset(0, -100),
-              child: TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 300),
-                tween: Tween(begin: 0.0, end: 1.0),
-                curve: Curves.elasticOut,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: Material(
-                      elevation: 16.0,
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.white,
-                      shadowColor: Colors.black.withOpacity(0.3),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white,
-                              Colors.grey.shade50,
-                            ],
-                          ),
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: 250,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.chat_bubble,
-                                  color: widget.post.cardColor,
-                                  size: 32,
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'You have commented already!',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2C3E50),
-                                    fontFamily: 'Poppins',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    Overlay.of(context).insert(_overlayEntry!);
-    
-    // Auto-remove the message after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
-      _removeOverlay();
-    });
-  }
-
-  void _handleComment() {
-    setState(() {
-      _hasCommented = true;
-    });
-    widget.onComment();
   }
 
   void _removeOverlay() {
@@ -761,6 +564,7 @@ class _PrayerCardState extends State<PrayerCard>
   Widget _buildPrayerContent() {
     return Expanded(
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.08),
@@ -822,9 +626,7 @@ class _PrayerCardState extends State<PrayerCard>
                 child: ElevatedButton.icon(
                   onPressed: () => _showPrayerOptions(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _hasCommented 
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withOpacity(0.2),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -854,7 +656,7 @@ class _PrayerCardState extends State<PrayerCard>
         _buildActionButton(
           icon: Icons.chat_bubble_outline,
           iconColor: Colors.white,
-          onTap: _handleComment,
+          onTap: widget.onComment, // Direct call without restrictions
         ),
       ],
     );
@@ -1050,6 +852,7 @@ class _PrayerCardState extends State<PrayerCard>
   Widget _buildDetailsContent() {
     return Expanded(
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.08),
@@ -1107,9 +910,7 @@ class _PrayerCardState extends State<PrayerCard>
               child: ElevatedButton.icon(
                 onPressed: () => _showPrayerOptions(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _hasCommented 
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.white.withOpacity(0.2),
+                  backgroundColor: Colors.white.withOpacity(0.2),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -1139,7 +940,7 @@ class _PrayerCardState extends State<PrayerCard>
         _buildActionButton(
           icon: Icons.chat_bubble_outline,
           iconColor: Colors.white,
-          onTap: _handleComment,
+          onTap: widget.onComment, // Direct call without restrictions
         ),
       ],
     );
