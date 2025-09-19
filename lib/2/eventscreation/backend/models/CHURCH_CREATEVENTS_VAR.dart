@@ -1,6 +1,203 @@
+// CHURCH_CREATEVENTS_VAR.dart - Fully Merged Models, Variables, and Constants
+import 'package:flutter/foundation.dart' show Uint8List;
+// All imports at the top
 import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
+import 'package:intl/intl.dart';
+
+// All class and enum definitions are now top-level and deduplicated.
+
+// --- EventDay ---
+class EventDay {
+  DateTime? date;
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
+  EventDay({this.date, this.startTime, this.endTime});
+}
+
+// --- EventImage ---
+class EventImage {
+  Uint8List? imageBytes;
+  String? imagePath;
+  String? imageUrl;
+  EventImage({this.imageBytes, this.imagePath, this.imageUrl});
+}
+
+// --- GuestInvite ---
+class GuestInvite {
+  final String username;
+  final String fullName;
+  final String guestChurch;
+  GuestInvite({required this.username, required this.fullName, required this.guestChurch});
+}
+
+enum NotificationType { success, error, warning }
+
+// --- Main Event Model ---
+class Event {
+  bool get isOnline => isOnlineVenue ?? false;
+  set isOnline(bool value) => isOnlineVenue = value;
+  String? title;
+  String? description;
+  List<String> tags = [];
+  List<String> speakers = [];
+  String? contactInfo;
+  String? churchLandline;
+  String? dressCode;
+  bool isOneDay = true;
+  DateTime? startDate;
+  DateTime? endDate;
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
+  List<EventDay>? eventDays;
+  Uint8List? imageBytes;
+  String? imagePath;
+  String? imageUrl;
+  List<EventImage> additionalImages = [];
+  RegistrationFormConfig? registrationFormConfig;
+  String? inviteType;
+  int? expectedCapacity;
+  int? customCapacity;
+  List<GuestInvite>? invitedGuests;
+  Map<String, int>? selectedRolesCounts;
+  String? selectedChurchName;
+  String? venueName;
+  String? venueAddress;
+  bool? isOnlineVenue;
+  String? eventLinkVenue;
+  bool? isOutsourcedVenue;
+  String? meetingPlatform;
+  DateTime? targetPublishDate;
+  TimeOfDay? targetPublishTime;
+  String? inviteMessage;
+  Event();
+}
+
+// --- EventConstants ---
+class EventConstants {
+  static const int maxImages = 5;
+  static const List<String> availableTags = [
+    'Seminar', 'Education', 'Religious Celebrations', 'Music', 'Community', 'Healing',
+  ];
+  static const String philippineMobilePattern = r'^(09|\+639)\d{9}$';
+  static const String namePattern = r'^[a-zA-Z\s\.\-]+$';
+  static const String dressCodePattern = r'^[a-zA-Z0-9\s\-]+$';
+  static const String titlePattern = r'[a-zA-Z0-9\s.,!?-]';
+  static const int landlineLength = 8;
+  static const int mobileMaxLength = 13;
+  static const int dressCodeMaxLength = 50;
+}
+
+// --- ValidationMessages ---
+class ValidationMessages {
+  static const String titleRequired = 'Event title is required';
+  static const String tagsRequired = 'At least one tag is required';
+  static const String descriptionRequired = 'Event description is required';
+  static const String mobileRequired = 'Mobile number is required';
+  static const String invalidMobile = 'Please enter a valid Philippine mobile number';
+  static const String invalidLandline = 'Please enter a valid 8-digit Philippine landline number';
+  static const String invalidDressCode = 'Dress code should not contain special characters';
+  static const String invalidSpeakerName = 'Speaker name should only contain letters, spaces, periods, and hyphens';
+  static const String maxImagesReached = 'Maximum of 5 images allowed';
+  static const String fillRequiredFields = 'Please fill in all required fields';
+  static const String imagePickError = 'Error picking image';
+}
+
+class DateTimeValidation {
+  static const String timeConflict = 'Start time and end time cannot be the same';
+  static const String endTimeBeforeStart = 'End time must be after start time';
+  static const String duplicateDate = 'This date is already selected for Day';
+  static const String formErrorIncomplete = 'Please fill in all date and time fields correctly';
+}
+
+// --- EventLocationModel ---
+class EventLocationModel {
+  bool _isOnline = false;
+  String? _eventLink;
+  bool _isOutsourcedVenue = false;
+  bool _isValidatingUrl = false;
+  bool _urlValidated = false;
+  String? _urlError;
+  final List<String> _meetingPlatforms = ['Google Meet', 'Zoom', 'Microsoft Teams', 'Others'];
+  String _selectedPlatform = 'Google Meet';
+  bool _isCustomPlatform = false;
+  bool get isOnline => _isOnline;
+  String? get eventLink => _eventLink;
+  bool get isOutsourcedVenue => _isOutsourcedVenue;
+  bool get isValidatingUrl => _isValidatingUrl;
+  bool get urlValidated => _urlValidated;
+  String? get urlError => _urlError;
+  List<String> get meetingPlatforms => _meetingPlatforms;
+  String get selectedPlatform => _selectedPlatform;
+  bool get isCustomPlatform => _isCustomPlatform;
+  void setOnline(bool value) { _isOnline = value; }
+  void setEventLink(String? value) { _eventLink = value; }
+  void setOutsourcedVenue(bool value) { _isOutsourcedVenue = value; }
+  void setValidatingUrl(bool value) { _isValidatingUrl = value; }
+  void setUrlValidated(bool value) { _urlValidated = value; }
+  void setUrlError(String? value) { _urlError = value; }
+  void setSelectedPlatform(String value) { _selectedPlatform = value; _isCustomPlatform = value == 'Others'; }
+  void setCustomPlatform(bool value) { _isCustomPlatform = value; }
+}
+
+class EventApiErrorModel {
+  final String title;
+  final String description;
+  final String buttonText;
+  final IconData errorIcon;
+  final double iconSize;
+  final Color iconColor;
+  final Color buttonColor;
+  const EventApiErrorModel({
+    this.title = 'External System Not Integrated',
+    this.description = 'The "Outsource Event" feature connects to an external system that is not yet integrated with this application.',
+    this.buttonText = 'Go Back',
+    this.errorIcon = Icons.error_outline,
+    this.iconSize = 80.0,
+    this.iconColor = const Color(0xFF0A0A4A),
+    this.buttonColor = const Color(0xFF0A0A4A),
+  });
+}
+
+class LocationValidationResult {
+  final bool isValid;
+  final String? errorMessage;
+  LocationValidationResult({required this.isValid, this.errorMessage});
+}
+
+class LocationValidationMessages {
+  static const String urlRequired = 'URL is required';
+  static const String urlMustStartWithHttp = 'URL must start with http:// or https://';
+  static const String invalidGoogleMeetUrl = 'Please enter a valid Google Meet URL';
+  static const String invalidZoomUrl = 'Please enter a valid Zoom URL';
+  static const String invalidTeamsUrl = 'Please enter a valid Microsoft Teams URL';
+  static const String urlNotAccessible = 'URL is not accessible';
+  static const String invalidUrl = 'Invalid URL';
+  static const String platformRequired = 'Please specify the meeting platform';
+  static const String validWorkingUrl = 'Please enter a valid, working URL';
+}
+
+// --- RegistrationFormConfig ---
+class RegistrationFormConfig {
+  Map<String, bool> fieldVisibility;
+  bool consentRequired;
+  String? consentFormUrl;
+  String? consentMessage;
+  Map<String, List<String>>? dropdownOptions;
+  bool hasReadTerms;
+  bool hasAcceptedTerms;
+  RegistrationFormConfig({
+    required this.fieldVisibility,
+    required this.consentRequired,
+    this.consentFormUrl,
+    this.consentMessage,
+    this.dropdownOptions,
+    this.hasReadTerms = false,
+    this.hasAcceptedTerms = false,
+  });
+}
 
 class EventDay {
   DateTime? date;

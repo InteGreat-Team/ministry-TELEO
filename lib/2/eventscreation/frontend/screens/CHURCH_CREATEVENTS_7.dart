@@ -5,7 +5,7 @@ import 'package:teleo_organized_new/1/c1homepage/nav_bar.dart';
 import '../../../c2eventscreation/widgets/step_indicator.dart';
 import '../../../c2eventscreation/widgets/required_asterisk.dart';
 import '../../../c2eventscreation/widgets/event_app_bar.dart';
-import 'c2s8_1caeventcreation.dart';
+// import 'c2s8_1caeventcreation.dart'; import the next step
 
 class EventInviteScreen extends StatefulWidget {
   final Event event;

@@ -36,6 +36,7 @@ class _EventApiErrorScreenState extends State<EventApiErrorScreen> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 _viewModel.errorModel.errorIcon,
@@ -61,17 +62,6 @@ class _EventApiErrorScreenState extends State<EventApiErrorScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: NavBar(
-        currentIndex: 2, // Set to the correct index for Events
-        onTap: (index) {
-          // Add navigation logic if needed
-        },
-      ),
-    );
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -99,6 +89,12 @@ class _EventApiErrorScreenState extends State<EventApiErrorScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: NavBar(
+        currentIndex: 2, // Set to the correct index for Events
+        onTap: (index) {
+          // Add navigation logic if needed
+        },
       ),
     );
   }

@@ -1,1333 +1,1272 @@
+// CREATE_EVENTS_FUNC.dart - Functions, ViewModels, and Business Logic
 import 'package:flutter/material.dart';
-import '../../frontend/screens/CHURCH_CREATEVENTS_5.dart';
+import 'models/event.dart';
+import 'widgets/confirmation_dialog.dart';
+import 'widgets/success_dialog.dart';
+import 'c2s9caeventcreation.dart';
+import 'CREATE_EVENTS_VAR.dart';
+import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
-import '../models/CHURCH_CREATEVENTS_VAR.dart';
+import 'package:image/image.dart' as img;
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
-class CreateEventViewModel extends ChangeNotifier {
-  final Event _event = Event();
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-  // Controllers
-  final List<TextEditingController> speakerControllers = [
-    TextEditingController()
-  ];
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController mobileNumberController = TextEditingController();
-  final TextEditingController churchLandlineController =
-      TextEditingController();
-  final TextEditingController dressCodeController = TextEditingController();
-
-  // Error messages
-  Map<String, String> _errorMessages = {};
-
-  // Getters
-  Event get event => _event;
-  Map<String, String> get errorMessages => _errorMessages;
-  List<String> get availableTags => EventConstants.availableTags;
-  int get maxImages => EventConstants.maxImages;
-
-  CreateEventViewModel() {
-    _initializeEvent();
-  }
-
-  void _initializeEvent() {
-    _event.tags = [];
-    _event.speakers = [];
-    _event.additionalImages = [];
-  }
-
-  // Image handling
-  Future<void> pickImage() async {
-    if (_totalImagesCount >= EventConstants.maxImages) {
-      throw Exception(ValidationMessages.maxImagesReached);
-    }
-
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-      if (image != null) {
-        Uint8List? imageBytes;
-        String? imagePath;
-
-        if (kIsWeb) {
-          imageBytes = await image.readAsBytes();
-        } else {
-          imagePath = image.path;
-          imageBytes = await File(imagePath).readAsBytes();
-        }
-
-        if (_event.imageBytes == null &&
-            _event.imagePath == null &&
-            _event.imageUrl == null) {
-          _event.imageBytes = imageBytes;
-          _event.imagePath = imagePath;
-        } else {
-          final eventImage = EventImage(
-            imageBytes: imageBytes,
-            imagePath: imagePath,
-          );
-          _event.additionalImages.add(eventImage);
-        }
-        notifyListeners();
-      }
-    } catch (e) {
-      throw Exception('${ValidationMessages.imagePickError}: $e');
-    }
-  }
-
-  void removeImage(int index) {
-    if (index == -1) {
-      _event.imageBytes = null;
-      _event.imagePath = null;
-      _event.imageUrl = null;
-    } else {
-      _event.additionalImages.removeAt(index);
-    }
-    notifyListeners();
-  }
-
-  bool get hasMainImage {
-    return _event.imageBytes != null ||
-        _event.imagePath != null ||
-        _event.imageUrl != null;
-  }
-
-  int get _totalImagesCount {
-    return (hasMainImage ? 1 : 0) + _event.additionalImages.length;
-  }
-
-  int get totalImagesCount => _totalImagesCount;
-
-  // Tag handling
-  void toggleTag(String tag) {
-    if (_event.tags.contains(tag)) {
-      _event.tags.remove(tag);
-    } else {
-      _event.tags.add(tag);
-    }
-    notifyListeners();
-  }
-
-  // Speaker handling
-  void addSpeaker() {
-    speakerControllers.add(TextEditingController());
-    notifyListeners();
-  }
-
-  void removeSpeaker(int index) {
-    if (speakerControllers.length > 1 || index > 0) {
-      speakerControllers.removeAt(index);
+class EventTargetsViewModel extends ChangeNotifier {
+  final EventTargetsVariables _variables;
+  
+  EventTargetsViewModel(this._variables);
+  
+  // Getters for accessing variables
+  EventTargetsVariables get variables => _variables;
+  
+  // Date selection method
+  Future<void> selectDate(BuildContext context) async {
+    final today = DateTime.now();
+    
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _variables.targetPublishDate ?? today,
+      firstDate: today,
+      lastDate: _variables.maxAllowedDate,
+      helpText: EventTargetsConstants.datePickerHelpText,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: EventTargetsColors.yellowHighlight,
+              onPrimary: EventTargetsColors.textBlack,
+              onSurface: EventTargetsColors.textBlack,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: EventTargetsColors.yellowHighlight,
+              ),
+            ), 
+            dialogTheme: const DialogThemeData(backgroundColor: EventTargetsColors.backgroundWhite),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null && picked != _variables.targetPublishDate) {
+      _variables.targetPublishDate = picked;
       notifyListeners();
     }
   }
 
-  // Form validation
-  bool validateForm() {
-    _errorMessages = {};
-    bool isValid = true;
-
-    // Validate title
-    if (titleController.text.isEmpty) {
-      _errorMessages['title'] = ValidationMessages.titleRequired;
-      isValid = false;
+  // Time selection method
+  Future<void> selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _variables.targetPublishTime ?? TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: EventTargetsColors.yellowHighlight,
+              onPrimary: EventTargetsColors.textBlack,
+              onSurface: EventTargetsColors.textBlack,
+              surface: EventTargetsColors.backgroundWhite,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: EventTargetsColors.backgroundWhite,
+              hourMinuteColor: WidgetStateColor.resolveWith((states) =>
+                states.contains(WidgetState.selected) ? EventTargetsColors.yellowHighlight : Colors.grey.shade200
+              ),
+              hourMinuteTextColor: WidgetStateColor.resolveWith((states) =>
+                states.contains(WidgetState.selected) ? EventTargetsColors.textBlack : EventTargetsColors.textBlack
+              ),
+              dialBackgroundColor: Colors.grey.shade100,
+              dialHandColor: EventTargetsColors.yellowHighlight,
+              dialTextColor: WidgetStateColor.resolveWith((states) =>
+                states.contains(WidgetState.selected) ? EventTargetsColors.backgroundWhite : EventTargetsColors.textBlack
+              ),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: EventTargetsColors.yellowHighlight,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null && picked != _variables.targetPublishTime) {
+      _variables.targetPublishTime = picked;
+      notifyListeners();
     }
+  }
 
-    // Validate tags
-    if (_event.tags.isEmpty) {
-      _errorMessages['tags'] = ValidationMessages.tagsRequired;
-      isValid = false;
-    }
+  // Notification management methods
+  void dismissNotification() {
+    _variables.showNotification = false;
+    notifyListeners();
+  }
 
-    // Validate description
-    if (descriptionController.text.isEmpty) {
-      _errorMessages['description'] = ValidationMessages.descriptionRequired;
-      isValid = false;
-    }
+  void dismissSuccessNotification() {
+    _variables.showSuccessNotification = false;
+    notifyListeners();
+  }
 
-    // Validate mobile number
-    if (mobileNumberController.text.isEmpty) {
-      _errorMessages['mobileNumber'] = ValidationMessages.mobileRequired;
-      isValid = false;
+  // Date formatting utility
+  String formatDate(DateTime? date) {
+    if (date == null) return EventTargetsConstants.naText;
+    return '${date.month}/${date.day}/${date.year}';
+  }
+  
+  // Get formatted list of event dates
+  String getFormattedEventDates() {
+    if (_variables.event == null) return EventTargetsConstants.naText;
+    
+    final event = _variables.event!;
+    if (event.isOneDay || event.eventDays == null || event.eventDays!.isEmpty) {
+      return '${EventTargetsConstants.eventOnText} ${formatDate(event.startDate)}';
     } else {
-      final mobileNumber =
-          mobileNumberController.text.replaceAll(RegExp(r'[^0-9]'), '');
-      if (!RegExp(EventConstants.philippineMobilePattern)
-          .hasMatch(mobileNumber)) {
-        _errorMessages['mobileNumber'] = ValidationMessages.invalidMobile;
-        isValid = false;
+      // For multiple specific dates, list them all
+      List<String> formattedDates = [];
+      for (var day in event.eventDays!) {
+        if (day.date != null) {
+          formattedDates.add(formatDate(day.date));
+        }
       }
-    }
-
-    // Validate church landline
-    if (churchLandlineController.text.isNotEmpty) {
-      final landline =
-          churchLandlineController.text.replaceAll(RegExp(r'[^0-9]'), '');
-      if (landline.length != EventConstants.landlineLength) {
-        _errorMessages['churchLandline'] = ValidationMessages.invalidLandline;
-        isValid = false;
-      }
-    }
-
-    // Validate dress code
-    if (dressCodeController.text.isNotEmpty) {
-      if (!RegExp(EventConstants.dressCodePattern)
-          .hasMatch(dressCodeController.text)) {
-        _errorMessages['dressCode'] = ValidationMessages.invalidDressCode;
-        isValid = false;
-      }
-    }
-
-    // Validate speakers
-    for (int i = 0; i < speakerControllers.length; i++) {
-      final speakerText = speakerControllers[i].text;
-      if (speakerText.isNotEmpty) {
-        if (!RegExp(EventConstants.namePattern).hasMatch(speakerText)) {
-          _errorMessages['speaker$i'] = ValidationMessages.invalidSpeakerName;
-          isValid = false;
+      
+      if (formattedDates.isEmpty) {
+        return '${EventTargetsConstants.eventOnText} ${formatDate(event.startDate)}';
+      } else if (formattedDates.length == 1) {
+        return '${EventTargetsConstants.eventOnText} ${formattedDates[0]}';
+      } else {
+        // Join all dates with commas and "and" for the last one
+        String lastDate = formattedDates.removeLast();
+        if (formattedDates.length == 1) {
+          return '${EventTargetsConstants.eventOnText} ${formattedDates[0]} and $lastDate';
+        } else {
+          return '${EventTargetsConstants.eventOnText} ${formattedDates.join(", ")} and $lastDate';
         }
       }
     }
+  }
 
+  // Dialog handling methods
+  void showSendInvitesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ConfirmationDialog(
+          title: EventTargetsConstants.sendInvitesTitle,
+          message: EventTargetsConstants.sendInvitesMessage,
+          negativeButtonText: EventTargetsConstants.noButtonText,
+          positiveButtonText: EventTargetsConstants.yesButtonText,
+          icon: Icons.search,
+          onNegativePressed: () {
+            Navigator.of(context).pop();
+          },
+          onPositivePressed: () {
+            Navigator.of(context).pop();
+            showSuccessSentDialog(context);
+          },
+        );
+      },
+    );
+  }
+
+  void showSuccessSentDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return SuccessDialog(
+          title: EventTargetsConstants.successSentTitle,
+          message: EventTargetsConstants.successSentMessage,
+          primaryButtonText: EventTargetsConstants.viewEventDetailsText,
+          secondaryButtonText: EventTargetsConstants.backToMenuText,
+          onPrimaryPressed: () {
+            Navigator.of(context).pop();
+            navigateToWaitingApproval(context);
+          },
+          onSecondaryPressed: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+        );
+      },
+    );
+  }
+
+  // Navigation methods
+  void navigateToWaitingApproval(BuildContext context) {
+    // Save event data first
+    saveEventData();
+    
+    // Navigate to waiting approval screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventWaitingApprovalScreen(event: _variables.event!),
+      ),
+    );
+  }
+
+  // Data persistence method
+  void saveEventData() {
+    if (_variables.event != null) {
+      // Save target publish date and time
+      _variables.event!.targetPublishDate = _variables.targetPublishDate;
+      _variables.event!.targetPublishTime = _variables.targetPublishTime;
+      
+      // Save invite message
+      _variables.event!.inviteMessage = _variables.inviteMessageController.text;
+    }
+  }
+
+  // Form validation method
+  bool validateForm(BuildContext context) {
+    if (_variables.targetPublishDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(EventTargetsConstants.selectDateError)),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  // Continue button handler
+  void handleContinue(BuildContext context) {
+    if (validateForm(context)) {
+      showSendInvitesDialog(context);
+    }
+  }
+
+  // Back button handler
+  void handleBack(BuildContext context) {
+    Navigator.pop(context);
+  }
+
+  // Extract role name from format "Role (count)"
+  String extractRoleName(String role) {
+    return role.split(' (')[0];
+  }
+
+  // Get notification message with date
+  String getAutoPublishNotificationMessage() {
+    return '${EventTargetsConstants.autoPublishNotification} (${formatDate(_variables.maxAllowedDate)}) if not published earlier.';
+  }
+}
+
+class EventWaitingApprovalViewModel extends ChangeNotifier {
+  final EventWaitingApprovalVariables _variables;
+  
+  EventWaitingApprovalViewModel(this._variables);
+  
+  // Getters for accessing variables
+  EventWaitingApprovalVariables get variables => _variables;
+  
+  // Initialize the screen and start timer
+  void initializeScreen(BuildContext context) {
+    // Save the event to the EventService when this screen is first loaded
+    saveEventToService();
+    
+    // Automatically navigate to event details after 5 seconds
+    _variables.timer = Timer(EventWaitingApprovalConstants.autoNavigationDelay, () {
+      if (context.mounted) {
+        navigateToEventDetails(context);
+      }
+    });
+  }
+  
+  void saveEventToService() {
+    // Set the event status to PENDING
+    
+    // Save the event to the EventService
+    final eventService = EventService();
+    final eventMap = eventService.convertEventToMap(_variables.event!);
+    eventService.addEvent(eventMap);
+    
+    _variables.eventSaved = true;
     notifyListeners();
-    return isValid;
   }
-
-  // Save form data
-  void saveFormData() {
-    _event.title = titleController.text;
-    _event.description = descriptionController.text;
-    _event.contactInfo = mobileNumberController.text;
-    _event.churchLandline = churchLandlineController.text.isEmpty
-        ? null
-        : churchLandlineController.text;
-    _event.dressCode = dressCodeController.text;
-
-    _event.speakers = speakerControllers
-        .map((controller) => controller.text)
-        .where((text) => text.isNotEmpty)
-        .toList();
+  
+  void navigateToEventDetails(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventDetailsScreen(event: _variables.event!),
+      ),
+    );
   }
-
-  // Navigation helper
-  bool canProceed() {
-    if (validateForm()) {
-      saveFormData();
-      return true;
-    }
-    return false;
+  
+  void navigateBack(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
-
-  @override
+  
   void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
-    mobileNumberController.dispose();
-    churchLandlineController.dispose();
-    dressCodeController.dispose();
-    for (var controller in speakerControllers) {
-      controller.dispose();
-    }
+    _variables.dispose();
     super.dispose();
   }
 }
 
-class DateTimeViewModel extends ChangeNotifier {
-  bool _isOneDay = true;
-  List<EventDay> _eventDays = [];
-  String? _timeError;
-  Map<int, String> _dateErrors = {};
-
-  // Getters
-  bool get isOneDay => _isOneDay;
-  List<EventDay> get eventDays => _eventDays;
-  String? get timeError => _timeError;
-  Map<int, String> get dateErrors => _dateErrors;
-
-  void initializeEventDays(Event event) {
-    _isOneDay = event.isOneDay;
-
-    if (event.eventDays != null && event.eventDays!.isNotEmpty) {
-      _eventDays = List.from(event.eventDays!);
-    } else if (event.startDate != null) {
-      _eventDays.add(EventDay(
-        date: event.startDate,
-        startTime: event.startTime,
-        endTime: event.endTime,
-      ));
-
-      if (!_isOneDay &&
-          event.endDate != null &&
-          event.startDate != null &&
-          !_isSameDay(event.startDate!, event.endDate!)) {
-        _eventDays.add(EventDay(
-          date: event.endDate,
-          startTime: event.startTime,
-          endTime: event.endTime,
-        ));
-      }
-    } else {
-      _eventDays.add(EventDay());
-    }
-    notifyListeners();
-  }
-
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
-  void setEventType(bool isOneDay) {
-    _isOneDay = isOneDay;
-    if (_isOneDay && _eventDays.length > 1) {
-      _eventDays = [_eventDays.first];
-      _dateErrors.clear();
-    }
-    notifyListeners();
-  }
-
-  void updateEventDate(int dayIndex, DateTime date) {
-    _eventDays[dayIndex].date = date;
-    _dateErrors.remove(dayIndex);
-
-    if (!_isOneDay && _eventDays.length > 1) {
-      _validateUniqueDates(dayIndex);
-    }
-    notifyListeners();
-  }
-
-  void updateEventTime(int dayIndex, TimeOfDay time, bool isStartTime) {
-    if (isStartTime) {
-      _eventDays[dayIndex].startTime = time;
-      if (_eventDays[dayIndex].endTime != null) {
-        _validateTimes(dayIndex);
-      }
-    } else {
-      _eventDays[dayIndex].endTime = time;
-      if (_eventDays[dayIndex].startTime != null) {
-        _validateTimes(dayIndex);
-      }
-    }
-    notifyListeners();
-  }
-
-  void _validateUniqueDates(int changedIndex) {
-    if (_isOneDay) return;
-
-    _dateErrors.remove(changedIndex);
-
-    if (_eventDays[changedIndex].date == null) return;
-
-    for (int i = 0; i < _eventDays.length; i++) {
-      if (i != changedIndex && _eventDays[i].date != null) {
-        if (_isSameDay(_eventDays[changedIndex].date!, _eventDays[i].date!)) {
-          _dateErrors[changedIndex] =
-              '${DateTimeValidation.duplicateDate} ${i + 1}';
-          return;
-        }
-      }
-    }
-  }
-
-  void _validateTimes(int dayIndex) {
-    final startTime = _eventDays[dayIndex].startTime;
-    final endTime = _eventDays[dayIndex].endTime;
-
-    if (startTime != null && endTime != null) {
-      final startMinutes = startTime.hour * 60 + startTime.minute;
-      final endMinutes = endTime.hour * 60 + endTime.minute;
-
-      if (startMinutes == endMinutes) {
-        _timeError = DateTimeValidation.timeConflict;
-      } else if (startMinutes > endMinutes) {
-        _timeError = DateTimeValidation.endTimeBeforeStart;
-      } else {
-        _timeError = null;
-      }
-    }
-  }
-
-  void addEventDay() {
-    _eventDays.add(EventDay());
-    _isOneDay = false;
-    notifyListeners();
-  }
-
-  void removeEventDay(int index) {
-    if (_eventDays.length > 1) {
-      _eventDays.removeAt(index);
-      _dateErrors.remove(index);
-
-      Map<int, String> newDateErrors = {};
-      _dateErrors.forEach((key, value) {
-        if (key > index) {
-          newDateErrors[key - 1] = value;
-        } else if (key < index) {
-          newDateErrors[key] = value;
-        }
-      });
-      _dateErrors = newDateErrors;
-
-      if (_eventDays.length == 1) {
-        _isOneDay = true;
-        _dateErrors.clear();
-      }
-
-      if (!_isOneDay && _eventDays.length > 1) {
-        for (int i = 0; i < _eventDays.length; i++) {
-          if (_eventDays[i].date != null) {
-            _validateUniqueDates(i);
-          }
-        }
-      }
-      notifyListeners();
-    }
-  }
-
-  String formatDate(DateTime? date) {
-    if (date == null) return 'Select date';
-    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  String formatTime(TimeOfDay? time) {
-    if (time == null) return 'Select time';
+class EventCreationFinalStepViewModel extends ChangeNotifier {
+  final EventCreationFinalStepVariables _variables;
+  
+  EventCreationFinalStepViewModel(this._variables);
+  
+  // Getters for accessing variables
+  EventCreationFinalStepVariables get variables => _variables;
+  
+  // Format time utility
+  String formatTime(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
     return '$hour:$minute $period';
   }
+  
+  // Get formatted date
+  String getFormattedDate() {
+    if (_variables.event?.startDate != null) {
+      return '${_variables.event!.startDate!.month}/${_variables.event!.startDate!.day}/${_variables.event!.startDate!.year}';
+    }
+    return EventCreationFinalStepConstants.noDateProvided;
+  }
+  
+  // Get formatted time range
+  String getFormattedTimeRange() {
+    if (_variables.event?.startTime != null && _variables.event?.endTime != null) {
+      return '${formatTime(_variables.event!.startTime!)} - ${formatTime(_variables.event!.endTime!)}';
+    }
+    return EventCreationFinalStepConstants.noTimeProvided;
+  }
+  
+  // Get location text
+  String getLocationText() {
+    if (_variables.event?.isOnline == true) {
+      return EventCreationFinalStepConstants.onlineEventText;
+    }
+    return _variables.event?.venueName ?? EventCreationFinalStepConstants.noLocationProvided;
+  }
+  
+  // Handle edit button
+  void handleEdit(BuildContext context) {
+    Navigator.pop(context);
+  }
+  
+  // Handle submit button
+  void handleSubmit(BuildContext context) {
+    // Save the event to the EventService
+    final eventService = EventService();
+    final eventMap = eventService.convertEventToMap(_variables.event!);
+    eventService.addEvent(eventMap);
+    
+    // Navigate to the waiting approval screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventWaitingApprovalScreen(event: _variables.event!),
+      ),
+    );
+  }
+}
+
+class EventDetailsViewModel extends ChangeNotifier {
+  final EventDetailsVariables _variables;
+  
+  EventDetailsViewModel(this._variables);
+  
+  // Getters for accessing variables
+  EventDetailsVariables get variables => _variables;
+  
+  // Initialize screen dependencies
+  void initializeDependencies(BuildContext context) {
+    if (!_variables.dependenciesInitialized) {
+      final mediaQuery = MediaQuery.of(context);
+      _variables.screenHeight = mediaQuery.size.height;
+      _variables.screenWidth = mediaQuery.size.width;
+      _variables.dependenciesInitialized = true;
+      
+      // Pre-load image after dependencies are initialized
+      preloadImage(context);
+    }
+  }
+  
+  // Save event to service
+  void saveEventToService() {
+    // Only save if not already saved
+    if (!_variables.eventSaved && _variables.event?.title != null) {
+      // Check if event already exists in the service
+      final eventService = EventService();
+      
+      // Only add the event if it doesn't already exist
+      if (!eventService.eventExists(_variables.event!.title!)) {
+        final eventMap = eventService.convertEventToMap(_variables.event!);
+        final added = eventService.addEvent(eventMap);
+        
+        if (added) {
+          _variables.eventSaved = true;
+          notifyListeners();
+        }
+      } else {
+        // Event already exists, just mark as saved
+        _variables.eventSaved = true;
+        notifyListeners();
+      }
+    }
+  }
+  
+  // Pre-load image with memory optimization
+  void preloadImage(BuildContext context) {
+    if (_variables.event?.imageBytes != null && _variables.event!.imageBytes!.isNotEmpty) {
+      _variables.cachedImage = MemoryImage(_variables.event!.imageBytes!);
+    } else if (_variables.event?.imageUrl != null && _variables.event!.imageUrl!.isNotEmpty) {
+      _variables.cachedImage = NetworkImage(_variables.event!.imageUrl!);
+    } else if (_variables.event?.imagePath != null && !kIsWeb) {
+      _variables.cachedImage = FileImage(File(_variables.event!.imagePath!));
+    }
+    
+    if (_variables.cachedImage != null) {
+      // Precache image with reduced size
+      precacheImage(_variables.cachedImage!, context)
+          .then((_) {
+            _variables.isImageLoading = false;
+            notifyListeners();
+          })
+          .catchError((error) {
+            _variables.isImageLoading = false;
+            _variables.cachedImage = null; // Clear on error
+            notifyListeners();
+          });
+    } else {
+      _variables.isImageLoading = false;
+    }
+  }
+  
+  // Optimized date formatting - reuse formatters
+  String formatDate(DateTime? date) {
+    if (date == null) return '';
+    return _variables.dateFormatter.format(date);
+  }
+  
+  String formatShortDate(DateTime? date) {
+    if (date == null) return '';
+    return _variables.shortDateFormatter.format(date);
+  }
+  
+  String formatTime(TimeOfDay? time) {
+    if (time == null) return '';
+    
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    
+    return '$hour:$minute $period';
+  }
+  
+  // Toggle like functionality
+  void toggleLike(BuildContext context) {
+    if (_variables.hasLiked) {
+      _variables.likeCount--;
+    } else {
+      _variables.likeCount++;
+      // Show a brief animation or feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(EventDetailsConstants.youLikedEventText),
+          duration: EventDetailsConstants.likeFeedbackDuration,
+          backgroundColor: Color(0xFF0A0A4A),
+        ),
+      );
+    }
+    _variables.hasLiked = !_variables.hasLiked;
+    notifyListeners();
+  }
+  
+  // Toggle description expansion
+  void toggleDescription() {
+    _variables.isDescriptionExpanded = !_variables.isDescriptionExpanded;
+    notifyListeners();
+  }
+  
+  // Register for event
+  void registerForEvent() {
+    _variables.isRegistered = true;
+    _variables.showRegistrationNotification = true;
+    notifyListeners();
+    
+    // Auto-hide notification after 5 seconds
+    Future.delayed(EventDetailsConstants.registrationNotificationDuration, () {
+      _variables.showRegistrationNotification = false;
+      notifyListeners();
+    });
+  }
+  
+  // Dismiss registration notification
+  void dismissNotification() {
+    _variables.showRegistrationNotification = false;
+    notifyListeners();
+  }
+  
+  // Copy event URL to clipboard
+  void copyEventUrl(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: _variables.eventUrl));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(EventDetailsConstants.eventUrlCopiedText)),
+    );
+  }
+  
+  // Show share dialog
+  void showShareDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(EventDetailsConstants.shareEventTitle, style: TextStyle(fontSize: 18)),
+            IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              onPressed: () => Navigator.of(context).pop(),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Event URL with copy button
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _variables.eventUrl,
+                      style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy, size: 20),
+                    onPressed: () {
+                      copyEventUrl(context);
+                      Navigator.of(context).pop();
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            const Text(
+              EventDetailsConstants.shareViaText,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            
+            // Simplified row of icons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.facebook, color: Colors.blue),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text(EventDetailsConstants.sharingViaFacebookText)),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chat, color: Colors.green),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text(EventDetailsConstants.sharingViaWhatsAppText)),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.email, color: Colors.red),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text(EventDetailsConstants.sharingViaEmailText)),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.sms, color: Colors.orange),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text(EventDetailsConstants.sharingViaSMSText)),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // Navigate back to events tab
+  void navigateToEventsTab(BuildContext context) {
+    // Pop until we reach the main navigation screen
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+  
+  // Show chat feature coming soon
+  void showChatFeature(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(EventDetailsConstants.chatFeatureComingSoonText)),
+    );
+  }
+  
+  // Clean up resources
+  void dispose() {
+    // Clear any cached data
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+    
+    // Clear cached image
+    _variables.cachedImage = null;
+    
+    super.dispose();
+  }
+}
+
+class CreateEventViewModel extends ChangeNotifier {
+  final Event _event = Event();
+  final List<String> _selectedTags = [];
+  final List<String> _speakers = [];
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _contactInfoController = TextEditingController();
+  final TextEditingController _churchLandlineController = TextEditingController();
+  final TextEditingController _dressCodeController = TextEditingController();
+  final TextEditingController _speakerController = TextEditingController();
+  
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  // Getters
+  Event get event => _event;
+  List<String> get selectedTags => _selectedTags;
+  List<String> get speakers => _speakers;
+  TextEditingController get titleController => _titleController;
+  TextEditingController get descriptionController => _descriptionController;
+  TextEditingController get contactInfoController => _contactInfoController;
+  TextEditingController get churchLandlineController => _churchLandlineController;
+  TextEditingController get dressCodeController => _dressCodeController;
+  TextEditingController get speakerController => _speakerController;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  void setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void setError(String? error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void toggleTag(String tag) {
+    if (_selectedTags.contains(tag)) {
+      _selectedTags.remove(tag);
+    } else {
+      _selectedTags.add(tag);
+    }
+    _event.tags = List.from(_selectedTags);
+    notifyListeners();
+  }
+
+  void addSpeaker() {
+    final speaker = _speakerController.text.trim();
+    if (speaker.isNotEmpty && !_speakers.contains(speaker)) {
+      _speakers.add(speaker);
+      _event.speakers = List.from(_speakers);
+      _speakerController.clear();
+      notifyListeners();
+    }
+  }
+
+  void removeSpeaker(int index) {
+    if (index >= 0 && index < _speakers.length) {
+      _speakers.removeAt(index);
+      _event.speakers = List.from(_speakers);
+      notifyListeners();
+    }
+  }
 
   bool validateForm() {
-    for (var day in _eventDays) {
-      if (day.date == null || day.startTime == null || day.endTime == null) {
+    _errorMessage = null;
+    
+    if (_titleController.text.trim().isEmpty) {
+      _errorMessage = ValidationMessages.titleRequired;
+      return false;
+    }
+    
+    if (_selectedTags.isEmpty) {
+      _errorMessage = ValidationMessages.tagsRequired;
+      return false;
+    }
+    
+    if (_descriptionController.text.trim().isEmpty) {
+      _errorMessage = ValidationMessages.descriptionRequired;
+      return false;
+    }
+    
+    if (_contactInfoController.text.trim().isEmpty) {
+      _errorMessage = ValidationMessages.mobileRequired;
+      return false;
+    }
+    
+    // Validate mobile number format
+    final mobilePattern = RegExp(EventConstants.philippineMobilePattern);
+    if (!mobilePattern.hasMatch(_contactInfoController.text.trim())) {
+      _errorMessage = ValidationMessages.invalidMobile;
+      return false;
+    }
+    
+    // Validate landline if provided
+    if (_churchLandlineController.text.trim().isNotEmpty) {
+      if (_churchLandlineController.text.trim().length != EventConstants.landlineLength) {
+        _errorMessage = ValidationMessages.invalidLandline;
         return false;
       }
     }
-    return _timeError == null && _dateErrors.isEmpty;
+    
+    return true;
   }
 
-  void saveEventData(Event event) {
-    event.isOneDay = _isOneDay;
+  void saveEventData() {
+    _event.title = _titleController.text.trim();
+    _event.description = _descriptionController.text.trim();
+    _event.contactInfo = _contactInfoController.text.trim();
+    _event.churchLandline = _churchLandlineController.text.trim();
+    _event.dressCode = _dressCodeController.text.trim();
+    _event.tags = List.from(_selectedTags);
+    _event.speakers = List.from(_speakers);
+  }
 
-    if (_eventDays.isNotEmpty) {
-      event.startDate = _eventDays[0].date;
-      event.startTime = _eventDays[0].startTime;
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _contactInfoController.dispose();
+    _churchLandlineController.dispose();
+    _dressCodeController.dispose();
+    _speakerController.dispose();
+    super.dispose();
+  }
+}
 
-      if (_isOneDay || _eventDays.length == 1) {
-        event.endDate = _eventDays[0].date;
-        event.endTime = _eventDays[0].endTime;
-      } else {
-        event.endDate = _eventDays.last.date;
-        event.endTime = _eventDays.last.endTime;
-      }
+class DateTimeViewModel extends ChangeNotifier {
+  Event? _event;
+  bool _isOneDay = true;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
+  List<EventDay> _eventDays = [];
+  String? _errorMessage;
 
-      event.eventDays = List.from(_eventDays);
+  // Getters
+  bool get isOneDay => _isOneDay;
+  DateTime? get startDate => _startDate;
+  DateTime? get endDate => _endDate;
+  TimeOfDay? get startTime => _startTime;
+  TimeOfDay? get endTime => _endTime;
+  List<EventDay> get eventDays => _eventDays;
+  String? get errorMessage => _errorMessage;
+
+  void initializeWithEvent(Event event) {
+    _event = event;
+    _isOneDay = event.isOneDay;
+    _startDate = event.startDate;
+    _endDate = event.endDate;
+    _startTime = event.startTime;
+    _endTime = event.endTime;
+    _eventDays = event.eventDays ?? [];
+    notifyListeners();
+  }
+
+  void setOneDay(bool isOneDay) {
+    _isOneDay = isOneDay;
+    _event?.isOneDay = isOneDay;
+    
+    if (isOneDay) {
+      _eventDays.clear();
+      _event?.eventDays?.clear();
     }
+    
+    notifyListeners();
+  }
+
+  Future<void> selectStartDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _startDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    
+    if (picked != null) {
+      _startDate = picked;
+      _event?.startDate = picked;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? _startDate ?? DateTime.now(),
+      firstDate: _startDate ?? DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    
+    if (picked != null) {
+      _endDate = picked;
+      _event?.endDate = picked;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectStartTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _startTime ?? TimeOfDay.now(),
+    );
+    
+    if (picked != null) {
+      _startTime = picked;
+      _event?.startTime = picked;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectEndTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _endTime ?? TimeOfDay.now(),
+    );
+    
+    if (picked != null) {
+      if (_startTime != null && _timeToMinutes(picked) <= _timeToMinutes(_startTime!)) {
+        _errorMessage = DateTimeValidation.endTimeBeforeStart;
+      } else {
+        _endTime = picked;
+        _event?.endTime = picked;
+        _errorMessage = null;
+      }
+      notifyListeners();
+    }
+  }
+
+  int _timeToMinutes(TimeOfDay time) {
+    return time.hour * 60 + time.minute;
+  }
+
+  void addEventDay() {
+    _eventDays.add(EventDay());
+    _event?.eventDays = List.from(_eventDays);
+    notifyListeners();
+  }
+
+  void removeEventDay(int index) {
+    if (index >= 0 && index < _eventDays.length) {
+      _eventDays.removeAt(index);
+      _event?.eventDays = List.from(_eventDays);
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectEventDayDate(BuildContext context, int index) async {
+    if (index < 0 || index >= _eventDays.length) return;
+    
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _eventDays[index].date ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    
+    if (picked != null) {
+      _eventDays[index].date = picked;
+      _event?.eventDays = List.from(_eventDays);
+      notifyListeners();
+    }
+  }
+
+  bool validateDateTime() {
+    _errorMessage = null;
+    
+    if (_isOneDay) {
+      if (_startDate == null) {
+        _errorMessage = 'Please select a start date';
+        return false;
+      }
+      
+      if (_startTime != null && _endTime != null) {
+        if (_timeToMinutes(_startTime!) >= _timeToMinutes(_endTime!)) {
+          _errorMessage = DateTimeValidation.endTimeBeforeStart;
+          return false;
+        }
+      }
+    } else {
+      if (_eventDays.isEmpty) {
+        _errorMessage = 'Please add at least one event day';
+        return false;
+      }
+      
+      for (int i = 0; i < _eventDays.length; i++) {
+        final day = _eventDays[i];
+        if (day.date == null) {
+          _errorMessage = 'Please select date for Day ${i + 1}';
+          return false;
+        }
+        
+        if (day.startTime != null && day.endTime != null) {
+          if (_timeToMinutes(day.startTime!) >= _timeToMinutes(day.endTime!)) {
+            _errorMessage = 'End time must be after start time for Day ${i + 1}';
+            return false;
+          }
+        }
+      }
+    }
+    
+    return true;
   }
 }
 
 class EventLocationViewModel extends ChangeNotifier {
-  final EventLocationModel _model;
-  final TextEditingController eventLinkController = TextEditingController();
-  final TextEditingController customPlatformController =
-      TextEditingController();
-
-  EventLocationViewModel(this._model);
+  final EventLocationModel _model = EventLocationModel();
+  Event? _event;
 
   // Getters
   EventLocationModel get model => _model;
 
-  Future<void> initializeFromEvent(Event event) async {
-    _model.setOnline(event.isOnline);
-    _model.setEventLink(event.eventLinkVenue);
-
-    if (event.eventLinkVenue != null) {
-      eventLinkController.text = event.eventLinkVenue!;
-      await validateUrl(event.eventLinkVenue!);
-    }
-
-    // Initialize platform selection if available from the event
+  void initializeWithEvent(Event event) {
+    _event = event;
+    _model.setOnline(event.isOnline ?? false);
+    _model.setEventLink(event.eventLink);
+    _model.setOutsourcedVenue(event.isOutsourcedVenue ?? false);
+    
     if (event.meetingPlatform != null) {
-      if (_model.meetingPlatforms.contains(event.meetingPlatform)) {
-        _model.setSelectedPlatform(event.meetingPlatform!);
-      } else {
-        _model.setSelectedPlatform('Others');
-        customPlatformController.text = event.meetingPlatform!;
-      }
+      _model.setSelectedPlatform(event.meetingPlatform!);
     }
-  }
-
-  void setOnline(bool value) {
-    _model.setOnline(value);
+    
     notifyListeners();
   }
 
-  void setOutsourcedVenue(bool value) {
-    _model.setOutsourcedVenue(value);
+  void setOnline(bool isOnline) {
+    _model.setOnline(isOnline);
+    _event?.isOnline = isOnline;
+    
+    if (!isOnline) {
+      _model.setEventLink(null);
+      _event?.eventLink = null;
+    }
+    
+    notifyListeners();
+  }
+
+  void setOutsourcedVenue(bool isOutsourced) {
+    _model.setOutsourcedVenue(isOutsourced);
+    _event?.isOutsourcedVenue = isOutsourced;
     notifyListeners();
   }
 
   void setSelectedPlatform(String platform) {
     _model.setSelectedPlatform(platform);
-
-    // Clear URL field when platform changes
-    if (eventLinkController.text.isNotEmpty) {
-      eventLinkController.clear();
-      _model.setUrlValidated(false);
-      _model.setUrlError(null);
-    }
+    _event?.meetingPlatform = platform;
     notifyListeners();
   }
 
-  void onUrlChanged(String value) {
-    _model.setEventLink(value);
-    if (value.isNotEmpty) {
-      validateUrl(value);
-    }
-  }
-
-  Future<bool> validateUrl(String url) async {
-    if (url.isEmpty) {
+  Future<void> validateAndSetEventLink(String url) async {
+    if (url.trim().isEmpty) {
       _model.setUrlError(LocationValidationMessages.urlRequired);
-      _model.setUrlValidated(false);
-      _model.setValidatingUrl(false);
       notifyListeners();
-      return false;
-    }
-
-    // Check if URL starts with http:// or https://
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      _model.setUrlError(LocationValidationMessages.urlMustStartWithHttp);
-      _model.setUrlValidated(false);
-      _model.setValidatingUrl(false);
-      notifyListeners();
-      return false;
-    }
-
-    // Platform-specific URL validation
-    if (!_model.isCustomPlatform) {
-      bool isValidPlatformUrl = false;
-      String platformName = '';
-
-      switch (_model.selectedPlatform) {
-        case 'Google Meet':
-          isValidPlatformUrl = url.contains('meet.google.com');
-          platformName = 'Google Meet';
-          break;
-        case 'Zoom':
-          isValidPlatformUrl = url.contains('zoom.us');
-          platformName = 'Zoom';
-          break;
-        case 'Microsoft Teams':
-          isValidPlatformUrl = url.contains('teams.microsoft.com') ||
-              url.contains('teams.live.com');
-          platformName = 'Microsoft Teams';
-          break;
-        default:
-          isValidPlatformUrl = true;
-      }
-
-      if (!isValidPlatformUrl) {
-        _model.setUrlError('Please enter a valid $platformName URL');
-        _model.setUrlValidated(false);
-        _model.setValidatingUrl(false);
-        notifyListeners();
-        return false;
-      }
+      return;
     }
 
     _model.setValidatingUrl(true);
     _model.setUrlError(null);
     notifyListeners();
 
-    try {
-      // Simulate URL validation - in real app, use http package
-      await Future.delayed(const Duration(seconds: 1));
-
-      _model.setValidatingUrl(false);
+    final validation = await _validateUrl(url.trim());
+    
+    _model.setValidatingUrl(false);
+    
+    if (validation.isValid) {
+      _model.setEventLink(url.trim());
       _model.setUrlValidated(true);
       _model.setUrlError(null);
-      notifyListeners();
-
-      return true;
-    } catch (e) {
-      _model.setValidatingUrl(false);
-      _model.setUrlError(
-          '${LocationValidationMessages.invalidUrl}: ${e.toString().split(':')[0]}');
+      _event?.eventLink = url.trim();
+    } else {
+      _model.setUrlError(validation.errorMessage);
       _model.setUrlValidated(false);
-      notifyListeners();
-      return false;
     }
+    
+    notifyListeners();
   }
 
-  String getUrlHintText() {
-    if (_model.isCustomPlatform) {
-      return 'https://';
-    }
-
-    switch (_model.selectedPlatform) {
-      case 'Google Meet':
-        return 'https://meet.google.com/xxx-xxxx-xxx';
-      case 'Zoom':
-        return 'https://zoom.us/j/xxxxxxxxxx';
-      case 'Microsoft Teams':
-        return 'https://teams.microsoft.com/l/meetup-join/...';
-      default:
-        return 'https://';
-    }
-  }
-
-  String getValidationHelpText() {
-    if (_model.isCustomPlatform) {
-      return 'Please enter a valid, working URL (e.g., https://example.com)';
-    }
-    return 'Please enter a valid ${_model.selectedPlatform} URL';
-  }
-
-  Future<LocationValidationResult> validateOnlineEvent() async {
-    if (eventLinkController.text.isEmpty) {
+  Future<LocationValidationResult> _validateUrl(String url) async {
+    // Basic URL format validation
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
       return LocationValidationResult(
         isValid: false,
-        errorMessage: 'Please enter a URL',
+        errorMessage: LocationValidationMessages.urlMustStartWithHttp,
       );
     }
 
-    // Check if custom platform is selected but not specified
-    if (_model.isCustomPlatform && customPlatformController.text.isEmpty) {
+    // Platform-specific validation
+    final platform = _model.selectedPlatform.toLowerCase();
+    
+    if (platform.contains('google meet') && !url.contains('meet.google.com')) {
       return LocationValidationResult(
         isValid: false,
-        errorMessage: 'Please specify the meeting platform',
+        errorMessage: LocationValidationMessages.invalidGoogleMeetUrl,
+      );
+    }
+    
+    if (platform.contains('zoom') && !url.contains('zoom.us')) {
+      return LocationValidationResult(
+        isValid: false,
+        errorMessage: LocationValidationMessages.invalidZoomUrl,
+      );
+    }
+    
+    if (platform.contains('teams') && !url.contains('teams.microsoft.com')) {
+      return LocationValidationResult(
+        isValid: false,
+        errorMessage: LocationValidationMessages.invalidTeamsUrl,
       );
     }
 
-    final isValid = await validateUrl(eventLinkController.text);
-    if (!isValid) {
+    // Try to validate URL accessibility
+    try {
+      final uri = Uri.parse(url);
+      final response = await http.head(uri).timeout(const Duration(seconds: 5));
+      
+      if (response.statusCode >= 200 && response.statusCode < 400) {
+        return LocationValidationResult(isValid: true);
+      } else {
+        return LocationValidationResult(
+          isValid: false,
+          errorMessage: LocationValidationMessages.urlNotAccessible,
+        );
+      }
+    } catch (e) {
       return LocationValidationResult(
         isValid: false,
-        errorMessage: 'Please enter a valid, working URL',
+        errorMessage: LocationValidationMessages.invalidUrl,
       );
     }
-
-    return LocationValidationResult(isValid: true);
   }
 
-  void saveEventData(Event event) {
-    event.isOnline = _model.isOnline;
-    event.eventLinkVenue = _model.eventLink;
-    event.isOutsourcedVenue = _model.isOutsourcedVenue;
-
-    // Save meeting platform information
+  bool validateLocation() {
     if (_model.isOnline) {
-      event.meetingPlatform = _model.isCustomPlatform
-          ? customPlatformController.text
-          : _model.selectedPlatform;
+      if (_model.eventLink == null || _model.eventLink!.trim().isEmpty) {
+        _model.setUrlError(LocationValidationMessages.urlRequired);
+        notifyListeners();
+        return false;
+      }
+      
+      if (!_model.urlValidated) {
+        _model.setUrlError(LocationValidationMessages.validWorkingUrl);
+        notifyListeners();
+        return false;
+      }
     }
-  }
-
-  @override
-  void dispose() {
-    eventLinkController.dispose();
-    customPlatformController.dispose();
-    super.dispose();
+    
+    return true;
   }
 }
 
-class EventApiErrorViewModel {
-  final EventApiErrorModel _errorModel = const EventApiErrorModel();
-
-  EventApiErrorModel get errorModel => _errorModel;
-
-  void navigateBack(BuildContext context) {
-    Navigator.pop(context);
-  }
-}
-
-class EventMapViewModel extends ChangeNotifier {
-  final EventLocationModel _model = EventLocationModel();
-  final TextEditingController searchController = TextEditingController();
-
-  // Getters
-  EventLocationModel get model => _model;
-
-  void initializeFromEvent(Event event) {
-    // Initialize venue information if available from event
-    // Venue name and address initialization skipped: setVenueName and setDistance do not exist on EventLocationModel
-  }
-
-  void toggleSearch() {
-    // Search toggling skipped: setSearching and isSearching do not exist on EventLocationModel
-    notifyListeners();
-  }
-
-  void setSearching(bool searching) {
-    // setSearching does not exist on EventLocationModel
-    notifyListeners();
-  }
-
-  void selectLocation(String location) {
-    // setVenueName, setSearching, addRecentLocation do not exist on EventLocationModel
-    searchController.clear();
-    notifyListeners();
-  }
-
-  IconData getLocationIcon(int index) {
-    if (index == 0) return Icons.home;
-    if (index == 1) return Icons.location_on;
-    return Icons.history;
-  }
-
-  Color getLocationIconColor(int index) {
-    return index < 2 ? const Color.fromARGB(255, 6, 6, 118) : Colors.grey;
-  }
-
-  void saveVenueToEvent(Event event) {
-    event.venueName = _model.eventLink;
-    event.venueAddress = null;
-  }
-
-  void navigateToSummary(BuildContext context, Event event) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EventSummaryScreen(
-          event: event,
-          title: event.title,
-          tags: event.tags,
-          description: event.description,
-          contactInfo: event.contactInfo,
-          churchLandline: event.churchLandline,
-          dressCode: event.dressCode,
-          speakers: event.speakers,
-          imageUrl: event.imageUrl,
-          imagePath: event.imagePath,
-          imageBytes: event.imageBytes,
-          additionalImages: event.additionalImages,
-          isOneDay: event.isOneDay,
-          eventDays: event.eventDays ?? const [],
-          startDate: event.startDate,
-          endDate: event.endDate,
-          startTime: event.startTime,
-          endTime: event.endTime,
-          isOnline: event.isOnline,
-          eventLink: event.eventLinkVenue,
-          isOutsourcedVenue: event.isOutsourcedVenue ?? false,
-          meetingPlatform: event.meetingPlatform,
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-}
-
-class EventSummaryViewModel {
+class EventSummaryViewModel extends ChangeNotifier {
   final EventSummaryModel _model = const EventSummaryModel();
-  late Event _event;
-  late String? _title;
-  late List<String> _tags;
-  late String? _description;
-  late String? _contactInfo;
-  late String? _churchLandline;
-  late String? _dressCode;
-  late List<String> _speakers;
-  late String? _imageUrl;
-  late String? _imagePath;
-  late Uint8List? _imageBytes;
-  late List<EventImage> _additionalImages;
-  late bool _isOneDay;
-  late List<EventDay> _eventDays;
-  late DateTime? _startDate;
-  late DateTime? _endDate;
-  late TimeOfDay? _startTime;
-  late TimeOfDay? _endTime;
-  late bool _isOnline;
-  late String? _eventLink;
-  late bool _isOutsourcedVenue;
-  late String? _meetingPlatform;
+  Event? _event;
 
   // Getters
   EventSummaryModel get model => _model;
+  Event? get event => _event;
 
-  void initializeFromWidget(dynamic widget) {
-    _event = widget.event;
-    _title = widget.title;
-    _tags = widget.tags;
-    _description = widget.description;
-    _contactInfo = widget.contactInfo;
-    _churchLandline = widget.churchLandline;
-    _dressCode = widget.dressCode;
-    _speakers = widget.speakers;
-    _imageUrl = widget.imageUrl;
-    _imagePath = widget.imagePath;
-    _imageBytes = widget.imageBytes;
-    _additionalImages = widget.additionalImages;
-    _isOneDay = widget.isOneDay;
-    _eventDays = widget.eventDays;
-    _startDate = widget.startDate;
-    _endDate = widget.endDate;
-    _startTime = widget.startTime;
-    _endTime = widget.endTime;
-    _isOnline = widget.isOnline;
-    _eventLink = widget.eventLinkVenue;
-    _isOutsourcedVenue = widget.isOutsourcedVenue;
-    _meetingPlatform = widget.meetingPlatform;
+  void initializeWithEvent(Event event) {
+    _event = event;
+    notifyListeners();
   }
 
   List<EventDetailItem> getEventDetails() {
-    return [
-      EventDetailItem(
-        label: 'Event Title',
-        value: _title ?? _event.title ?? 'To be answered',
-      ),
-      EventDetailItem(
-        label: 'Tags',
-        value: (_tags.isNotEmpty ? _tags : _event.tags).isEmpty
-            ? 'None selected'
-            : (_tags.isNotEmpty ? _tags : _event.tags).join(', '),
-      ),
-      EventDetailItem(
-        label: 'Event Description',
-        value: _description ?? _event.description ?? 'To be answered',
-      ),
-      EventDetailItem(
-        label: 'Speaker',
-        value: (_speakers.isNotEmpty ? _speakers : _event.speakers).isEmpty
-            ? 'None specified'
-            : (_speakers.isNotEmpty ? _speakers : _event.speakers).join(', '),
-      ),
-      EventDetailItem(
-        label: 'Event Date',
-        value: _isOneDay ? 'One day event' : 'Multiple day event',
-      ),
-      EventDetailItem(
-        label: 'Date',
-        value: _isOneDay
-            ? _formatDate(_startDate)
-            : '${_formatDate(_startDate)} - ${_formatDate(_endDate)}',
-      ),
-      EventDetailItem(
-        label: 'Time',
-        value: '${_formatTime(_startTime)} - ${_formatTime(_endTime)}',
-      ),
-      EventDetailItem(
-        label: 'Event Setting',
-        value: _isOnline ? 'Online' : 'Onsite',
-      ),
-      EventDetailItem(
-        label: 'Venue/Location',
-        value: _isOnline
-            ? (_eventLink ?? 'No link provided')
-            : (_isOutsourcedVenue
-                ? 'Outsourced Event API (link)'
-                : (_event.venueName ?? 'No venue specified')),
-      ),
-    ];
-  }
-
-  Widget buildEventImage() {
-    if (_event.imageBytes != null && _event.imageBytes!.isNotEmpty) {
-      return Image.memory(
-        _event.imageBytes!,
-        width: double.infinity,
-        height: 200,
-        fit: BoxFit.cover,
-      );
-    } else if (_event.imageUrl != null && _event.imageUrl!.isNotEmpty) {
-      return Image.network(
-        _event.imageUrl!,
-        width: double.infinity,
-        height: 200,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholderImage();
-        },
-      );
-    } else if (_event.imagePath != null && !kIsWeb) {
-      return Image.file(
-        File(_event.imagePath!),
-        width: double.infinity,
-        height: 200,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholderImage();
-        },
-      );
-    } else {
-      return _buildPlaceholderImage();
+    if (_event == null) return [];
+    
+    final details = <EventDetailItem>[];
+    
+    if (_event!.title != null) {
+      details.add(EventDetailItem(label: 'Title', value: _event!.title!));
     }
+    
+    if (_event!.description != null) {
+      details.add(EventDetailItem(label: 'Description', value: _event!.description!));
+    }
+    
+    if (_event!.tags.isNotEmpty) {
+      details.add(EventDetailItem(label: 'Tags', value: _event!.tags.join(', ')));
+    }
+    
+    if (_event!.speakers.isNotEmpty) {
+      details.add(EventDetailItem(label: 'Speakers', value: _event!.speakers.join(', ')));
+    }
+    
+    if (_event!.contactInfo != null) {
+      details.add(EventDetailItem(label: 'Contact', value: _event!.contactInfo!));
+    }
+    
+    if (_event!.dressCode != null) {
+      details.add(EventDetailItem(label: 'Dress Code', value: _event!.dressCode!));
+    }
+    
+    return details;
   }
 
-  Widget _buildPlaceholderImage() {
-    return Container(
-      width: double.infinity,
-      height: 200,
-      color: Colors.grey[300],
-      child: const Center(
-        child: Icon(
-          Icons.image,
-          size: 50,
-          color: Colors.grey,
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  String _formatTime(TimeOfDay? time) {
-    if (time == null) return '';
-
-    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-
-    return '$hour:$minute $period';
-  }
-
-  void navigateBack(BuildContext context) {
-    Navigator.pop(context);
-  }
-
-  void showConfirmDialog(BuildContext context) {
+  void showConfirmationDialog(BuildContext context, VoidCallback onConfirm) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+      builder: (context) => AlertDialog(
+        backgroundColor: _model.dialogBackgroundColor,
+        title: Text(_model.dialogTitle),
+        content: Text(_model.dialogMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(_model.dialogNoText),
           ),
-          backgroundColor: _model.dialogBackgroundColor,
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      size: 24,
-                      color: _model.dialogIconColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _model.dialogTitle,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _model.dialogMessage,
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF444444),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          _model.dialogNoText,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => _handleConfirmNavigation(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _model.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          _model.dialogYesText,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onConfirm();
+            },
+            child: Text(_model.dialogYesText),
           ),
-        );
-      },
-    );
-  }
-
-  void _handleConfirmNavigation(BuildContext context) {
-    Navigator.of(context).pop();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EventRegistrationFormScreen(
-          event: _event,
-          title: _title,
-          tags: _tags,
-          description: _description,
-          contactInfo: _contactInfo,
-          churchLandline: _churchLandline,
-          dressCode: _dressCode,
-          speakers: _speakers,
-          imageUrl: _imageUrl,
-          imagePath: _imagePath,
-          imageBytes: _imageBytes,
-          additionalImages: _additionalImages,
-          isOneDay: _isOneDay,
-          eventDays: _eventDays,
-          startDate: _startDate,
-          endDate: _endDate,
-          startTime: _startTime,
-          endTime: _endTime,
-          isOnline: _isOnline,
-          eventLink: _eventLink,
-          isOutsourcedVenue: _isOutsourcedVenue,
-          meetingPlatform: _meetingPlatform,
-        ),
+        ],
       ),
     );
-  }
-
-  void dispose() {
-    // Clean up any resources if needed
   }
 }
 
 class EventRegistrationFormViewModel extends ChangeNotifier {
-  final EventRegistrationFormModel _model = EventRegistrationFormModel();
-
-  // Form field controllers
-  final TextEditingController consentFormUrlController =
-      TextEditingController();
-  final TextEditingController consentMessageController =
-      TextEditingController();
-
-  // Text controllers for new options
-  final Map<String, TextEditingController> _newOptionControllers = {
-    'sex': TextEditingController(),
-    'tshirtSize': TextEditingController(),
-    'emergencyContactRelation': TextEditingController(),
-  };
+  final EventRegistrationFormModel _model = const EventRegistrationFormModel();
+  Event? _event;
 
   // Getters
   EventRegistrationFormModel get model => _model;
 
-  void initializeFromEvent(Event event) {
-    // Initialize with default values
-    consentFormUrlController.text = 'Consent Form and Waiver.com';
-    consentMessageController.text =
-        'By checking this box, you hereby agree and consent to the:';
+  void initializeWithEvent(Event event) {
+    _event = event;
+    
+    // Initialize registration form config if not exists
+    _event!.registrationFormConfig ??= RegistrationFormConfig(
+      fieldVisibility: Map.from(_model.fieldVisibility),
+      consentRequired: _model.consentRequired,
+    );
+    
+    notifyListeners();
+  }
 
-    // Load saved form configuration if available
-    if (event.registrationFormConfig != null) {
-      _model._fieldVisibility =
-          Map.from(event.registrationFormConfig!.fieldVisibility);
-      _model.setConsentRequired(event.registrationFormConfig!.consentRequired);
-      consentFormUrlController.text =
-          event.registrationFormConfig!.consentFormUrl ??
-              consentFormUrlController.text;
-      consentMessageController.text =
-          event.registrationFormConfig!.consentMessage ??
-              consentMessageController.text;
-      _model.setHasReadTerms(event.registrationFormConfig!.hasReadTerms);
-      _model
-          .setHasAcceptedTerms(event.registrationFormConfig!.hasAcceptedTerms);
+  void toggleFieldVisibility(String fieldName) {
+    final config = _event?.registrationFormConfig;
+    if (config != null) {
+      final currentVisibility = config.fieldVisibility[fieldName] ?? true;
+      config.fieldVisibility[fieldName] = !currentVisibility;
+      notifyListeners();
+    }
+  }
 
-      // Load saved dropdown options if available
-      if (event.registrationFormConfig!.dropdownOptions != null) {
-        _model._dropdownOptions =
-            Map.from(event.registrationFormConfig!.dropdownOptions!);
+  void setConsentRequired(bool required) {
+    final config = _event?.registrationFormConfig;
+    if (config != null) {
+      config.consentRequired = required;
+      notifyListeners();
+    }
+  }
+
+  void setConsentFormUrl(String url) {
+    final config = _event?.registrationFormConfig;
+    if (config != null) {
+      config.consentFormUrl = url;
+      notifyListeners();
+    }
+  }
+
+  void setConsentMessage(String message) {
+    final config = _event?.registrationFormConfig;
+    if (config != null) {
+      config.consentMessage = message;
+      notifyListeners();
+    }
+  }
+
+  void addDropdownOption(String fieldName, String option) {
+    final config = _event?.registrationFormConfig;
+    if (config != null) {
+      config.dropdownOptions ??= {};
+      config.dropdownOptions![fieldName] ??= [];
+      
+      if (!config.dropdownOptions![fieldName]!.contains(option)) {
+        config.dropdownOptions![fieldName]!.add(option);
+        notifyListeners();
       }
     }
   }
 
-  void toggleFieldVisibility(String fieldName) {
-    _model.setFieldVisibility(
-        fieldName, !(_model.fieldVisibility[fieldName] ?? true));
-    notifyListeners();
-  }
-
-  void setConsentRequired(bool required) {
-    _model.setConsentRequired(required);
-    notifyListeners();
-  }
-
-  void addDropdownOption(String fieldName) {
-    final controller = _newOptionControllers[fieldName];
-    if (controller != null && controller.text.isNotEmpty) {
-      _model.dropdownOptions[fieldName]!.add(controller.text);
-      controller.clear();
-      notifyListeners();
-    } else {
-      _showErrorMessage(RegistrationFormValidationMessages.optionValueRequired);
-    }
-  }
-
   void removeDropdownOption(String fieldName, int index) {
-    if (_model.dropdownOptions[fieldName]!.length > 1) {
-      _model.dropdownOptions[fieldName]!.removeAt(index);
-      notifyListeners();
-    } else {
-      _showErrorMessage(
-          RegistrationFormValidationMessages.minOneOptionRequired);
+    final config = _event?.registrationFormConfig;
+    if (config != null && config.dropdownOptions != null) {
+      final options = config.dropdownOptions![fieldName];
+      if (options != null && index >= 0 && index < options.length) {
+        options.removeAt(index);
+        notifyListeners();
+      }
     }
-  }
-
-  void showAddOptionDialog(BuildContext context, String fieldName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          backgroundColor: const Color(0xFFF8F0F0),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Add Option',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _newOptionControllers[fieldName],
-                  decoration: InputDecoration(
-                    hintText: 'Enter option value',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: _model.primaryColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: _model.primaryColor),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          BorderSide(color: _model.primaryColor, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
-                  ),
-                  autofocus: true,
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF444444),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_newOptionControllers[fieldName]!
-                              .text
-                              .isNotEmpty) {
-                            addDropdownOption(fieldName);
-                            Navigator.of(context).pop();
-                          } else {
-                            _showErrorMessage(RegistrationFormValidationMessages
-                                .optionValueRequired);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _model.primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text(
-                          'Add',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void navigateToConsentForm(BuildContext context, Event event) {
-    if (consentFormUrlController.text.isEmpty) {
-      _showErrorMessage(
-          RegistrationFormValidationMessages.consentFormUrlRequired);
-      return;
-    }
-
-    if (consentMessageController.text.isEmpty) {
-      _showErrorMessage(
-          RegistrationFormValidationMessages.consentMessageRequired);
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ConsentFormScreen(
-          title: consentFormUrlController.text,
-          content: consentMessageController.text,
-          onAccept: (accepted) {
-            _model.setHasReadTerms(true);
-            _model.setHasAcceptedTerms(accepted);
-            notifyListeners();
-
-            if (accepted) {
-              _showInfoMessage('Terms and conditions accepted');
-            } else {
-              _showInfoMessage('Terms and conditions viewed but not accepted');
-            }
-          },
-          event: event,
-        ),
-      ),
-    );
   }
 
   bool validateForm() {
-    if (_model.consentRequired && consentFormUrlController.text.isEmpty) {
-      _showErrorMessage(
-          RegistrationFormValidationMessages.consentFormUrlRequired);
-      return false;
-    }
-
-    if (_model.consentRequired && consentMessageController.text.isEmpty) {
-      _showErrorMessage(
-          RegistrationFormValidationMessages.consentMessageRequired);
-      return false;
-    }
-
-    if (_model.consentRequired && !_model.hasAcceptedTerms) {
-      _showErrorMessage(RegistrationFormValidationMessages.consentNotAccepted);
-      return false;
-    }
-
+    final config = _event?.registrationFormConfig;
+    if (config == null) return false;
+    
     // Check if at least one field is visible
-    if (_model.fieldVisibility.values.every((visible) => !visible)) {
-      _showErrorMessage(RegistrationFormValidationMessages.noFieldsVisible);
+    final hasVisibleFields = config.fieldVisibility.values.any((visible) => visible);
+    if (!hasVisibleFields) {
       return false;
     }
-
+    
+    // Validate consent form requirements
+    if (config.consentRequired) {
+      if (config.consentFormUrl == null || config.consentFormUrl!.trim().isEmpty) {
+        return false;
+      }
+    }
+    
     return true;
-  }
-
-  void saveFormConfiguration(Event event) {
-    // Create or update the registration form configuration
-    final formConfig = RegistrationFormConfig(
-      fieldVisibility: Map.from(_model.fieldVisibility),
-      consentRequired: _model.consentRequired,
-      consentFormUrl: consentFormUrlController.text,
-      consentMessage: consentMessageController.text,
-      dropdownOptions: Map.from(_model.dropdownOptions),
-      hasReadTerms: _model.hasReadTerms,
-      hasAcceptedTerms: _model.hasAcceptedTerms,
-    );
-
-    // Save to event
-    event.registrationFormConfig = formConfig;
-  }
-
-  void handleCompleteForm(BuildContext context, Event event) {
-    if (validateForm()) {
-      saveFormConfiguration(event);
-
-      // Navigate to invite screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EventInviteScreen(event: event),
-        ),
-      );
-    }
-  }
-
-  void _showInfoMessage(String message) {
-    // Implementation would show info snackbar
-    // This is a placeholder for the UI layer to handle
-  }
-
-  void _showErrorMessage(String message) {
-    // Implementation would show error snackbar
-    // This is a placeholder for the UI layer to handle
-  }
-
-  @override
-  void dispose() {
-    consentFormUrlController.dispose();
-    consentMessageController.dispose();
-    for (var controller in _newOptionControllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
   }
 }
 
@@ -1339,7 +1278,7 @@ class ConsentFormViewModel extends ChangeNotifier {
 
   void initializeFromEvent(Event event, String content) {
     _model.setContent(content);
-
+    
     // Get registration form config from event
     final config = event.registrationFormConfig ??= RegistrationFormConfig(
       fieldVisibility: {},
@@ -1363,7 +1302,7 @@ class ConsentFormViewModel extends ChangeNotifier {
 
   void detectScrollability(ScrollController scrollController) {
     if (!scrollController.hasClients) return;
-
+    
     final max = scrollController.position.maxScrollExtent;
     if (max > 0) {
       _model.setIsScrollable(true);
@@ -1378,10 +1317,10 @@ class ConsentFormViewModel extends ChangeNotifier {
 
   void handleScrollListener(ScrollController scrollController) {
     if (!scrollController.hasClients) return;
-
+    
     final max = scrollController.position.maxScrollExtent;
     final offset = scrollController.offset;
-
+    
     if (offset >= (max - 40.0) && !scrollController.position.outOfRange) {
       if (!_model.hasScrolledToBottom) {
         _model.setHasScrolledToBottom(true);
@@ -1393,7 +1332,7 @@ class ConsentFormViewModel extends ChangeNotifier {
 
   void toggleAccept(bool? value, BuildContext context) {
     final config = _getCurrentConfig();
-
+    
     if (!config.consentRequired || _model.hasScrolledToBottom) {
       _model.setHasAccepted(value ?? false);
       _updateEventConfig(hasAcceptedTerms: _model.hasAccepted);
@@ -1408,10 +1347,9 @@ class ConsentFormViewModel extends ChangeNotifier {
     }
   }
 
-  void handleComplete(
-      BuildContext context, Function(bool) onAccept, Event event) {
+  void handleComplete(BuildContext context, Function(bool) onAccept, Event event) {
     final config = _getCurrentConfig();
-
+    
     if (config.consentRequired && !config.hasAcceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1452,120 +1390,56 @@ class ConsentFormViewModel extends ChangeNotifier {
 
 class EventInviteViewModel extends ChangeNotifier {
   final EventInviteModel _model = EventInviteModel();
-
-  // Form controllers
-  final TextEditingController customCapacityController =
-      TextEditingController();
-  final TextEditingController searchController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController guestChurchController = TextEditingController();
+  Event? _event;
 
   // Getters
   EventInviteModel get model => _model;
 
-  void initializeFromEvent(Event event) {
-    // Initialize with event data if available
-    _model.setInviteType(event.inviteType ?? 'Open Invite');
-    _model.setExpectedCapacity(event.expectedCapacity ?? 500);
-
-    if (event.customCapacity != null) {
-      _model.setCustomCapacity(true);
-      customCapacityController.text = event.customCapacity.toString();
-    }
-
-    if (event.invitedGuests != null) {
-      _model.setInvitedGuestsUI(List.from(event.invitedGuests!));
-    }
-
-    if (event.selectedRolesCounts != null) {
-      _model.setSelectedRolesCounts(Map.from(event.selectedRolesCounts!));
-    }
-
-    if (event.selectedChurchName != null) {
-      // Find and set the selected church by name
-      final church = _model.sampleChurches.firstWhere(
-        (c) => c['name'] == event.selectedChurchName,
-        orElse: () => {},
-      );
-      if (church.isNotEmpty) {
-        _model.setSelectedChurch(church);
-      }
-    }
+  void initializeWithEvent(Event event) {
+    _event = event;
+    
+    // Initialize event properties from model defaults
+    _event!.inviteType = _model.inviteType;
+    _event!.expectedCapacity = _model.expectedCapacity;
+    
+    notifyListeners();
   }
 
-  void setInviteType(String? type) {
-    if (type != null) {
-      _model.setInviteType(type);
-
-      // Clear specific invite data when switching to open invite
-      if (type == 'Open Invite') {
-        _model.setSelectedChurch(null);
-        _model.setSelectedRolesCounts({});
-        _model.setInvitedGuestsUI([]);
-        _model.setShowGuestForm(false);
-      }
-
-      notifyListeners();
+  void setInviteType(String type) {
+    _model.setInviteType(type);
+    _event?.inviteType = type;
+    
+    // Reset related fields when changing invite type
+    if (type == 'Open Invite') {
+      _model.setSelectedChurch(null);
+      _model.setSelectedRolesCounts({});
+      _model.setInvitedGuestsUI([]);
+      _event?.selectedChurchName = null;
+      _event?.selectedRolesCounts = null;
+      _event?.invitedGuests = null;
     }
+    
+    notifyListeners();
   }
 
-  void setExpectedCapacity(int capacity, bool isCustom) {
+  void setExpectedCapacity(int capacity) {
     _model.setExpectedCapacity(capacity);
-    _model.setCustomCapacity(isCustom);
-
-    if (!isCustom) {
-      customCapacityController.clear();
-    }
-
+    _event?.expectedCapacity = capacity;
     notifyListeners();
   }
 
   void setCustomCapacity(bool isCustom) {
     _model.setCustomCapacity(isCustom);
-
-    if (isCustom) {
-      // Focus on custom input
-      if (customCapacityController.text.isNotEmpty) {
-        final customValue = int.tryParse(customCapacityController.text);
-        if (customValue != null && customValue > 0) {
-          _model.setExpectedCapacity(customValue);
-        }
-      }
-    } else {
-      // Reset to default capacity
-      _model.setExpectedCapacity(500);
-      customCapacityController.clear();
-    }
-
     notifyListeners();
   }
 
-  void onCustomCapacityChanged(String value) {
-    if (_model.isCustomCapacity) {
-      final capacity = int.tryParse(value);
-      if (capacity != null && capacity > 0) {
-        _model.setExpectedCapacity(capacity);
-        notifyListeners();
-      }
-    }
+  void updateCustomCapacity(int capacity) {
+    _event?.customCapacity = capacity;
+    _model.setExpectedCapacity(capacity);
+    notifyListeners();
   }
 
-  String? validateCustomCapacity(String? value) {
-    if (_model.isCustomCapacity) {
-      if (value == null || value.isEmpty) {
-        return EventInviteValidationMessages.customCapacityRequired;
-      }
-
-      final capacity = int.tryParse(value);
-      if (capacity == null || capacity <= 0) {
-        return EventInviteValidationMessages.invalidCapacity;
-      }
-    }
-    return null;
-  }
-
-  void onSearchChanged(String query) {
+  void setSearchQuery(String query) {
     _model.setSearchQuery(query);
     notifyListeners();
   }
@@ -1574,253 +1448,200 @@ class EventInviteViewModel extends ChangeNotifier {
     if (_model.searchQuery.isEmpty) {
       return _model.sampleChurches;
     }
-
+    
     return _model.sampleChurches.where((church) {
-      return church['name']
-          .toLowerCase()
-          .contains(_model.searchQuery.toLowerCase());
+      return church['name'].toLowerCase().contains(_model.searchQuery.toLowerCase());
     }).toList();
   }
 
   void selectChurch(Map<String, dynamic> church) {
     _model.setSelectedChurch(church);
-    // Clear previous role selections when selecting a new church
-    _model.setSelectedRolesCounts({});
+    _event?.selectedChurchName = church['name'];
+    
+    // Initialize role counts from church data
+    final roleCount = church['roleCount'] as Map<String, dynamic>;
+    final initialCounts = <String, int>{};
+    
+    for (final role in _model.permanentRoles) {
+      initialCounts[role] = 0;
+    }
+    
+    _model.setSelectedRolesCounts(initialCounts);
+    _event?.selectedRolesCounts = Map.from(initialCounts);
+    
     notifyListeners();
   }
 
   void updateRoleCount(String role, int count) {
-    _model.updateRoleCount(role, count);
-    notifyListeners();
-  }
-
-  void toggleGuestForm() {
-    _model.setShowGuestForm(!_model.showGuestForm);
-
-    if (!_model.showGuestForm) {
-      // Clear form when closing
-      usernameController.clear();
-      fullNameController.clear();
-      guestChurchController.clear();
+    final maxCount = _getMaxCountForRole(role);
+    final finalCount = count.clamp(0, maxCount);
+    
+    _model.updateRoleCount(role, finalCount);
+    
+    // Update event
+    _event?.selectedRolesCounts ??= {};
+    if (finalCount <= 0) {
+      _event?.selectedRolesCounts?.remove(role);
+    } else {
+      _event?.selectedRolesCounts![role] = finalCount;
     }
-
+    
     notifyListeners();
   }
 
-  void cancelGuestForm() {
+  int _getMaxCountForRole(String role) {
+    final church = _model.selectedChurch;
+    if (church == null) return 0;
+    
+    final roleCount = church['roleCount'] as Map<String, dynamic>;
+    return roleCount[role] ?? 0;
+  }
+
+  void showGuestForm() {
+    _model.setShowGuestForm(true);
+    notifyListeners();
+  }
+
+  void hideGuestForm() {
     _model.setShowGuestForm(false);
-    usernameController.clear();
-    fullNameController.clear();
-    guestChurchController.clear();
     notifyListeners();
   }
 
-  String? validateUsername(String? value) {
-    if (value == null || value.isEmpty) {
-      return EventInviteValidationMessages.usernameRequired;
+  void addGuest(String username, String fullName, String guestChurch) {
+    // Validate input
+    if (username.trim().isEmpty || fullName.trim().isEmpty || guestChurch.trim().isEmpty) {
+      _showNotification(EventInviteValidationMessages.fullNameRequired, NotificationType.error);
+      return;
     }
-
-    // Check for duplicate usernames
-    final isDuplicate =
-        _model.invitedGuestsUI.any((guest) => guest.username == value);
+    
+    // Check for duplicate username
+    final isDuplicate = _model.invitedGuestsUI.any((guest) => guest.username == username.trim());
     if (isDuplicate) {
-      return EventInviteValidationMessages.duplicateUsername;
-    }
-
-    return null;
-  }
-
-  String? validateFullName(String? value) {
-    if (value == null || value.isEmpty) {
-      return EventInviteValidationMessages.fullNameRequired;
-    }
-    return null;
-  }
-
-  String? validateGuestChurch(String? value) {
-    if (value == null || value.isEmpty) {
-      return EventInviteValidationMessages.guestChurchRequired;
-    }
-    return null;
-  }
-
-  void addGuest() {
-    // Validate form fields
-    final usernameError = validateUsername(usernameController.text);
-    final fullNameError = validateFullName(fullNameController.text);
-    final churchError = validateGuestChurch(guestChurchController.text);
-
-    if (usernameError != null || fullNameError != null || churchError != null) {
-      showNotification(
-        usernameError ??
-            fullNameError ??
-            churchError ??
-            'Please fill all fields correctly',
-        NotificationType.error,
-      );
+      _showNotification(EventInviteValidationMessages.duplicateUsername, NotificationType.error);
       return;
     }
-
+    
     // Check capacity
-    if (isCapacityReached()) {
-      showNotification(
-        EventInviteValidationMessages.capacityExceeded,
-        NotificationType.error,
-      );
+    final totalInvites = getTotalInviteCount() + 1;
+    if (totalInvites > _model.expectedCapacity) {
+      _showNotification(EventInviteValidationMessages.capacityExceeded, NotificationType.error);
       return;
     }
-
-    // Add guest
+    
     final guest = GuestInvite(
-      username: usernameController.text.trim(),
-      fullName: fullNameController.text.trim(),
-      guestChurch: guestChurchController.text.trim(),
+      username: username.trim(),
+      fullName: fullName.trim(),
+      guestChurch: guestChurch.trim(),
     );
-
+    
     _model.addGuest(guest);
-
-    // Clear form and hide
-    usernameController.clear();
-    fullNameController.clear();
-    guestChurchController.clear();
-    _model.setShowGuestForm(false);
-
-    showNotification(
-      'Guest added successfully',
-      NotificationType.success,
-    );
-
-    notifyListeners();
+    _event?.invitedGuests = List.from(_model.invitedGuestsUI);
+    
+    _showNotification('Guest added successfully!', NotificationType.success);
+    hideGuestForm();
   }
 
   void removeGuest(int index) {
     _model.removeGuest(index);
-    showNotification(
-      'Guest removed successfully',
-      NotificationType.success,
-    );
+    _event?.invitedGuests = List.from(_model.invitedGuestsUI);
     notifyListeners();
   }
 
-  int calculateTotalInvitedPeople() {
+  int getTotalInviteCount() {
     int total = 0;
-
-    // Add church role counts
-    total +=
-        _model.selectedRolesCounts.values.fold(0, (sum, count) => sum + count);
-
-    // Add individual guests
+    
+    // Count role-based invites
+    for (final count in _model.selectedRolesCounts.values) {
+      total += count;
+    }
+    
+    // Count individual guest invites
     total += _model.invitedGuestsUI.length;
-
+    
     return total;
   }
 
-  bool isCapacityReached() {
-    return calculateTotalInvitedPeople() >= _model.expectedCapacity;
-  }
-
-  void showNotification(String message, NotificationType type) {
+  void _showNotification(String message, NotificationType type) {
     _model.setNotificationMessage(message);
     _model.setNotificationType(type);
     _model.setShowNotification(true);
     notifyListeners();
-
+    
     // Auto-hide after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
-      hideNotification();
+      _model.setShowNotification(false);
+      notifyListeners();
     });
   }
 
-  void hideNotification() {
+  void dismissNotification() {
     _model.setShowNotification(false);
-    _model.setNotificationMessage(null);
     notifyListeners();
   }
 
-  bool validateForm() {
-    // Check invite type
-    if (_model.inviteType.isEmpty) {
-      showNotification(
-        EventInviteValidationMessages.inviteTypeRequired,
-        NotificationType.error,
-      );
+  bool validateInvites() {
+    if (_model.inviteType == 'Church Invite' && _model.selectedChurch == null) {
+      _showNotification('Please select a church to invite', NotificationType.error);
       return false;
     }
-
-    // Check capacity
-    if (_model.expectedCapacity <= 0) {
-      showNotification(
-        EventInviteValidationMessages.capacityRequired,
-        NotificationType.error,
-      );
+    
+    if (_model.inviteType == 'Specific Invite' && getTotalInviteCount() == 0) {
+      _showNotification('Please add at least one invite', NotificationType.error);
       return false;
     }
-
-    // Check custom capacity if selected
-    if (_model.isCustomCapacity) {
-      final customValue = int.tryParse(customCapacityController.text);
-      if (customValue == null || customValue <= 0) {
-        showNotification(
-          EventInviteValidationMessages.invalidCapacity,
-          NotificationType.error,
-        );
-        return false;
-      }
-    }
-
-    // Check capacity limits for specific invites
-    if (_model.inviteType == 'Specific Invites') {
-      if (isCapacityReached()) {
-        showNotification(
-          EventInviteValidationMessages.capacityExceeded,
-          NotificationType.error,
-        );
-        return false;
-      }
-    }
-
+    
     return true;
   }
+}
 
-  void proceedToNext(
-      BuildContext context, Event event, GlobalKey<FormState> formKey) {
-    if (!formKey.currentState!.validate() || !validateForm()) {
-      return;
+class EventService {
+  static final EventService _instance = EventService._internal();
+  factory EventService() => _instance;
+  EventService._internal();
+
+  final List<Map<String, dynamic>> _events = [];
+
+  List<Map<String, dynamic>> get events => List.unmodifiable(_events);
+
+  bool addEvent(Map<String, dynamic> eventMap) {
+    try {
+      _events.add(Map.from(eventMap));
+      return true;
+    } catch (e) {
+      return false;
     }
-
-    // Save data to event
-    event.inviteType = _model.inviteType;
-    event.expectedCapacity = _model.expectedCapacity;
-
-    if (_model.isCustomCapacity) {
-      event.customCapacity = _model.expectedCapacity;
-    } else {
-      event.customCapacity = null;
-    }
-
-    if (_model.selectedChurch != null) {
-      event.selectedChurchName = _model.selectedChurch!['name'];
-      event.selectedRolesCounts = Map.from(_model.selectedRolesCounts);
-    }
-
-    event.invitedGuests = List.from(_model.invitedGuestsUI);
-
-    // Navigate to next screen
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EventTargetsScreen(event: event),
-      ),
-    );
   }
 
-  @override
-  void dispose() {
-    customCapacityController.dispose();
-    searchController.dispose();
-    usernameController.dispose();
-    fullNameController.dispose();
-    guestChurchController.dispose();
-    super.dispose();
+  bool eventExists(String title) {
+    return _events.any((event) => event['title'] == title);
+  }
+
+  Map<String, dynamic> convertEventToMap(Event event) {
+    return {
+      'title': event.title,
+      'description': event.description,
+      'tags': event.tags,
+      'speakers': event.speakers,
+      'contactInfo': event.contactInfo,
+      'churchLandline': event.churchLandline,
+      'dressCode': event.dressCode,
+      'isOneDay': event.isOneDay,
+      'startDate': event.startDate?.toIso8601String(),
+      'endDate': event.endDate?.toIso8601String(),
+      'startTime': event.startTime != null ? '${event.startTime!.hour}:${event.startTime!.minute}' : null,
+      'endTime': event.endTime != null ? '${event.endTime!.hour}:${event.endTime!.minute}' : null,
+      'imageUrl': event.imageUrl,
+      'imagePath': event.imagePath,
+      'inviteType': event.inviteType,
+      'expectedCapacity': event.expectedCapacity,
+      'customCapacity': event.customCapacity,
+      'selectedChurchName': event.selectedChurchName,
+      'selectedRolesCounts': event.selectedRolesCounts,
+      'invitedGuests': event.invitedGuests?.map((guest) => {
+        'username': guest.username,
+        'fullName': guest.fullName,
+        'guestChurch': guest.guestChurch,
+      }).toList(),
+    };
   }
 }
