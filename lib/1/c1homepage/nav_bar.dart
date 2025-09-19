@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:teleo_organized_new/2/eventscreation/frontend/screens/CHURCH_CREATEVENTS_1.dart';
 
 class NavBar extends StatelessWidget {
   final int currentIndex;
@@ -17,8 +18,10 @@ class NavBar extends StatelessWidget {
 
   static const highlightColor = Color(0xFF0277BD);
   static const inactiveColor = Colors.grey;
-  static const primaryColor = Color(0xFF0277BD); // Added for consistency with landingpage.dart
-  static const accentColor = Color(0xFF29B6F6); // Added for consistency with landingpage.dart
+  static const primaryColor =
+      Color(0xFF0277BD); // Added for consistency with landingpage.dart
+  static const accentColor =
+      Color(0xFF29B6F6); // Added for consistency with landingpage.dart
 
   @override
   Widget build(BuildContext context) {
@@ -106,13 +109,12 @@ class NavBar extends StatelessWidget {
       case 0: // Home - normal navigation
         if (onTap != null) onTap!(index);
         break;
-      case 1: // Services - show development popup
-        await _showDevelopmentPopup(
-          context: context,
-          title: 'Services Coming Soon',
-          icon: Icons.miscellaneous_services,
-          iconColor: Colors.orange,
-          message: 'The Services section is currently under development. We\'re working hard to bring you amazing features!\n\nStay tuned for updates.',
+      case 1: // Services - navigate to CreateEventScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CreateEventScreen(),
+          ),
         );
         break;
       case 2: // Connect - normal navigation (working feature)
@@ -124,7 +126,8 @@ class NavBar extends StatelessWidget {
           title: 'Reading Features Coming Soon',
           icon: Icons.menu_book,
           iconColor: Colors.blue,
-          message: 'The Reading section is being crafted with care. Soon you\'ll be able to access devotionals, scriptures, and inspiring content!\n\nWe appreciate your patience.',
+          message:
+              'The Reading section is being crafted with care. Soon you\'ll be able to access devotionals, scriptures, and inspiring content!\n\nWe appreciate your patience.',
         );
         break;
       case 4: // You (Profile) - show development popup
@@ -133,7 +136,8 @@ class NavBar extends StatelessWidget {
           title: 'Profile Features in Progress',
           icon: Icons.person,
           iconColor: Colors.purple,
-          message: 'Your personal dashboard is under construction. Soon you\'ll have access to your profile, settings, and personalized content!\n\nExciting things are coming.',
+          message:
+              'Your personal dashboard is under construction. Soon you\'ll have access to your profile, settings, and personalized content!\n\nExciting things are coming.',
         );
         break;
       default:
@@ -152,7 +156,7 @@ class NavBar extends StatelessWidget {
   }) async {
     // Get responsive values based on screen width
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     double getResponsiveValue(double small, double medium, double large) {
       if (screenWidth < 340) return small * 0.9;
       if (screenWidth < 360) return small;
@@ -210,7 +214,7 @@ class NavBar extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: getResponsiveValue(16, 20, 24)),
-                  
+
                   // Title
                   Text(
                     title,
@@ -222,7 +226,7 @@ class NavBar extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: getResponsiveValue(12, 16, 20)),
-                  
+
                   // Message
                   Text(
                     message,
@@ -235,7 +239,7 @@ class NavBar extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: getResponsiveValue(20, 24, 28)),
-                  
+
                   // Action button with gradient
                   Container(
                     width: double.infinity,
