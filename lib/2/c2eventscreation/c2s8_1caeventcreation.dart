@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'models/event.dart';
 import 'widgets/step_indicator.dart';
 import 'widgets/event_app_bar.dart';
-import 'widgets/confirmation_dialog.dart';
-import 'widgets/success_dialog.dart';
+import '../eventscreation/frontend/widgets/confirmation_dialog.dart';
+import '../eventscreation/frontend/widgets/success_dialog.dart';
 import 'c2s9caeventcreation.dart';
 
 class EventTargetsScreen extends StatefulWidget {
