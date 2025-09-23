@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
+import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +22,7 @@ class CreateEventScreen extends StatefulWidget {
 }
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -34,7 +35,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               title: '',
             ),
             body: Form(
-              key: viewModel.formKey,
+              key: _formKey,
               child: Column(
                 children: [
                   Expanded(
@@ -57,12 +58,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 20),
-                                // Image Upload Area
-                                _buildImageUploadArea(viewModel),
-                                // Display selected images
-                                if (viewModel.hasMainImage ||
-                                    viewModel.event.additionalImages.isNotEmpty)
-                                  _buildSelectedImagesGrid(viewModel),
+                                // Image upload disabled in this step
 
                                 // Event Title
                                 const SizedBox(height: 20),
@@ -116,90 +112,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
-  Widget _buildImageUploadArea(CreateEventViewModel viewModel) {
-    return GestureDetector(
-      onTap: () async {
-        try {
-          await viewModel.pickImage();
-        } catch (e) {
-          _showErrorSnackbar(e.toString());
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, color: Colors.grey[600], size: 48),
-            const SizedBox(height: 12),
-            Text('Tap to upload image',
-                style: TextStyle(color: Colors.grey[700], fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('Supports: JPG, JPEG, PNG',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-            if (viewModel.totalImagesCount > 0)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  '${viewModel.totalImagesCount}/${viewModel.maxImages} ${viewModel.totalImagesCount == 1 ? 'image' : 'images'} selected',
-                  style: TextStyle(
-                    color: viewModel.totalImagesCount >= viewModel.maxImages
-                        ? Colors.red
-                        : Colors.green[700],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelectedImagesGrid(CreateEventViewModel viewModel) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Selected Images:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 8),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 1.5,
-            children: [
-              if (viewModel.hasMainImage)
-                _buildCompactImageCard(
-                  viewModel.event.imageBytes,
-                  viewModel.event.imagePath,
-                  'Image 1 (Main)',
-                  onRemove: () => viewModel.removeImage(-1),
-                ),
-              ...List.generate(
-                viewModel.event.additionalImages.length,
-                (index) => _buildCompactImageCard(
-                  viewModel.event.additionalImages[index].imageBytes,
-                  viewModel.event.additionalImages[index].imagePath,
-                  'Image ${index + 2}',
-                  onRemove: () => viewModel.removeImage(index),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // Image upload/display intentionally omitted in this step
 
   Widget _buildEventTitleField(CreateEventViewModel viewModel) {
     return Column(
@@ -217,7 +130,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           controller: viewModel.titleController,
           decoration: _getFilledInputDecoration().copyWith(
             hintText: 'Enter event title',
-            errorText: viewModel.errorMessages['title'],
           ),
           keyboardType: TextInputType.text,
           textCapitalization: TextCapitalization.words,
@@ -239,21 +151,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             const Text('Event Tags',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const RequiredAsterisk(),
-            if (viewModel.errorMessages.containsKey('tags'))
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Text(
-                  viewModel.errorMessages['tags']!,
-                  style: const TextStyle(color: Colors.red, fontSize: 12),
-                ),
-              ),
+            // Tag validation shown via snackbar on submit
           ],
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: viewModel.availableTags.map((tag) {
+          children: EventConstants.availableTags.map((tag) {
             final isSelected = viewModel.event.tags.contains(tag);
             return GestureDetector(
               onTap: () => viewModel.toggleTag(tag),
@@ -298,7 +203,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           controller: viewModel.descriptionController,
           decoration: _getFilledInputDecoration().copyWith(
             hintText: 'Enter event description',
-            errorText: viewModel.errorMessages['description'],
           ),
           maxLines: 4,
           keyboardType: TextInputType.multiline,
@@ -321,10 +225,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: viewModel.mobileNumberController,
+          controller: viewModel.contactInfoController,
           decoration: _getFilledInputDecoration().copyWith(
             hintText: '(09123456789)',
-            errorText: viewModel.errorMessages['mobileNumber'],
             prefixIcon: const Icon(Icons.phone_android),
           ),
           keyboardType: TextInputType.phone,
@@ -355,7 +258,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           decoration: _getFilledInputDecoration().copyWith(
             hintText: 'Enter church landline/telephone number',
             prefixIcon: const Icon(Icons.phone),
-            errorText: viewModel.errorMessages['churchLandline'],
           ),
           keyboardType: TextInputType.phone,
           inputFormatters: [
@@ -379,7 +281,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           decoration: _getFilledInputDecoration().copyWith(
             hintText: 'E.g., Smart Casual',
             helperText: 'Only letters, numbers, spaces, and hyphens allowed',
-            errorText: viewModel.errorMessages['dressCode'],
           ),
           textCapitalization: TextCapitalization.words,
           keyboardType: TextInputType.text,
@@ -405,57 +306,40 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
         const SizedBox(height: 8),
-        Column(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: viewModel.speakers
+              .asMap()
+              .entries
+              .map((entry) => Chip(
+                    label: Text(entry.value),
+                    deleteIcon: const Icon(Icons.close),
+                    onDeleted: () => viewModel.removeSpeaker(entry.key),
+                  ))
+              .toList(),
+        ),
+        const SizedBox(height: 8),
+        Row(
           children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: viewModel.speakerControllers.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: viewModel.speakerControllers[index],
-                          decoration: _getFilledInputDecoration().copyWith(
-                            hintText: index == 0
-                                ? 'Enter speaker name'
-                                : 'Guest/Speaker ${index + 1}',
-                            errorText: viewModel.errorMessages['speaker$index'],
-                          ),
-                          textCapitalization: TextCapitalization.words,
-                          keyboardType: TextInputType.name,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(EventConstants.namePattern)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(
-                          Icons.remove_circle,
-                          color: viewModel.speakerControllers.length > 1 ||
-                                  index > 0
-                              ? Colors.red
-                              : Colors.grey,
-                        ),
-                        onPressed:
-                            viewModel.speakerControllers.length > 1 || index > 0
-                                ? () => viewModel.removeSpeaker(index)
-                                : null,
-                      ),
-                    ],
-                  ),
-                );
-              },
+            Expanded(
+              child: TextFormField(
+                controller: viewModel.speakerController,
+                decoration: _getFilledInputDecoration().copyWith(
+                  hintText: 'Enter speaker name',
+                ),
+                textCapitalization: TextCapitalization.words,
+                keyboardType: TextInputType.name,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                      RegExp(EventConstants.namePattern)),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             Container(
               width: 36,
               height: 36,
-              margin: const EdgeInsets.only(top: 0),
               decoration: BoxDecoration(
                 color: const Color(0xFF0A0A4A),
                 borderRadius: BorderRadius.circular(4),
@@ -501,7 +385,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (viewModel.canProceed()) {
+                    if (viewModel.validateForm()) {
+                      viewModel.saveEventData();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -510,7 +395,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                         ),
                       );
                     } else {
-                      _showErrorSnackbar(ValidationMessages.fillRequiredFields);
+                      _showErrorSnackbar(viewModel.errorMessage ??
+                          ValidationMessages.fillRequiredFields);
                     }
                   },
                   style: ElevatedButton.styleFrom(

@@ -1,28 +1,62 @@
 // CREATE_EVENTS_FUNC.dart - Functions, ViewModels, and Business Logic
 import 'package:flutter/material.dart';
+import 'package:teleo_organized_new/2/eventscreation/frontend/screens/CHURCH_CREATEEVENTS_10.dart';
 import '../../frontend/widgets/confirmation_dialog.dart';
 import '../../frontend/widgets/success_dialog.dart';
 import '../../frontend/screens/CHURCH_CREATEEVENTS_9.dart';
 import '../../backend/models/CHURCH_CREATEVENTS_VAR.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:image/image.dart' as img;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
+import '../../frontend/screens/CHURCH_CREATEVENTS_7.dart';
+
+class EventTargetsVariables {
+  DateTime? targetPublishDate;
+  DateTime maxAllowedDate = DateTime.now().add(const Duration(days: 365));
+  TimeOfDay? targetPublishTime;
+  bool showNotification = false;
+  bool showSuccessNotification = false;
+  dynamic event;
+  TextEditingController inviteMessageController = TextEditingController();
+}
+
+class EventTargetsConstants {
+  static const String eventOnText = 'Event on';
+  static const String sendInvitesTitle = 'Send Invites?';
+  static const String sendInvitesMessage = 'Do you want to send invites now?';
+  static const String noButtonText = 'No';
+  static const String yesButtonText = 'Yes';
+  static const String successSentTitle = 'Invites Sent!';
+  static const String successSentMessage =
+      'Your invites have been sent successfully.';
+  static const String viewEventDetailsText = 'View Event Details';
+  static const String backToMenuText = 'Back to Menu';
+  static const String selectDateError = 'Please select a publish date.';
+  static const String autoPublishNotification =
+      'Event will be auto-published by';
+  // Add other constants as needed
+}
+
+class EventWaitingApprovalConstants {
+  static const Duration autoNavigationDelay = Duration(seconds: 5);
+}
+
+class EventTargetsColors {
+  static const Color yellowHighlight = Color(0xFFFFEB3B); // Example yellow
+  static const Color textBlack = Color(0xFF000000);
+  static const Color backgroundWhite = Color(0xFFFFFFFF);
+}
 
 class EventTargetsViewModel extends ChangeNotifier {
   final EventTargetsVariables _variables;
 
   EventTargetsViewModel(this._variables);
 
-  // Getters for accessing variables
   EventTargetsVariables get variables => _variables;
 
-  // Date selection method
   Future<void> selectDate(BuildContext context) async {
     final today = DateTime.now();
 
@@ -31,7 +65,6 @@ class EventTargetsViewModel extends ChangeNotifier {
       initialDate: _variables.targetPublishDate ?? today,
       firstDate: today,
       lastDate: _variables.maxAllowedDate,
-      helpText: EventTargetsConstants.datePickerHelpText,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -59,7 +92,6 @@ class EventTargetsViewModel extends ChangeNotifier {
     }
   }
 
-  // Time selection method
   Future<void> selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -75,20 +107,11 @@ class EventTargetsViewModel extends ChangeNotifier {
             ),
             timePickerTheme: TimePickerThemeData(
               backgroundColor: EventTargetsColors.backgroundWhite,
-              hourMinuteColor: WidgetStateColor.resolveWith((states) =>
-                  states.contains(WidgetState.selected)
-                      ? EventTargetsColors.yellowHighlight
-                      : Colors.grey.shade200),
-              hourMinuteTextColor: WidgetStateColor.resolveWith((states) =>
-                  states.contains(WidgetState.selected)
-                      ? EventTargetsColors.textBlack
-                      : EventTargetsColors.textBlack),
-              dialBackgroundColor: Colors.grey.shade100,
+              hourMinuteColor: Colors.grey,
+              hourMinuteTextColor: EventTargetsColors.textBlack,
+              dialBackgroundColor: Colors.grey,
               dialHandColor: EventTargetsColors.yellowHighlight,
-              dialTextColor: WidgetStateColor.resolveWith((states) =>
-                  states.contains(WidgetState.selected)
-                      ? EventTargetsColors.backgroundWhite
-                      : EventTargetsColors.textBlack),
+              dialTextColor: EventTargetsColors.textBlack,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
@@ -120,13 +143,13 @@ class EventTargetsViewModel extends ChangeNotifier {
 
   // Date formatting utility
   String formatDate(DateTime? date) {
-    if (date == null) return EventTargetsConstants.naText;
+    if (date == null) return '';
     return '${date.month}/${date.day}/${date.year}';
   }
 
   // Get formatted list of event dates
   String getFormattedEventDates() {
-    if (_variables.event == null) return EventTargetsConstants.naText;
+    if (_variables.event == null) return '';
 
     final event = _variables.event!;
     if (event.isOneDay || event.eventDays == null || event.eventDays!.isEmpty) {
@@ -264,20 +287,27 @@ class EventTargetsViewModel extends ChangeNotifier {
   }
 }
 
+class EventWaitingApprovalVariables {
+  dynamic event;
+  Timer? timer;
+  bool eventSaved = false;
+  // Add other fields as needed
+
+  void dispose() {
+    timer?.cancel();
+  }
+}
+
 class EventWaitingApprovalViewModel extends ChangeNotifier {
   final EventWaitingApprovalVariables _variables;
 
   EventWaitingApprovalViewModel(this._variables);
 
-  // Getters for accessing variables
   EventWaitingApprovalVariables get variables => _variables;
 
-  // Initialize the screen and start timer
   void initializeScreen(BuildContext context) {
-    // Save the event to the EventService when this screen is first loaded
     saveEventToService();
 
-    // Automatically navigate to event details after 5 seconds
     _variables.timer =
         Timer(EventWaitingApprovalConstants.autoNavigationDelay, () {
       if (context.mounted) {
@@ -315,6 +345,18 @@ class EventWaitingApprovalViewModel extends ChangeNotifier {
     _variables.dispose();
     super.dispose();
   }
+}
+
+class EventCreationFinalStepVariables {
+  final Event? event;
+  EventCreationFinalStepVariables({required this.event});
+}
+
+class EventCreationFinalStepConstants {
+  static const String noDateProvided = 'No date provided';
+  static const String noTimeProvided = 'No time provided';
+  static const String onlineEventText = 'Online Event';
+  static const String noLocationProvided = 'No location provided';
 }
 
 class EventCreationFinalStepViewModel extends ChangeNotifier {
@@ -591,7 +633,7 @@ class EventDetailsViewModel extends ChangeNotifier {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.facebook, color: Colors.blue),
+                  icon: const Icon(Icons.share, color: Colors.blue),
                   onPressed: () {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -667,6 +709,40 @@ class EventDetailsViewModel extends ChangeNotifier {
 
     super.dispose();
   }
+}
+
+class EventDetailsVariables {
+  final Event? event;
+  bool dependenciesInitialized = false;
+  double screenHeight = 0;
+  double screenWidth = 0;
+  ImageProvider? cachedImage;
+  bool isImageLoading = true;
+  final DateFormat dateFormatter = DateFormat('EEEE, MMMM d, yyyy');
+  final DateFormat shortDateFormatter = DateFormat('MMM d');
+  String eventUrl = '';
+  int likeCount = 0;
+  bool hasLiked = false;
+  bool isDescriptionExpanded = false;
+  bool isRegistered = false;
+  bool showRegistrationNotification = false;
+  bool eventSaved = false;
+
+  EventDetailsVariables({required this.event});
+}
+
+class EventDetailsConstants {
+  static const String youLikedEventText = 'You liked this event!';
+  static const Duration likeFeedbackDuration = Duration(seconds: 1);
+  static const String eventUrlCopiedText = 'Event URL copied to clipboard';
+  static const String shareEventTitle = 'Share Event';
+  static const String shareViaText = 'Share via';
+  static const String sharingViaFacebookText = 'Sharing via Facebook...';
+  static const String sharingViaWhatsAppText = 'Sharing via WhatsApp...';
+  static const String sharingViaEmailText = 'Sharing via Email...';
+  static const String sharingViaSMSText = 'Sharing via SMS...';
+  static const String chatFeatureComingSoonText = 'Chat feature coming soon';
+  static const Duration registrationNotificationDuration = Duration(seconds: 5);
 }
 
 class CreateEventViewModel extends ChangeNotifier {
@@ -990,8 +1066,8 @@ class EventLocationViewModel extends ChangeNotifier {
 
   void initializeWithEvent(Event event) {
     _event = event;
-    _model.setOnline(event.isOnline ?? false);
-    _model.setEventLink(event.eventLink);
+    _model.setOnline(event.isOnline);
+    _model.setEventLink(event.eventLinkVenue);
     _model.setOutsourcedVenue(event.isOutsourcedVenue ?? false);
 
     if (event.meetingPlatform != null) {
@@ -1007,7 +1083,7 @@ class EventLocationViewModel extends ChangeNotifier {
 
     if (!isOnline) {
       _model.setEventLink(null);
-      _event?.eventLink = null;
+      _event?.eventLinkVenue = null;
     }
 
     notifyListeners();
@@ -1044,7 +1120,7 @@ class EventLocationViewModel extends ChangeNotifier {
       _model.setEventLink(url.trim());
       _model.setUrlValidated(true);
       _model.setUrlError(null);
-      _event?.eventLink = url.trim();
+      _event?.eventLinkVenue = url.trim();
     } else {
       _model.setUrlError(validation.errorMessage);
       _model.setUrlValidated(false);
@@ -1202,7 +1278,7 @@ class EventSummaryViewModel extends ChangeNotifier {
 }
 
 class EventRegistrationFormViewModel extends ChangeNotifier {
-  final EventRegistrationFormModel _model = const EventRegistrationFormModel();
+  final EventRegistrationFormModel _model = EventRegistrationFormModel();
   Event? _event;
 
   // Getters
@@ -1492,7 +1568,7 @@ class EventInviteViewModel extends ChangeNotifier {
     _event?.selectedChurchName = church['name'];
 
     // Initialize role counts from church data
-    final roleCount = church['roleCount'] as Map<String, dynamic>;
+    // final roleCount = church['roleCount'] as Map<String, dynamic>;
     final initialCounts = <String, int>{};
 
     for (final role in _model.permanentRoles) {

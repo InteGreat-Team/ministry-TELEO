@@ -9,6 +9,7 @@ import '../screens/CHURCH_CREATEVENTS_4.dart';
 import '../screens/CHURCH_CREATEVENTS_3p2.dart';
 import '../../backend/models/CHURCH_CREATEVENTS_VAR.dart';
 import '../../backend/viewmodels/CHURCH_CREATEVENTS_FUNC.dart';
+
 class EventLocationScreen extends StatefulWidget {
   final Event event;
   // c1-style carried fields
@@ -59,15 +60,13 @@ class EventLocationScreen extends StatefulWidget {
 class _EventLocationScreenState extends State<EventLocationScreen> {
   final _formKey = GlobalKey<FormState>();
   late EventLocationViewModel _viewModel;
-  late EventLocationModel _model;
 
   @override
   void initState() {
     super.initState();
-    _model = EventLocationModel();
-    _viewModel = EventLocationViewModel(_model);
-    _viewModel.initializeFromEvent(widget.event);
-    
+    _viewModel = EventLocationViewModel();
+    _viewModel.initializeWithEvent(widget.event);
+
     // Listen to view model changes
     _viewModel.addListener(() {
       if (mounted) {
@@ -146,12 +145,12 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                         onPressed: () {
                           Navigator.of(context).pop();
                           _viewModel.setOutsourcedVenue(true);
-                          _viewModel.saveEventData(widget.event);
-                          
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => EventApiErrorScreen(event: widget.event),
+                              builder: (context) =>
+                                  EventApiErrorScreen(event: widget.event),
                             ),
                           );
                         },
@@ -186,7 +185,7 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: EventAppBar(
-        onBackPressed: () => Navigator.pop(context), 
+        onBackPressed: () => Navigator.pop(context),
         title: '',
       ),
       body: Form(
@@ -225,7 +224,9 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.all(24),
                                     decoration: BoxDecoration(
-                                      color: _model.isOnline ? const Color(0xFFFFC107) : Colors.white,
+                                      color: _viewModel.model.isOnline
+                                          ? const Color(0xFFFFC107)
+                                          : Colors.white,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: const Color(0xFFFFC107),
@@ -233,18 +234,23 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                       ),
                                     ),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.computer,
                                           size: 40,
-                                          color: _model.isOnline ? Colors.white : const Color(0xFFFFC107),
+                                          color: _viewModel.model.isOnline
+                                              ? Colors.white
+                                              : const Color(0xFFFFC107),
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
                                           'Online',
                                           style: TextStyle(
-                                            color: _model.isOnline ? Colors.white : const Color(0xFFFFC107),
+                                            color: _viewModel.model.isOnline
+                                                ? Colors.white
+                                                : const Color(0xFFFFC107),
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -260,7 +266,9 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.all(24),
                                     decoration: BoxDecoration(
-                                      color: !_model.isOnline ? const Color(0xFFFFC107) : Colors.white,
+                                      color: !_viewModel.model.isOnline
+                                          ? const Color(0xFFFFC107)
+                                          : Colors.white,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: const Color(0xFFFFC107),
@@ -268,18 +276,23 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                       ),
                                     ),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.location_on,
                                           size: 40,
-                                          color: !_model.isOnline ? Colors.white : const Color(0xFFFFC107),
+                                          color: !_viewModel.model.isOnline
+                                              ? Colors.white
+                                              : const Color(0xFFFFC107),
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
                                           'Onsite',
                                           style: TextStyle(
-                                            color: !_model.isOnline ? Colors.white : const Color(0xFFFFC107),
+                                            color: !_viewModel.model.isOnline
+                                                ? Colors.white
+                                                : const Color(0xFFFFC107),
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -291,7 +304,7 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                             ],
                           ),
                           const SizedBox(height: 20),
-                          if (_model.isOnline)
+                          if (_viewModel.model.isOnline)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -310,20 +323,25 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                 const SizedBox(height: 8),
                                 Container(
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[300]!),
+                                    border:
+                                        Border.all(color: Colors.grey[300]!),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
-                                      value: _model.selectedPlatform,
+                                      value: _viewModel.model.selectedPlatform,
                                       isExpanded: true,
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12),
                                       onChanged: (String? newValue) {
                                         if (newValue != null) {
-                                          _viewModel.setSelectedPlatform(newValue);
+                                          _viewModel
+                                              .setSelectedPlatform(newValue);
                                         }
                                       },
-                                      items: _model.meetingPlatforms.map<DropdownMenuItem<String>>((String value) {
+                                      items: _viewModel.model.meetingPlatforms
+                                          .map<DropdownMenuItem<String>>(
+                                              (String value) {
                                         return DropdownMenuItem<String>(
                                           value: value,
                                           child: Text(value),
@@ -332,9 +350,8 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                     ),
                                   ),
                                 ),
-                                
                                 // Custom Platform Input
-                                if (_model.isCustomPlatform) ...[
+                                if (_viewModel.model.isCustomPlatform) ...[
                                   const SizedBox(height: 8),
                                   const Row(
                                     children: [
@@ -349,16 +366,15 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   TextFormField(
-                                    controller: _viewModel.customPlatformController,
                                     decoration: const InputDecoration(
                                       hintText: 'Enter meeting platform name',
                                       border: OutlineInputBorder(),
                                     ),
+                                    onChanged: (value) =>
+                                        _viewModel.setSelectedPlatform(value),
                                   ),
                                 ],
-                                
                                 const SizedBox(height: 16),
-                                
                                 // URL Input Field
                                 const Row(
                                   children: [
@@ -378,45 +394,52 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: TextFormField(
-                                    controller: _viewModel.eventLinkController,
                                     decoration: InputDecoration(
-                                      hintText: _viewModel.getUrlHintText(),
+                                      hintText: 'https://meet.google.com/...',
                                       prefixIcon: const Icon(Icons.link),
-                                      suffixIcon: _model.isValidatingUrl 
-                                        ? const SizedBox(
-                                            width: 20, 
-                                            height: 20, 
-                                            child: CircularProgressIndicator(strokeWidth: 2)
-                                          )
-                                        : _model.urlValidated
-                                          ? const Icon(Icons.check_circle, color: Colors.green)
-                                          : null,
+                                      suffixIcon: _viewModel
+                                              .model.isValidatingUrl
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2))
+                                          : _viewModel.model.urlValidated
+                                              ? const Icon(Icons.check_circle,
+                                                  color: Colors.green)
+                                              : null,
                                       border: InputBorder.none,
                                       enabledBorder: InputBorder.none,
                                       focusedBorder: InputBorder.none,
                                       errorBorder: InputBorder.none,
                                       disabledBorder: InputBorder.none,
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-                                      errorStyle: const TextStyle(height: 0, color: Colors.transparent),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 16.0, horizontal: 16.0),
+                                      errorStyle: const TextStyle(
+                                          height: 0, color: Colors.transparent),
                                     ),
                                     keyboardType: TextInputType.url,
-                                    onChanged: (value) => _viewModel.onUrlChanged(value),
+                                    onChanged: (value) => _viewModel
+                                        .validateAndSetEventLink(value),
                                   ),
                                 ),
                                 // Show error message below the field
-                                if (_model.urlError != null)
+                                if (_viewModel.model.urlError != null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 4.0),
                                     child: Text(
-                                      _model.urlError!,
-                                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                                      _viewModel.model.urlError!,
+                                      style: const TextStyle(
+                                          color: Colors.red, fontSize: 12),
                                     ),
                                   ),
-                                if (!_model.urlValidated && _model.urlError == null)
+                                if (!_viewModel.model.urlValidated &&
+                                    _viewModel.model.urlError == null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 4.0),
                                     child: Text(
-                                      _viewModel.getValidationHelpText(),
+                                      'Enter a valid, accessible meeting link',
                                       style: TextStyle(
                                         color: Colors.grey[600],
                                         fontSize: 12,
@@ -440,16 +463,20 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                                   children: [
                                     Radio<bool>(
                                       value: false,
-                                      groupValue: _model.isOutsourcedVenue,
-                                      onChanged: (value) => _viewModel.setOutsourcedVenue(value!),
+                                      groupValue:
+                                          _viewModel.model.isOutsourcedVenue,
+                                      onChanged: (value) =>
+                                          _viewModel.setOutsourcedVenue(value!),
                                       activeColor: const Color(0xFF0A0A4A),
                                     ),
                                     const Text('Provide my own'),
                                     const SizedBox(width: 16),
                                     Radio<bool>(
                                       value: true,
-                                      groupValue: _model.isOutsourcedVenue,
-                                      onChanged: (value) => _viewModel.setOutsourcedVenue(value!),
+                                      groupValue:
+                                          _viewModel.model.isOutsourcedVenue,
+                                      onChanged: (value) =>
+                                          _viewModel.setOutsourcedVenue(value!),
                                       activeColor: const Color(0xFF0A0A4A),
                                     ),
                                     const Text('Outsource Event'),
@@ -504,7 +531,7 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                           ),
                         ),
                         child: Text(
-                          _model.isOnline ? 'Continue' : 'Location',
+                          _viewModel.model.isOnline ? 'Continue' : 'Location',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -516,32 +543,30 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
                 ],
               ),
             ),
-              bottomNavigationBar: NavBar(
-                currentIndex: 2, // Set to the correct index for Events
-                onTap: (index) {
-                  // Add navigation logic if needed
-                },
-              ),
           ],
         ),
+      ),
+      bottomNavigationBar: NavBar(
+        currentIndex: 2, // Set to the correct index for Events
+        onTap: (index) {
+          // Add navigation logic if needed
+        },
       ),
     );
   }
 
   Future<void> _handleContinuePressed() async {
-    if (_model.isOnline) {
-      // Validate online event requirements
-      final validationResult = await _viewModel.validateOnlineEvent();
-      
-      if (!validationResult.isValid) {
+    if (_viewModel.model.isOnline) {
+      final isValid = _viewModel.validateLocation();
+      if (!isValid) {
+        final error =
+            _viewModel.model.urlError ?? 'Please enter a valid, working URL';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(validationResult.errorMessage!)),
+          SnackBar(content: Text(error)),
         );
         return;
       }
-      
-      _viewModel.saveEventData(widget.event);
-      
+
       // Navigate to summary screen
       Navigator.push(
         context,
@@ -566,16 +591,14 @@ class _EventLocationScreenState extends State<EventLocationScreen> {
             startTime: widget.startTime,
             endTime: widget.endTime,
             isOnline: true,
-            eventLink: _viewModel.eventLinkController.text,
+            eventLink: _viewModel.model.eventLink,
             isOutsourcedVenue: false,
-            meetingPlatform: _model.isCustomPlatform ? _viewModel.customPlatformController.text : _model.selectedPlatform,
+            meetingPlatform: _viewModel.model.selectedPlatform,
           ),
         ),
       );
     } else {
-      _viewModel.saveEventData(widget.event);
-      
-      if (_model.isOutsourcedVenue) {
+      if (_viewModel.model.isOutsourcedVenue) {
         _showOutsourceDialog();
       } else {
         Navigator.push(

@@ -21,65 +21,18 @@ class _ChurchCreateEvent2State extends State<ChurchCreateEvent2> {
   final _formKey = GlobalKey<FormState>();
   late DateTimeViewModel _dateTimeViewModel;
 
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+
   @override
   void initState() {
     super.initState();
     _dateTimeViewModel = DateTimeViewModel();
-    _dateTimeViewModel.initializeEventDays(widget.event);
-  }
-
-  Future<void> _selectDate(BuildContext context, int dayIndex) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate:
-          _dateTimeViewModel.eventDays[dayIndex].date ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFFFFC107),
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      _dateTimeViewModel.updateEventDate(dayIndex, picked);
-    }
-  }
-
-  Future<void> _selectTime(
-      BuildContext context, int dayIndex, bool isStartTime) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: isStartTime
-          ? (_dateTimeViewModel.eventDays[dayIndex].startTime ??
-              TimeOfDay.now())
-          : (_dateTimeViewModel.eventDays[dayIndex].endTime ??
-              const TimeOfDay(hour: 18, minute: 0)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFFFFC107),
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      _dateTimeViewModel.updateEventTime(dayIndex, picked, isStartTime);
-    }
+    _dateTimeViewModel.initializeWithEvent(widget.event);
   }
 
   @override
@@ -118,14 +71,130 @@ class _ChurchCreateEvent2State extends State<ChurchCreateEvent2> {
                                 ),
                                 const SizedBox(height: 20),
 
-                                // Event Type
-                                const Row(
+                                // Event Type (One day or Multiple days)
+                                Row(
                                   children: [
-                                    Text(
-                                      'Event Date',
+                                    const Text('Single-day event'),
+                                    const SizedBox(width: 8),
+                                    Switch(
+                                      value: viewModel.isOneDay,
+                                      activeColor: const Color(0xFFFFC107),
+                                      onChanged: (val) =>
+                                          viewModel.setOneDay(val),
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 16),
+
+                                if (viewModel.isOneDay) ...[
+                                  const Row(
+                                    children: [
+                                      Text('Start date'),
+                                      RequiredAsterisk(),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () => viewModel
+                                              .selectStartDate(context),
+                                          child: Text(
+                                            viewModel.startDate == null
+                                                ? 'Select start date'
+                                                : '${viewModel.startDate!.month}/${viewModel.startDate!.day}/${viewModel.startDate!.year}',
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text('Time (optional)'),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () => viewModel
+                                              .selectStartTime(context),
+                                          child: Text(
+                                            viewModel.startTime == null
+                                                ? 'Select start time'
+                                                : _formatTime(
+                                                    viewModel.startTime!),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () =>
+                                              viewModel.selectEndTime(context),
+                                          child: Text(
+                                            viewModel.endTime == null
+                                                ? 'Select end time'
+                                                : _formatTime(
+                                                    viewModel.endTime!),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ] else ...[
+                                  const Text('Specific dates'),
+                                  const SizedBox(height: 8),
+                                  ...viewModel.eventDays
+                                      .asMap()
+                                      .entries
+                                      .map((entry) {
+                                    final index = entry.key;
+                                    final day = entry.value;
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 8.0),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: OutlinedButton(
+                                              onPressed: () =>
+                                                  viewModel.selectEventDayDate(
+                                                      context, index),
+                                              child: Text(
+                                                day.date == null
+                                                    ? 'Select date for Day ${index + 1}'
+                                                    : '${day.date!.month}/${day.date!.day}/${day.date!.year}',
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () =>
+                                                viewModel.removeEventDay(index),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      icon: const Icon(Icons.add),
+                                      label: const Text('Add another date'),
+                                      onPressed: viewModel.addEventDay,
+                                    ),
+                                  ),
+                                ],
+
+                                if (viewModel.errorMessage != null) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    viewModel.errorMessage!,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                ],
                               ],
                             );
                           },
@@ -133,6 +202,75 @@ class _ChurchCreateEvent2State extends State<ChurchCreateEvent2> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0A0A4A),
+                            side: const BorderSide(color: Color(0xFF0A0A4A)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Back'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_dateTimeViewModel.validateDateTime()) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EventLocationScreen(
+                                    event: widget.event,
+                                    title: widget.event.title,
+                                    tags: widget.event.tags,
+                                    description: widget.event.description,
+                                    contactInfo: widget.event.contactInfo,
+                                    churchLandline: widget.event.churchLandline,
+                                    dressCode: widget.event.dressCode,
+                                    speakers: widget.event.speakers,
+                                    imageUrl: widget.event.imageUrl,
+                                    imagePath: widget.event.imagePath,
+                                    imageBytes: widget.event.imageBytes,
+                                    additionalImages:
+                                        widget.event.additionalImages,
+                                    isOneDay: widget.event.isOneDay,
+                                    eventDays: widget.event.eventDays ?? [],
+                                    startDate: widget.event.startDate,
+                                    endDate: widget.event.endDate,
+                                    startTime: widget.event.startTime,
+                                    endTime: widget.event.endTime,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0A0A4A),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Continue'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

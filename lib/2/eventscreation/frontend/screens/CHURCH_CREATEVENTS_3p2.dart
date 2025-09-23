@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:teleo_organized_new/1/c1homepage/nav_bar.dart';
+// keeping a single import
 import '../../backend/models/CHURCH_CREATEVENTS_VAR.dart';
-import '../../backend/viewmodels/CHURCH_CREATEVENTS_FUNC.dart';
-import '../../../c2eventscreation/widgets/step_indicator.dart';
-import '../../../c2eventscreation/widgets/required_asterisk.dart';
 import '../../../c2eventscreation/widgets/event_app_bar.dart';
+
+class EventApiErrorViewModel {
+  final EventApiErrorModel errorModel = const EventApiErrorModel();
+
+  void navigateBack(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+}
 
 class EventApiErrorScreen extends StatefulWidget {
   final Event event;
