@@ -1,9 +1,28 @@
+//STEPS 7-11
+// CREATE_EVENTS_FUNC.dart - Functions, ViewModels, and Business Logic
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../models/CHURCH_CREATEVENTS_VAR.dart';
+import '../../frontend/screens/CHURCH_CREATEEVENTS_9.dart';
+import '../../../eventscreation/frontend/widgets/event_app_bar.dart';
+import '../../../eventscreation/frontend/widgets/confirmation_dialog.dart';
+import '../../../eventscreation/frontend/widgets/required_asterisk.dart';
+import '../../../eventscreation/frontend/widgets/step_indicator.dart';
+import '../../../eventscreation/frontend/widgets/success_dialog.dart';
+import '../../../c2eventscreation/models/event.dart';
+
+// Your ViewModel and other classes go here...
 
 class CreateEventViewModel extends ChangeNotifier {
   final Event _event = Event();
@@ -611,16 +630,6 @@ class EventLocationViewModel extends ChangeNotifier {
     eventLinkController.dispose();
     customPlatformController.dispose();
     super.dispose();
-  }
-}
-
-class EventApiErrorViewModel {
-  final EventApiErrorModel _errorModel = const EventApiErrorModel();
-
-  EventApiErrorModel get errorModel => _errorModel;
-
-  void navigateBack(BuildContext context) {
-    Navigator.pop(context);
   }
 }
 
@@ -1777,5 +1786,1204 @@ class EventInviteViewModel extends ChangeNotifier {
     fullNameController.dispose();
     guestChurchController.dispose();
     super.dispose();
+  }
+}
+
+mixin EventTargetsScreenFunctions on ChurchCreateVentsVar {
+  void initEventTargetsScreen(Event event) {
+    // Initialize max allowed date (7 days from now)
+    maxAllowedDate = DateTime.now().add(const Duration(days: 7));
+    
+    // Initialize target publish date and time from event if available
+    targetPublishDate = event.targetPublishDate;
+    targetPublishTime = event.targetPublishTime;
+    
+    // Initialize invite message
+    inviteMessageController.text = event.inviteMessage ?? '';
+  }
+  
+  String getFormattedEventDates(Event event) {
+    if (event.isOneDay && event.startDate != null) {
+      return dayFormatter.format(event.startDate!);
+    } else if (!event.isOneDay && event.startDate != null && event.endDate != null) {
+      return '${dayFormatter.format(event.startDate!)} - ${dayFormatter.format(event.endDate!)}';
+    }
+    return 'Date not set';
+  }
+  
+  String formatDate(DateTime? date) {
+    if (date == null) return '';
+    return '${date.month}/${date.day}/${date.year}';
+  }
+  
+  Future<void> selectDate(BuildContext context, Function setState) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: targetPublishDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: maxAllowedDate!,
+    );
+    if (picked != null && picked != targetPublishDate) {
+      setState(() {
+        targetPublishDate = picked;
+      });
+    }
+  }
+  
+  Future<void> selectTime(BuildContext context, Function setState) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: targetPublishTime ?? TimeOfDay.now(),
+    );
+    if (picked != null && picked != targetPublishTime) {
+      setState(() {
+        targetPublishTime = picked;
+      });
+    }
+  }
+  
+  void showSendInvitesDialog(BuildContext context, Event event) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Send Invites'),
+          content: const Text('Are you ready to send invites for this event?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Navigate to final step
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventCreationFinalStep(event: event),
+                  ),
+                );
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  void dismissSuccessNotification(Function setState) {
+    setState(() {
+      showSuccessNotification = false;
+    });
+  }
+  
+  void dismissNotification(Function setState) {
+    setState(() {
+      showNotification = false;
+    });
+  }
+}
+
+mixin EventCreationFinalStepFunctions on ChurchCreateVentsVar {
+  Widget buildDetailItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  String formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+}
+
+mixin EventWaitingApprovalScreenFunctions on ChurchCreateVentsVar {
+  void initEventWaitingApprovalScreen(Event event, BuildContext context) {
+    eventSaved = true;
+    
+    // Start a timer to redirect after 3 seconds
+    redirectTimer = Timer(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EventDetailsScreen(event: event),
+        ),
+      );
+    });
+  }
+  
+  void disposeEventWaitingApprovalScreen() {
+    redirectTimer?.cancel();
+  }
+}
+
+mixin EventDetailsScreenFunctions on ChurchCreateVentsVar {
+  void initEventDetailsScreen(Event event) {
+    // Initialize like state (could be loaded from a service)
+    hasLiked = false;
+    likeCount = 42; // Sample like count
+    
+    // Initialize registration state
+    isRegistered = false;
+    
+    // Format dates and times
+    if (event.startDate != null) {
+      formattedStartDate = dayFormatter.format(event.startDate!);
+    }
+    if (event.endDate != null) {
+      formattedEndDate = dayFormatter.format(event.endDate!);
+    }
+    if (event.startTime != null) {
+      formattedStartTime = _formatTimeOfDay(event.startTime!);
+    }
+    if (event.endTime != null) {
+      formattedEndTime = _formatTimeOfDay(event.endTime!);
+    }
+  }
+  
+  void initEventDetailsScreenDependencies(BuildContext context) {
+    screenHeight = MediaQuery.of(context).size.height;
+  }
+  
+  void disposeEventDetailsScreen() {
+    // Clean up any resources if needed
+  }
+  
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+  
+  void toggleLike(Function setState) {
+    setState(() {
+      hasLiked = !hasLiked;
+      likeCount += hasLiked ? 1 : -1;
+    });
+  }
+  
+  void toggleDescription(Function setState) {
+    setState(() {
+      isDescriptionExpanded = !isDescriptionExpanded;
+    });
+  }
+  
+  void registerForEvent(Function setState) {
+    setState(() {
+      isRegistered = true;
+      showRegistrationNotification = true;
+    });
+    
+    // Auto-dismiss notification after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        showRegistrationNotification = false;
+      });
+    });
+  }
+  
+  void navigateToEventsTab(BuildContext context) {
+    // Navigate to events tab or home screen
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+  
+  Widget buildEventImage(double screenHeight) {
+    return Container(
+      height: screenHeight * 0.3,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        image: const DecorationImage(
+          image: NetworkImage('https://via.placeholder.com/400x200'),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+  
+  Widget buildInfoContainer({
+    required Color backgroundColor,
+    required Widget leading,
+    required String title,
+    required String subtitle,
+    Color? subtitleColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          leading,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: subtitleColor ?? Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF0A0A4A),
+        ),
+      ),
+    );
+  }
+  
+  Widget buildParticipantsList(Event event) {
+    List<String> participants = [];
+    
+    // Add invited churches
+    for (var church in event.invitedChurches) {
+      participants.add(church.name);
+    }
+    
+    // Add invited guests
+    for (var guest in event.invitedGuests) {
+      participants.add(guest.fullName);
+    }
+    
+    if (participants.isEmpty) {
+      return Text(
+        'Open to all',
+        style: TextStyle(color: Colors.grey[700]),
+      );
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: participants.take(3).map((participant) => Text(
+        participant,
+        style: TextStyle(color: Colors.grey[700]),
+      )).toList(),
+    );
+  }
+  
+  void showShareDialog(BuildContext context, String eventUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Share Event'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Share this event with others:'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  eventUrl,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Copy to clipboard
+                Clipboard.setData(ClipboardData(text: eventUrl));
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Event URL copied to clipboard')),
+                );
+              },
+              child: const Text('Copy Link'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+mixin ChurchCreateVentsFunc on ChurchCreateVentsVar 
+    with EventTargetsScreenFunctions, 
+         EventCreationFinalStepFunctions,
+         EventWaitingApprovalScreenFunctions,
+         EventDetailsScreenFunctions {
+  
+  void initializeEventInviteScreen(Event event) {
+    inviteType = event.inviteType ?? 'Open Invite';
+    expectedCapacity = event.expectedCapacity ?? 500;
+    if (event.customCapacity != null) {
+      isCustomCapacity = true;
+      customCapacityController.text = event.customCapacity!;
+      
+      // Initialize expected capacity from custom capacity if available
+      final customCapacityValue = int.tryParse(event.customCapacity!);
+      if (customCapacityValue != null) {
+        expectedCapacity = customCapacityValue;
+      }
+    }
+    
+    // Initialize UI list with existing invited churches
+    invitedChurchesUI = List.from(event.invitedChurches ?? []);
+    
+    // Initialize UI list with existing invited guests
+    invitedGuestsUI = List.from(event.invitedGuests ?? []);
+    
+    // Initialize invite counts and total invited people
+    initializeInviteCounts();
+  }
+  
+  void disposeEventInviteScreen() {
+    customCapacityController.dispose();
+    searchController.dispose();
+    usernameController.dispose();
+    fullNameController.dispose();
+    guestChurchController.dispose();
+  }
+  
+  // Initialize invite counts from existing data
+  void initializeInviteCounts() {
+    churchInviteCounts.clear();
+    totalInvitedPeople = 0;
+    
+    // Count people from existing church invites
+    for (var church in invitedChurchesUI) {
+      int churchTotal = 0;
+      
+      // Parse the roles and counts from the format "Role (count)"
+      for (var roleString in church.roles) {
+        final parts = roleString.split(' (');
+        if (parts.length == 2) {
+          final countStr = parts[1].replaceAll(')', '');
+          final count = int.tryParse(countStr) ?? 0;
+          churchTotal += count;
+        }
+      }
+      
+      churchInviteCounts[church.name] = churchTotal;
+      totalInvitedPeople += churchTotal;
+    }
+    
+    // Add individual guests to the total
+    totalInvitedPeople += invitedGuestsUI.length;
+  }
+
+  // Calculate total invited people (sum of all church roles and individual guests)
+  int calculateTotalInvitedPeople() {
+    return totalInvitedPeople;
+  }
+
+  // Calculate total people that would be invited if current selection is added
+  int calculateTotalWithCurrentSelection() {
+    // Start with the current total of invited people
+    int total = totalInvitedPeople;
+    
+    // If we're editing an existing church, subtract its current count
+    if (selectedChurch != null) {
+      final existingCount = churchInviteCounts[selectedChurch!['name']] ?? 0;
+      total -= existingCount;
+    }
+    
+    // Add counts from currently selected roles
+    int selectedTotal = 0;
+    selectedRolesCounts.forEach((role, count) {
+      if (count > 0) {
+        selectedTotal += count;
+      }
+    });
+    
+    return total + selectedTotal;
+  }
+
+  // Get remaining capacity
+  int getRemainingCapacity() {
+    return expectedCapacity - calculateTotalInvitedPeople();
+  }
+
+  // Check if adding the selected roles would exceed capacity
+  bool wouldExceedCapacity() {
+    if (inviteType == 'Open Invite') return false;
+    
+    int totalWithCurrentSelection = calculateTotalWithCurrentSelection();
+    
+    // Check if this would exceed capacity
+    return totalWithCurrentSelection > expectedCapacity;
+  }
+
+  // Check if capacity limit is reached
+  bool isCapacityReached() {
+    if (inviteType == 'Open Invite') return false;
+    int totalInvited = calculateTotalInvitedPeople();
+    return totalInvited >= expectedCapacity;
+  }
+
+  void showErrorNotification(String message) {
+    notificationMessage = message;
+    notificationType = NotificationType.error;
+    showNotification = true;
+  }
+
+  void showWarningNotification(String message) {
+    notificationMessage = message;
+    notificationType = NotificationType.warning;
+    showNotification = true;
+  }
+
+  void showSuccessNotification(String message) {
+    notificationMessage = message;
+    notificationType = NotificationType.success;
+    showNotification = true;
+    
+    // Auto-dismiss notification after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      showNotification = false;
+    });
+  }
+  
+  void dismissNotification() {
+    showNotification = false;
+  }
+
+  // Update expected capacity from custom capacity input
+  void updateExpectedCapacityFromCustomInput() {
+    if (customCapacityController.text.isNotEmpty) {
+      final customCapacityValue = int.tryParse(customCapacityController.text);
+      if (customCapacityValue != null) {
+        // Check if current invites exceed the new capacity
+        int totalInvited = calculateTotalInvitedPeople();
+        
+        expectedCapacity = customCapacityValue;
+        
+        if (inviteType == 'Private' && totalInvited > expectedCapacity) {
+          capacityErrorMessage = 'Warning: Your current invites ($totalInvited people) exceed the new capacity limit ($expectedCapacity people).';
+          
+          // Show warning notification
+          showWarningNotification(capacityErrorMessage!);
+        } else {
+          capacityErrorMessage = null;
+        }
+      }
+    }
+  }
+
+  // COMPLETELY REWRITTEN: Add church with roles function
+  void addChurchWithRoles(Function setState) {
+    if (selectedChurch != null && selectedRolesCounts.isNotEmpty) {
+      // Create a list of roles with their counts
+      List<String> roles = [];
+      int totalPeopleToAdd = 0;
+
+      selectedRolesCounts.forEach((role, count) {
+        // Only add roles with count > 0
+        if (count > 0) {
+          roles.add("$role ($count)");
+          totalPeopleToAdd += count;
+        }
+      });
+
+      if (roles.isEmpty) {
+        showErrorNotification('Please select at least one role with a count greater than 0');
+        return;
+      }
+
+      int totalWithCurrentSelection = calculateTotalWithCurrentSelection();
+
+      if (totalWithCurrentSelection > expectedCapacity) {
+        capacityErrorMessage =
+            'Cannot add these roles. It would exceed your capacity limit of $expectedCapacity people.';
+        showErrorNotification(capacityErrorMessage!);
+        return;
+      }
+
+      final newChurch = ChurchInvite(
+        name: selectedChurch!['name'],
+        members: selectedChurch!['members'],
+        roles: roles,
+      );
+
+      // Store the church data temporarily
+      final churchToAdd = selectedChurch;
+      final rolesToAdd = Map<String, int>.from(selectedRolesCounts);
+      
+      // First, clear the selection state
+      setState(() {
+        selectedChurch = null;
+        selectedRolesCounts = {};
+        isInChurchSelectionMode = false;
+      });
+
+      // Then in a separate setState, add the church data
+      // This ensures the UI updates correctly
+      Future.microtask(() {
+        setState(() {
+          // Check if church is already in the list
+          final existingIndex = invitedChurchesUI.indexWhere(
+            (church) => church.name == churchToAdd!['name'],
+          );
+
+          if (existingIndex >= 0) {
+            final existingCount = churchInviteCounts[churchToAdd!['name']] ?? 0;
+            totalInvitedPeople -= existingCount;
+            
+            // Update roles if church already exists
+            invitedChurchesUI[existingIndex] = newChurch;
+            showSuccessNotification('Church roles updated successfully');
+          } else {
+            // Add new church with roles
+            invitedChurchesUI.add(newChurch);
+            showSuccessNotification('Church added successfully');
+          }
+
+          churchInviteCounts[churchToAdd!['name']] = totalPeopleToAdd;
+          totalInvitedPeople += totalPeopleToAdd;
+        });
+      });
+    }
+  }
+
+  void showRoleSelectionDialog(Function setState) {
+    // Create a temporary map for role selection with counts
+    Map<String, int> tempSelectedRolesCounts = Map.from(selectedRolesCounts);
+    
+    // Initialize with default values if empty
+    for (var role in permanentRoles) {
+      if (!tempSelectedRolesCounts.containsKey(role)) {
+        tempSelectedRolesCounts[role] = 0;
+      }
+    }
+    
+    // Calculate the TOTAL number of people already invited across ALL churches and guests
+    int totalAlreadyInvited = calculateTotalInvitedPeople();
+    
+    // If this church is already in the list, subtract its current counts to avoid double counting
+    int currentChurchTotal = 0;
+    if (selectedChurch != null) {
+      currentChurchTotal = churchInviteCounts[selectedChurch!['name']] ?? 0;
+      // Subtract this church's current contribution from the total
+      totalAlreadyInvited -= currentChurchTotal;
+    }
+    
+    // Calculate remaining capacity after accounting for all other invites
+    int remainingCapacity = expectedCapacity - totalAlreadyInvited;
+    
+    // This would need to be implemented in the UI layer
+    // The dialog implementation would go in the screen file
+  }
+
+  // REWRITTEN: Select church function
+  void selectChurch(Map<String, dynamic> church, Function setState) {
+    // Check if capacity is already reached
+    if (inviteType == 'Private' && isCapacityReached()) {
+      showErrorNotification('Cannot add more churches. You have reached your capacity limit of $expectedCapacity people.');
+      return;
+    }
+    
+    setState(() {
+      selectedChurch = church;
+      selectedRolesCounts = {};
+      isInChurchSelectionMode = true;
+    });
+  }
+
+  void removeChurch(String churchName, Function setState) {
+    setState(() {
+      // Subtract this church's count from the total before removing
+      final churchCount = churchInviteCounts[churchName] ?? 0;
+      totalInvitedPeople -= churchCount;
+      
+      // Remove the church from the invite counts map
+      churchInviteCounts.remove(churchName);
+      
+      // Remove the church from the UI list
+      invitedChurchesUI.removeWhere((church) => church.name == churchName);
+    });
+  }
+
+  void editChurch(ChurchInvite church, Function setState) {
+    // Find and select the church for editing
+    final churchData = sampleChurches.firstWhere(
+      (c) => c['name'] == church.name,
+      orElse: () => {'name': church.name, 'members': church.members},
+    );
+    
+    // Parse the roles and counts from the format "Role (count)"
+    Map<String, int> roleCounts = {};
+    for (var roleString in church.roles) {
+      final parts = roleString.split(' (');
+      if (parts.length == 2) {
+        final role = parts[0];
+        final countStr = parts[1].replaceAll(')', '');
+        final count = int.tryParse(countStr) ?? 0;
+        roleCounts[role] = count;
+      }
+    }
+    
+    setState(() {
+      selectedChurch = churchData;
+      selectedRolesCounts = roleCounts;
+      isInChurchSelectionMode = true;
+    });
+  }
+
+  void clearAllChurches(Function setState) {
+    setState(() {
+      // Clear all church-related data
+      invitedChurchesUI.clear();
+      churchInviteCounts.clear();
+      
+      // Recalculate total invited people (only guests remain)
+      totalInvitedPeople = invitedGuestsUI.length;
+    });
+  }
+
+  List<Map<String, dynamic>> getFilteredChurches() {
+    if (searchQuery.isEmpty) {
+      return sampleChurches;
+    }
+    
+    return sampleChurches.where((church) => 
+      church['name'].toString().toLowerCase().contains(searchQuery.toLowerCase())
+    ).toList();
+  }
+
+  // REWRITTEN: Show add guest form
+  void showAddGuestForm(Function setState) {
+    // Check if capacity is already reached
+    if (inviteType == 'Private' && isCapacityReached()) {
+      showErrorNotification('Cannot add more guests. You have reached your capacity limit of $expectedCapacity people.');
+      return;
+    }
+    
+    // Clear form fields first
+    usernameController.clear();
+    fullNameController.clear();
+    guestChurchController.clear();
+    
+    setState(() {
+      showGuestForm = true;
+    });
+  }
+
+  // REWRITTEN: Hide add guest form
+  void hideAddGuestForm(Function setState) {
+    setState(() {
+      showGuestForm = false;
+    });
+  }
+
+  // COMPLETELY REWRITTEN: Add guest function
+  void addGuest(Function setState) {
+    if (usernameController.text.isEmpty || 
+        fullNameController.text.isEmpty || 
+        guestChurchController.text.isEmpty) {
+      showErrorNotification('Please fill in all guest information');
+      return;
+    }
+
+    // Check if adding one more guest would exceed capacity
+    if (inviteType == 'Private' && calculateTotalInvitedPeople() + 1 > expectedCapacity) {
+      showErrorNotification('Cannot add more guests. It would exceed your capacity limit of $expectedCapacity people.');
+      return;
+    }
+
+    // Store the guest data temporarily
+    final username = usernameController.text.trim();
+    final fullName = fullNameController.text.trim();
+    final churchName = guestChurchController.text.trim();
+    
+    // First, hide the form
+    setState(() {
+      showGuestForm = false;
+    });
+    
+    // Then in a separate setState, add the guest data
+    // This ensures the UI updates correctly
+    Future.microtask(() {
+      setState(() {
+        final newGuest = GuestInvite(
+          username: username,
+          fullName: fullName,
+          churchName: churchName,
+        );
+        
+        invitedGuestsUI.add(newGuest);
+        totalInvitedPeople += 1; // Add 1 to the total for this guest
+        showSuccessNotification('Guest added successfully');
+      });
+    });
+  }
+
+  void removeGuest(int index, Function setState) {
+    setState(() {
+      invitedGuestsUI.removeAt(index);
+      totalInvitedPeople -= 1; // Subtract 1 from the total for this guest
+    });
+  }
+
+  // Get color for capacity indicator
+  Color getCapacityColor() {
+    final totalInvited = calculateTotalInvitedPeople();
+    final percentFilled = totalInvited / expectedCapacity;
+    
+    if (percentFilled >= 1.0) {
+      return Colors.red;
+    } else if (percentFilled >= 0.9) {
+      return Colors.orange;
+    } else if (percentFilled >= 0.7) {
+      return Colors.amber;
+    } else {
+      return Colors.green;
+    }
+  }
+
+  // Check if a church is already invited
+  bool isChurchInvited(String churchName) {
+    return invitedChurchesUI.any((church) => church.name == churchName);
+  }
+
+  // Save event data and navigate to next screen
+  void saveAndContinue(BuildContext context) {
+    if (formKey.currentState!.validate()) {
+      // Check if current invites exceed capacity
+      if (inviteType == 'Private') {
+        int totalInvited = calculateTotalInvitedPeople();
+        if (totalInvited > expectedCapacity) {
+          showErrorNotification('Cannot proceed. Your current invites ($totalInvited people) exceed the capacity limit ($expectedCapacity people). Please remove some invites or increase the capacity.');
+          return;
+        }
+      }
+      
+      // Navigate to next screen would be implemented here
+      // For now, just show success
+      showSuccessNotification('Event data saved successfully');
+    }
+  }
+
+  // Build a notification widget based on type
+  Widget buildNotification() {
+    if (!showNotification || notificationMessage == null) {
+      return const SizedBox.shrink();
+    }
+    
+    Color backgroundColor;
+    IconData iconData;
+    
+    switch (notificationType) {
+      case NotificationType.error:
+        backgroundColor = Colors.red;
+        iconData = Icons.error_outline;
+        break;
+      case NotificationType.warning:
+        backgroundColor = Colors.orange;
+        iconData = Icons.warning_amber_outlined;
+        break;
+      case NotificationType.success:
+        backgroundColor = Colors.green;
+        iconData = Icons.check_circle_outline;
+        break;
+      default:
+        backgroundColor = Colors.blue;
+        iconData = Icons.info_outline;
+        break;
+    }
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: backgroundColor,
+      child: Row(
+        children: [
+          Icon(iconData, color: Colors.white),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              notificationMessage!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18, color: Colors.white),
+            onPressed: dismissNotification,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class EventApiErrorViewModel {
+  final EventApiErrorModel _errorModel = const EventApiErrorModel();
+
+  EventApiErrorModel get errorModel => _errorModel;
+
+  void navigateBack(BuildContext context) {
+    Navigator.pop(context);
+  }
+}
+
+class EventSummaryViewModel {
+  final EventSummaryModel _model = const EventSummaryModel();
+  late Event _event;
+  late String? _title;
+  late List<String> _tags;
+  late String? _description;
+  late String? _contactInfo;
+  late String? _churchLandline;
+  late String? _dressCode;
+  late List<String> _speakers;
+  late String? _imageUrl;
+  late String? _imagePath;
+  late Uint8List? _imageBytes;
+  late List<EventImage> _additionalImages;
+  late bool _isOneDay;
+  late List<EventDay> _eventDays;
+  late DateTime? _startDate;
+  late DateTime? _endDate;
+  late TimeOfDay? _startTime;
+  late TimeOfDay? _endTime;
+  late bool _isOnline;
+  late String? _eventLink;
+  late bool _isOutsourcedVenue;
+  late String? _meetingPlatform;
+
+  // Getters
+  EventSummaryModel get model => _model;
+
+  void initializeFromWidget(dynamic widget) {
+    _event = widget.event;
+    _title = widget.title;
+    _tags = widget.tags;
+    _description = widget.description;
+    _contactInfo = widget.contactInfo;
+    _churchLandline = widget.churchLandline;
+    _dressCode = widget.dressCode;
+    _speakers = widget.speakers;
+    _imageUrl = widget.imageUrl;
+    _imagePath = widget.imagePath;
+    _imageBytes = widget.imageBytes;
+    _additionalImages = widget.additionalImages;
+    _isOneDay = widget.isOneDay;
+    _eventDays = widget.eventDays;
+    _startDate = widget.startDate;
+    _endDate = widget.endDate;
+    _startTime = widget.startTime;
+    _endTime = widget.endTime;
+    _isOnline = widget.isOnline;
+    _eventLink = widget.eventLink;
+    _isOutsourcedVenue = widget.isOutsourcedVenue;
+    _meetingPlatform = widget.meetingPlatform;
+  }
+
+  List<EventDetailItem> getEventDetails() {
+    return [
+      EventDetailItem(
+        label: 'Event Title',
+        value: _title ?? _event.title ?? 'To be answered',
+      ),
+      EventDetailItem(
+        label: 'Tags',
+        value: (_tags.isNotEmpty ? _tags : _event.tags).isEmpty 
+            ? 'None selected' 
+            : (_tags.isNotEmpty ? _tags : _event.tags).join(', '),
+      ),
+      EventDetailItem(
+        label: 'Event Description',
+        value: _description ?? _event.description ?? 'To be answered',
+      ),
+      EventDetailItem(
+        label: 'Speaker',
+        value: (_speakers.isNotEmpty ? _speakers : _event.speakers).isEmpty 
+            ? 'None specified' 
+            : (_speakers.isNotEmpty ? _speakers : _event.speakers).join(', '),
+      ),
+      EventDetailItem(
+        label: 'Event Date',
+        value: _isOneDay ? 'One day event' : 'Multiple day event',
+      ),
+      EventDetailItem(
+        label: 'Date',
+        value: _isOneDay 
+            ? _formatDate(_startDate)
+            : '${_formatDate(_startDate)} - ${_formatDate(_endDate)}',
+      ),
+      EventDetailItem(
+        label: 'Time',
+        value: '${_formatTime(_startTime)} - ${_formatTime(_endTime)}',
+      ),
+      EventDetailItem(
+        label: 'Event Setting',
+        value: _isOnline ? 'Online' : 'Onsite',
+      ),
+      EventDetailItem(
+        label: 'Venue/Location',
+        value: _isOnline 
+            ? (_eventLink ?? 'No link provided')
+            : (_isOutsourcedVenue 
+                ? 'Outsourced Event API (link)'
+                : (_event.venueName ?? 'No venue specified')),
+      ),
+    ];
+  }
+
+  Widget buildEventImage() {
+    if (_event.imageBytes != null && _event.imageBytes!.isNotEmpty) {
+      return Image.memory(
+        _event.imageBytes!,
+        width: double.infinity,
+        height: 200,
+        fit: BoxFit.cover,
+      );
+    } else if (_event.imageUrl != null && _event.imageUrl!.isNotEmpty) {
+      return Image.network(
+        _event.imageUrl!,
+        width: double.infinity,
+        height: 200,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildPlaceholderImage();
+        },
+      );
+    } else if (_event.imagePath != null && !kIsWeb) {
+      return Image.file(
+        File(_event.imagePath!),
+        width: double.infinity,
+        height: 200,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildPlaceholderImage();
+        },
+      );
+    } else {
+      return _buildPlaceholderImage();
+    }
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      color: Colors.grey[300],
+      child: const Center(
+        child: Icon(
+          Icons.image,
+          size: 50,
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return '';
+    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  String _formatTime(TimeOfDay? time) {
+    if (time == null) return '';
+    
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    
+    return '$hour:$minute $period';
+  }
+
+  void navigateBack(BuildContext context) {
+    Navigator.pop(context);
+  }
+
+  void showConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: _model.dialogBackgroundColor,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.check_circle, 
+                      size: 24, 
+                      color: _model.dialogIconColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _model.dialogTitle,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _model.dialogMessage,
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF444444),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          _model.dialogNoText,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _handleConfirmNavigation(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _model.primaryColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          _model.dialogYesText,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleConfirmNavigation(BuildContext context) {
+    Navigator.of(context).pop();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EventRegistrationFormScreen(
+          event: _event,
+          title: _title,
+          tags: _tags,
+          description: _description,
+          contactInfo: _contactInfo,
+          churchLandline: _churchLandline,
+          dressCode: _dressCode,
+          speakers: _speakers,
+          imageUrl: _imageUrl,
+          imagePath: _imagePath,
+          imageBytes: _imageBytes,
+          additionalImages: _additionalImages,
+          isOneDay: _isOneDay,
+          eventDays: _eventDays,
+          startDate: _startDate,
+          endDate: _endDate,
+          startTime: _startTime,
+          endTime: _endTime,
+          isOnline: _isOnline,
+          eventLink: _eventLink,
+          isOutsourcedVenue: _isOutsourcedVenue,
+          meetingPlatform: _meetingPlatform,
+        ),
+      ),
+    );
+  }
+
+  void dispose() {
+    // Clean up any resources if needed
   }
 }

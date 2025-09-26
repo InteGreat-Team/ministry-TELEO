@@ -1,10 +1,12 @@
-// CHURCH_CREATEEVENTS_8p1.dart - UI Screen
 import 'package:flutter/material.dart';
 import 'models/event.dart';
 import 'widgets/step_indicator.dart';
 import 'widgets/event_app_bar.dart';
-import 'CREATE_EVENTS_VAR.dart';
-import 'CREATE_EVENTS_FUNC.dart';
+import '../eventscreation/frontend/widgets/confirmation_dialog.dart';
+import '../eventscreation/frontend/widgets/success_dialog.dart';
+import 'c2s9caeventcreation.dart';
+import '../../backend/models/CHURCH_CREATEVENTS_VAR.dart';
+import '../../backend/viewmodels/CHURCH_CREATEVENTS_FUNC.dart';
 
 class EventTargetsScreen extends StatefulWidget {
   final Event event;
@@ -15,56 +17,48 @@ class EventTargetsScreen extends StatefulWidget {
   State<EventTargetsScreen> createState() => _EventTargetsScreenState();
 }
 
-class _EventTargetsScreenState extends State<EventTargetsScreen> {
-  late EventTargetsVariables _variables;
-  late EventTargetsViewModel _viewModel;
+class _EventTargetsScreenState extends State<EventTargetsScreen> 
+    with ChurchCreateVentsVar, ChurchCreateVentsFunc {
   
   @override
   void initState() {
     super.initState();
-    _variables = EventTargetsVariables(event: widget.event);
-    _viewModel = EventTargetsViewModel(_variables);
-  }
-
-  @override
-  void dispose() {
-    _variables.dispose();
-    super.dispose();
+    initEventTargetsScreen(widget.event);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: EventAppBar(
-        onBackPressed: () => _viewModel.handleBack(context), 
+        onBackPressed: () => Navigator.pop(context), 
         title: '',
       ),
       body: Form(
-        key: EventTargetsVariables.formKey,
+        key: formKey,
         child: Column(
           children: [
             // Success notification at the top
-            if (_variables.showSuccessNotification)
+            if (showSuccessNotification)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: EventTargetsColors.successGreen,
+                color: Colors.green,
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: EventTargetsColors.backgroundWhite),
+                    const Icon(Icons.check_circle, color: Colors.white),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
-                        EventTargetsConstants.successNotification,
+                        'Event created successfully!',
                         style: TextStyle(
-                          color: EventTargetsColors.backgroundWhite,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, size: 18, color: EventTargetsColors.backgroundWhite),
-                      onPressed: _viewModel.dismissSuccessNotification,
+                      icon: const Icon(Icons.close, size: 18, color: Colors.white),
+                      onPressed: () => dismissSuccessNotification(() => setState(() {})),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -73,24 +67,24 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
               ),
             
             // Notification about automatic publishing
-            if (_variables.showNotification)
+            if (showNotification)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 color: Colors.amber.shade100,
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, color: EventTargetsColors.warningAmber),
+                    const Icon(Icons.info_outline, color: Colors.amber),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        _viewModel.getAutoPublishNotificationMessage(),
+                        'Your event will be automatically published after 7 days (${formatDate(maxAllowedDate)}) if not published earlier.',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
-                      onPressed: _viewModel.dismissNotification,
+                      onPressed: () => dismissNotification(() => setState(() {})),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -113,9 +107,9 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            EventTargetsConstants.screenTitle,
+                            'Set Targets and Invites',
                             style: TextStyle(
-                              color: EventTargetsColors.primaryColor,
+                              color: Color(0xFF0A0A4A),
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
@@ -132,20 +126,20 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.calendar_today, color: EventTargetsColors.infoBlue),
+                                const Icon(Icons.calendar_today, color: Colors.blue),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _viewModel.getFormattedEventDates(),
+                                        getFormattedEventDates(widget.event),
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       Text(
-                                        '${EventTargetsConstants.startingAtText} ${widget.event.startTime?.format(context)}',
+                                        'Starting at ${widget.event.startTime?.format(context)}',
                                         style: TextStyle(
                                           color: Colors.grey[700],
                                         ),
@@ -158,18 +152,18 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                           ),
                           const SizedBox(height: 24),
                           
-                          // Target Publish Date and Time section
+                          // Target Publish Date and Time in the same row
                           const Row(
                             children: [
                               Text(
-                                EventTargetsConstants.targetPublishDateLabel,
+                                'Target Publish Date',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               SizedBox(width: 4),
                               Text(
-                                EventTargetsConstants.requiredFieldIndicator,
+                                '*',
                                 style: TextStyle(
                                   color: Colors.red,
                                   fontWeight: FontWeight.bold,
@@ -179,7 +173,7 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${EventTargetsConstants.dateHelpText} (by ${_viewModel.formatDate(_variables.maxAllowedDate)})',
+                            'Must be within 7 days (by ${formatDate(maxAllowedDate)})',
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -193,7 +187,7 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                               // Date field
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => _viewModel.selectDate(context),
+                                  onTap: () => selectDate(context, () => setState(() {})),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                     decoration: BoxDecoration(
@@ -204,11 +198,11 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            _variables.targetPublishDate == null
-                                                ? EventTargetsConstants.selectDateHint
-                                                : _viewModel.formatDate(_variables.targetPublishDate),
+                                            targetPublishDate == null
+                                                ? 'Select date'
+                                                : '${targetPublishDate!.month}/${targetPublishDate!.day}/${targetPublishDate!.year}',
                                             style: TextStyle(
-                                              color: _variables.targetPublishDate == null ? EventTargetsColors.textGrey : EventTargetsColors.textBlack,
+                                              color: targetPublishDate == null ? Colors.grey : Colors.black,
                                             ),
                                           ),
                                         ),
@@ -224,7 +218,7 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                               // Time field
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => _viewModel.selectTime(context),
+                                  onTap: () => selectTime(context, () => setState(() {})),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                     decoration: BoxDecoration(
@@ -235,11 +229,11 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            _variables.targetPublishTime == null
-                                                ? EventTargetsConstants.selectTimeHint
-                                                : _variables.targetPublishTime!.format(context),
+                                            targetPublishTime == null
+                                                ? 'Time (optional)'
+                                                : targetPublishTime!.format(context),
                                             style: TextStyle(
-                                              color: _variables.targetPublishTime == null ? EventTargetsColors.textGrey : EventTargetsColors.textBlack,
+                                              color: targetPublishTime == null ? Colors.grey : Colors.black,
                                             ),
                                           ),
                                         ),
@@ -260,7 +254,7 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  EventTargetsConstants.invitedChurchesLabel,
+                                  'Invited Churches',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -278,8 +272,8 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const CircleAvatar(
-                                        backgroundColor: EventTargetsColors.textGrey,
-                                        child: Icon(Icons.person, color: EventTargetsColors.backgroundWhite),
+                                        backgroundColor: Colors.grey,
+                                        child: Icon(Icons.person, color: Colors.white),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -292,14 +286,24 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            Text('${church.members} ${EventTargetsConstants.membersText}'),
+                                            Text('${church.members} members'),
                                             const SizedBox(height: 8),
                                             Wrap(
                                               spacing: 4,
                                               runSpacing: 4,
                                               children: church.roles.map((role) {
-                                                final roleName = _viewModel.extractRoleName(role);
-                                                final chipColor = RoleColors.getRoleColor(roleName);
+                                                // Extract role name from the format "Role (count)"
+                                                final roleName = role.split(' (')[0];
+                                                
+                                                // Get role color based on role name
+                                                Color chipColor = Colors.grey[200]!;
+                                                if (roleName == 'Admin') {
+                                                  chipColor = Colors.blue.shade100;
+                                                } else if (roleName == 'Members') {
+                                                  chipColor = Colors.purple.shade100;
+                                                } else if (roleName == 'Pastor/Leader') {
+                                                  chipColor = Colors.green.shade100;
+                                                }
                                                 
                                                 return Chip(
                                                   label: Text(role, style: const TextStyle(fontSize: 10)),
@@ -325,7 +329,7 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  EventTargetsConstants.invitedGuestsLabel,
+                                  'Invited Guests',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -343,8 +347,8 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const CircleAvatar(
-                                        backgroundColor: EventTargetsColors.textGrey,
-                                        child: Icon(Icons.person, color: EventTargetsColors.backgroundWhite),
+                                        backgroundColor: Colors.grey,
+                                        child: Icon(Icons.person, color: Colors.white),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -370,7 +374,7 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                                               ],
                                             ),
                                             Text(
-                                              '${EventTargetsConstants.fromText} ${guest.churchName}',
+                                              'From: ${guest.churchName}',
                                               style: const TextStyle(fontSize: 12),
                                             ),
                                           ],
@@ -385,16 +389,16 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                           
                           // Invite Message
                           const Text(
-                            EventTargetsConstants.inviteMessageLabel,
+                            'Invite Message',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
-                            controller: _variables.inviteMessageController,
+                            controller: inviteMessageController,
                             decoration: const InputDecoration(
-                              hintText: EventTargetsConstants.inviteMessageHint,
+                              hintText: 'You are thoroughly invited to this event...',
                               border: OutlineInputBorder(),
                             ),
                             maxLines: 5,
@@ -416,20 +420,22 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: EventTargetsColors.primaryColor),
+                        border: Border.all(color: const Color(0xFF0A0A4A)),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextButton(
-                        onPressed: () => _viewModel.handleBack(context),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                         style: TextButton.styleFrom(
-                          foregroundColor: EventTargetsColors.primaryColor,
+                          foregroundColor: const Color(0xFF0A0A4A),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: const Text(
-                          EventTargetsConstants.backButtonText,
+                          'Back',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -441,20 +447,30 @@ class _EventTargetsScreenState extends State<EventTargetsScreen> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: EventTargetsColors.primaryColor,
+                        color: const Color(0xFF0A0A4A),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextButton(
-                        onPressed: () => _viewModel.handleContinue(context),
+                        onPressed: () {
+                          if (targetPublishDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please select a target publish date')),
+                            );
+                            return;
+                          }
+                          
+                          // Show send invites dialog
+                          showSendInvitesDialog(context, widget.event);
+                        },
                         style: TextButton.styleFrom(
-                          foregroundColor: EventTargetsColors.backgroundWhite,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: const Text(
-                          EventTargetsConstants.continueButtonText,
+                          'Continue',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),

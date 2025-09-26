@@ -1,11 +1,10 @@
-//CHURCH_CREATEEVENTS_9.dart
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'models/event.dart';
 import 'c2s10caeventcreation.dart';
 import 'services/event_service.dart';
-import 'CREATE_EVENTS_VAR.dart';
-import 'CREATE_EVENTS_FUNC.dart';
+import '../../backend/models/CHURCH_CREATEVENTS_VAR.dart';
+import '../../backend/viewmodels/CHURCH_CREATEVENTS_FUNC.dart';
 
 class EventWaitingApprovalScreen extends StatefulWidget {
   final Event event;
@@ -16,21 +15,18 @@ class EventWaitingApprovalScreen extends StatefulWidget {
   State<EventWaitingApprovalScreen> createState() => _EventWaitingApprovalScreenState();
 }
 
-class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen> {
-  late EventWaitingApprovalViewModel _viewModel;
-  late EventWaitingApprovalVariables _variables;
+class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen> 
+    with ChurchCreateVentsVar, ChurchCreateVentsFunc {
   
   @override
   void initState() {
     super.initState();
-    _variables = EventWaitingApprovalVariables(event: widget.event);
-    _viewModel = EventWaitingApprovalViewModel(_variables);
-    _viewModel.initializeScreen(context);
+    initEventWaitingApprovalScreen(widget.event, context);
   }
   
   @override
   void dispose() {
-    _viewModel.dispose();
+    disposeEventWaitingApprovalScreen();
     super.dispose();
   }
 
@@ -40,11 +36,13 @@ class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen>
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A0A4A),
         elevation: 0,
-        title: const Text(EventWaitingApprovalConstants.screenTitle),
+        title: const Text('Waiting for Approval'),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => _viewModel.navigateBack(context),
+          onPressed: () {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
         ),
       ),
       body: Container(
@@ -67,7 +65,7 @@ class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen>
               ),
               const SizedBox(height: 24),
               const Text(
-                EventWaitingApprovalConstants.waitingMessage,
+                'Waiting for churches to approve your event',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -76,14 +74,14 @@ class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen>
               ),
               const SizedBox(height: 8),
               Text(
-                EventWaitingApprovalConstants.redirectMessage,
+                'You will be redirected shortly...',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
                   fontStyle: FontStyle.italic,
                 ),
               ),
-              if (_viewModel.variables.eventSaved)
+              if (eventSaved)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
@@ -102,7 +100,7 @@ class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                EventWaitingApprovalConstants.eventCreatedTitle,
+                                'Event Created Successfully!',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green,
@@ -110,7 +108,7 @@ class _EventWaitingApprovalScreenState extends State<EventWaitingApprovalScreen>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                EventWaitingApprovalConstants.pendingApprovalMessage,
+                                'Your event is now pending approval',
                                 style: TextStyle(
                                   color: Colors.green.shade800,
                                   fontSize: 12,

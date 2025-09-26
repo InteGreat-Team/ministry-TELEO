@@ -1,3 +1,4 @@
+//STEPS 8-11
 // CHURCH_CREATEVENTS_VAR.dart - Clean version without duplicates
 import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter/material.dart';
