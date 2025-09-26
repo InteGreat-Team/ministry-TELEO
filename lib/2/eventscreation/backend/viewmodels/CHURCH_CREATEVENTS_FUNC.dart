@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
+import '../../frontend/screens/CHURCH_CREATEVENTS_5.dart'; 
+import '../../frontend/screens/CHURCH_CREATEVENTS_6p1.dart';
 import '../models/CHURCH_CREATEVENTS_VAR.dart';
 
 class CreateEventViewModel extends ChangeNotifier {
@@ -1016,6 +1018,8 @@ class EventSummaryViewModel {
 
 class EventRegistrationFormViewModel extends ChangeNotifier {
   final EventRegistrationFormModel _model = const EventRegistrationFormModel();
+
+  
   
   // Form field controllers
   final TextEditingController consentFormUrlController = TextEditingController();
@@ -1037,19 +1041,20 @@ class EventRegistrationFormViewModel extends ChangeNotifier {
     consentMessageController.text = 'By checking this box, you hereby agree and consent to the:';
     
     // Load saved form configuration if available
-    if (event.registrationFormConfig != null) {
-      _model._fieldVisibility = Map.from(event.registrationFormConfig!.fieldVisibility);
-      _model.setConsentRequired(event.registrationFormConfig!.consentRequired);
-      consentFormUrlController.text = event.registrationFormConfig!.consentFormUrl ?? consentFormUrlController.text;
-      consentMessageController.text = event.registrationFormConfig!.consentMessage ?? consentMessageController.text;
-      _model.setHasReadTerms(event.registrationFormConfig!.hasReadTerms);
-      _model.setHasAcceptedTerms(event.registrationFormConfig!.hasAcceptedTerms);
-      
-      // Load saved dropdown options if available
-      if (event.registrationFormConfig!.dropdownOptions != null) {
-        _model._dropdownOptions = Map.from(event.registrationFormConfig!.dropdownOptions!);
-      }
-    }
+   if (event.registrationFormConfig != null) {
+  // Use setter methods instead of direct assignment
+  _model.setFieldVisibility(Map.from(event.registrationFormConfig!.fieldVisibility));
+  _model.setConsentRequired(event.registrationFormConfig!.consentRequired);
+  consentFormUrlController.text = event.registrationFormConfig!.consentFormUrl ?? consentFormUrlController.text;
+  consentMessageController.text = event.registrationFormConfig!.consentMessage ?? consentMessageController.text;
+  _model.setHasReadTerms(event.registrationFormConfig!.hasReadTerms);
+  _model.setHasAcceptedTerms(event.registrationFormConfig!.hasAcceptedTerms);
+  
+  // Load saved dropdown options if available
+  if (event.registrationFormConfig!.dropdownOptions != null) {
+    _model.setDropdownOptions(Map.from(event.registrationFormConfig!.dropdownOptions!));
+  }
+}
   }
 
   void toggleFieldVisibility(String fieldName) {
